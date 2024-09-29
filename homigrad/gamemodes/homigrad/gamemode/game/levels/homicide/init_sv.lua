@@ -1,7 +1,6 @@
 local firstG = {
     "weapon_mp5",
     "weapon_ar15",
-    "weapon_ak74",
     "weapon_akm",
     "weapon_m4a1",
     "weapon_xm1014",
@@ -12,7 +11,7 @@ local secondG = {
         "weapon_beretta",
 	"weapon_deagle",
 	"weapon_fiveseven",
-	"weapon_glock18"
+	"weapon_glock"
 }
  
 local Meele = {
@@ -54,22 +53,50 @@ COMMANDS.homicide_get = {function(ply,args)
 end}
 
 local function makeT(ply)
+    local Meele = {
+        "weapon_pipeweapon_hg_hatchet",
+            "weapon_knife",
+            "weapon_police_bat",
+            "weapon_hg_fireaxe",
+            "weapon_hg_shovel",
+            "weapon_hg_metalbat",
+            "weapon_hg_crowbar",
+            "weapon_hg_kitknife"
+    }      
     ply.roleT = true
     table.insert(homicide.t,ply)
-    local g1 = Gunshuy[random.math(1,#firstG)]
-    local g2 = Gunshuy[random.math(1,#secondG)]
-    local g3 = Gunshuy[random.math(1,#Meele)]
+    local wep1 = math.random(1,#firstG)
+    local wep2 = math.random(1,#secondG)
+    local randomIndex = math.random(1, #Meele) 
+    print(wep1)
+    local wep1Give = ply:Give(firstG[wep1])
+    local wep2Give = ply:Give(secondG[wep2])
+    local wep3Give = ply:Give(Meele[randomIndex])
 
     if homicide.roundType == 1 then
-        ply:Give(g3)
-        local wep = ply:Give(g1)
-        local wep = ply:Give(g2)
-        wep:SetClip1(wep:GetMaxClip1())
-
-
+        ply:Give("weapon_hg_t_syringepoison")
         ply:Give("weapon_hg_t_vxpoison")
-        ply:Give("weapon_medkit")
+
+        ply:Give("weapon_hidebomb")
         ply:Give("weapon_hg_rgd5")
+    elseif homicide.roundType == 2 then
+        ply:Give("weapon_hg_t_syringepoison")
+        ply:Give("weapon_hg_t_vxpoison")
+
+        ply:Give("weapon_hidebomb")
+        ply:Give("weapon_hg_rgd5")
+    elseif homicide.roundType == 3 then
+
+        ply:Give("weapon_hg_t_syringepoison")
+        ply:Give("weapon_hg_t_vxpoison")
+        
+        ply:Give("weapon_hg_rgd5")
+    else
+
+        ply:Give("weapon_hidebomb")
+        ply:Give("weapon_hg_rgd5")
+        ply:GiveAmmo(12,5)
+    end
 
     timer.Simple(5,function() ply.allowFlashlights = true end)
 
