@@ -110,32 +110,10 @@ end
 local function makeCT(ply)
     ply.roleCT = true
     table.insert(homicide.ct,ply)
-    local Meele = {
-            "weapon_pipeweapon_hg_hatchet",
-            "weapon_knife",
-            "weapon_police_bat",
-            "weapon_hg_fireaxe",
-            "weapon_hg_shovel",
-            "weapon_hg_metalbat",
-            "weapon_hg_crowbar",
-            "weapon_hg_kitknife"
-    }      
-    ply.roleT = true
-    table.insert(homicide.t,ply)
-    local wep1 = math.random(1,#firstG)
-    local wep2 = math.random(1,#secondG)
-    local randomIndex = math.random(1, #Meele) 
-    local wep1Give = ply:Give(firstG[wep1])
-    local wep2Give = ply:Give(secondG[wep2])
-    local wep3Give = ply:Give(Meele[randomIndex])
-    wep1Give:SetClip1(wep1Give:GetMaxClip1())
-    wep2Give:SetClip1(wep2Give:GetMaxClip1())
     if homicide.roundType == 1 then
-        local wep = ply:Give("weapon_handcuffs")
-        local wep = ply:Give("weapon_taser")
-
+        local wep = ply:Give("weapon_remington870")
         wep:SetClip1(wep:GetMaxClip1())
-        AddNotificate( ply,"Вы невиновый с тазером и наручниками")
+        AddNotificate( ply,"Вы невиновый с крупногабаритным огнестрельным оружием.")
     elseif homicide.roundType == 2 then
         local wep = ply:Give("weapon_beretta")
         wep:SetClip1(wep:GetMaxClip1())
