@@ -120,8 +120,7 @@ function wick.PlayerSpawn(ply,teamID)
     local teamTbl = wick[wick.teamEncoder[teamID]]
     local color = teamID == 1 and Color(math.random(55,165),math.random(55,165),math.random(55,165)) or teamTbl[2]
 
-	ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
-    ply:SetPlayerColor(color:ToVector())
+	ply:SetModel="models/arachnit/fortnite/characters/male/medium/skin/jq/john_wick_fortnite_player.mdl"
 
 	ply:Give("weapon_hands")
     timer.Simple(0,function() ply.allowFlashlights = false end)
