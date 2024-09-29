@@ -3,7 +3,7 @@ local function makeT(ply)
     ply.roleT = true
     table.insert(wick.t,ply)
 
-    ply:Give("weapon_kabar")
+    ply:Give("weapon_hg_hatchet")
     local wep = ply:Give("weapon_hk_usp")
     wep:SetClip1(wep:GetMaxClip1())
     ply:GiveAmmo(6 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
@@ -75,9 +75,13 @@ function wick.StartRoundSV()
         ply.roleT = false
 
         ply:Give("weapon_gurkha")
-        local wep = ply:Give("weapon_hk_usp")
+        local wep = ply:Give("weapon_glock")
         wep:SetClip1(wep:GetMaxClip1())
         ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
+
+    local wep = ply:Give("weapon_mp5")
+    wep:SetClip1(wep:GetMaxClip1())
+    ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
     end)
 
     tdm.SpawnCommand(wick.t,aviable2,function(ply)
