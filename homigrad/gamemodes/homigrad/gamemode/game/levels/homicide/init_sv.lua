@@ -53,6 +53,7 @@ COMMANDS.homicide_get = {function(ply,args)
 end}
 
 local function makeT(ply)
+
     local Meele = {
         "weapon_pipeweapon_hg_hatchet",
             "weapon_knife",
@@ -72,7 +73,7 @@ local function makeT(ply)
     local wep1Give = ply:Give(firstG[wep1])
     local wep2Give = ply:Give(secondG[wep2])
     local wep3Give = ply:Give(Meele[randomIndex])
-
+    
     if homicide.roundType == 1 then
         ply:Give("weapon_hg_t_syringepoison")
         ply:Give("weapon_hg_t_vxpoison")
@@ -110,14 +111,36 @@ end
 local function makeCT(ply)
     ply.roleCT = true
     table.insert(homicide.ct,ply)
+    local Meele = {
+        "weapon_pipeweapon_hg_hatchet",
+            "weapon_knife",
+            "weapon_police_bat",
+            "weapon_hg_fireaxe",
+            "weapon_hg_shovel",
+            "weapon_hg_metalbat",
+            "weapon_hg_crowbar",
+            "weapon_hg_kitknife"
+    }      
+    local wep1 = math.random(1,#firstG)
+    local wep2 = math.random(1,#secondG)
+    local randomIndex = math.random(1, #Meele) 
+    print(wep1)
+    local wep1Give = ply:Give(firstG[wep1])
+    local wep2Give = ply:Give(secondG[wep2])
+    local wep3Give = ply:Give(Meele[randomIndex])
+    
     if homicide.roundType == 1 then
-        local wep = ply:Give("weapon_remington870")
+        local wep = ply:Give("weapon_handcuffs")
+        local wep = ply:Give("weapon_taser")
+        local wep = ply:Give("weapon_per4ik")
         wep:SetClip1(wep:GetMaxClip1())
-        AddNotificate( ply,"Вы невиновый с крупногабаритным огнестрельным оружием.")
+        AddNotificate( ply,"Вы шериф с стяжками, тазером и перцовым балончиком")
     elseif homicide.roundType == 2 then
-        local wep = ply:Give("weapon_beretta")
+        local wep = ply:Give("weapon_handcuffs")
+        local wep = ply:Give("weapon_taser")
+        local wep = ply:Give("weapon_per4ik")
         wep:SetClip1(wep:GetMaxClip1())
-        AddNotificate( ply,"Вы невиновый со скрытым огнестрельным оружием.")
+        AddNotificate( ply,"Вы шериф с стяжками, тазером и перцовым балончиком")
     elseif homicide.roundType == 3 then
         --nihuya
     else
@@ -318,12 +341,17 @@ local empty = {}
 function homicide.PlayerSpawn(ply,teamID)
     local teamTbl = homicide[homicide.teamEncoder[teamID]]
     local color = teamID == 1 and Color(math.random(55,165),math.random(55,165),math.random(55,165)) or teamTbl[2]
-
 	ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
     ply:SetPlayerColor(color:ToVector())
 
 	ply:Give("weapon_hands")
     timer.Simple(0,function() ply.allowFlashlights = false end)
+    JMod.EZ_Equip_Armor(ply,"Medium-Vest",color)
+    if math.random(1,2) == 1 then 
+        JMod.EZ_Equip_Armor(ply,"Traffic Cone",color)
+    else
+        JMod.EZ_Equip_Armor(ply,'Metal Pot',color)
+    end
 end
 
 function homicide.PlayerInitialSpawn(ply)
