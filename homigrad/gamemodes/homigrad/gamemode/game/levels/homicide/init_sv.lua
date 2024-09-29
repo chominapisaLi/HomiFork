@@ -1,3 +1,31 @@
+local firstG = {
+    "weapon_mp5",
+    "weapon_ar15",
+    "weapon_ak74",
+    "weapon_akm",
+    "weapon_m4a1",
+    "weapon_xm1014",
+    "weapon_remington870"
+}
+
+local secondG = {
+        "weapon_beretta",
+	"weapon_deagle",
+	"weapon_fiveseven",
+	"weapon_glock18"
+}
+ 
+local Meele = {
+	"weapon_pipeweapon_hg_hatchet"
+        "weapon_knife"
+        "weapon_police_bat"
+        "weapon_hg_fireaxe"
+        "weapon_hg_shovel"
+        "weapon_hg_metalbat"
+        "weapon_hg_crowbar"
+        "weapon_hg_kitknife"
+}      
+
 local function GetFriends(play)
     
     local huy = ""
