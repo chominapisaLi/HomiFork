@@ -16,14 +16,14 @@ local secondG = {
 }
  
 local Meele = {
-	"weapon_pipeweapon_hg_hatchet"
-        "weapon_knife"
-        "weapon_police_bat"
-        "weapon_hg_fireaxe"
-        "weapon_hg_shovel"
-        "weapon_hg_metalbat"
-        "weapon_hg_crowbar"
-        "weapon_hg_kitknife"
+	"weapon_pipeweapon_hg_hatchet",
+        "weapon_knife",
+        "weapon_police_bat",
+        "weapon_hg_fireaxe",
+        "weapon_hg_shovel",
+        "weapon_hg_metalbat",
+        "weapon_hg_crowbar",
+        "weapon_hg_kitknife",
 }      
 
 local function GetFriends(play)
@@ -56,38 +56,20 @@ end}
 local function makeT(ply)
     ply.roleT = true
     table.insert(homicide.t,ply)
+    local g1 = Gunshuy[random.math(1,#firstG)]
+    local g2 = Gunshuy[random.math(1,#secondG)]
+    local g3 = Gunshuy[random.math(1,#Meele)]
 
     if homicide.roundType == 1 then
-        ply:Give("weapon_t")
-        local wep = ply:Give("weapon_hk_usps")
+        ply:Give(g3)
+        local wep = ply:Give(g1)
+        local wep = ply:Give(g2)
         wep:SetClip1(wep:GetMaxClip1())
 
 
         ply:Give("weapon_hg_t_vxpoison")
-        ply:Give("weapon_hidebomb")
+        ply:Give("weapon_medkit")
         ply:Give("weapon_hg_rgd5")
-    elseif homicide.roundType == 2 then
-        ply:Give("weapon_t")
-
-        ply:Give("weapon_hg_t_syringepoison")
-        ply:Give("weapon_hg_t_vxpoison")
-
-        ply:Give("weapon_hidebomb")
-        ply:Give("weapon_hg_rgd5")
-    elseif homicide.roundType == 3 then
-        ply:Give("weapon_t")
-
-        ply:Give("weapon_hg_t_syringepoison")
-        ply:Give("weapon_hg_t_vxpoison")
-        
-        ply:Give("weapon_hg_rgd5")
-    else
-        ply:Give("weapon_t")
-
-        ply:Give("weapon_hidebomb")
-        ply:Give("weapon_hg_rgd5")
-        ply:GiveAmmo(12,5)
-    end
 
     timer.Simple(5,function() ply.allowFlashlights = true end)
 
