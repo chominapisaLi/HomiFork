@@ -254,26 +254,26 @@ local angZero = Angle(0,0,0)
 local g_station = nil
 local playing = false
 local deathtexts = {
-	"ТЫ МЁРТВ",
-	"ПОХОЖЕ, ТЫ СДОХ",
+	"ВЫ УБИТЫ",
+	"ПЛАКИ-ПЛАКИ(",
 	"ПОТРАЧЕНО",
-	"ВАУ, ТЫ УМЕР",
-	"ЖИЗНЬ ЗАКОНЧЕНА",
-	"GAME OVER",
-	"WASTED",
+	"💀",
+	"ФАРШМАК",
+	"SCIBIDY SMERT",
+	"ОТЧАЛИЛСЯ",
 	"МЁРТВ",
 	"ПОМЕР",
-	"ТРУПАК",
-	"МЕРТВЕЦ",
+	"ЖМУРИК",
+	"ЗОНДБМАН",
 	"СДОХ",
-	"ТВОЯ ОСТОНОВКА",
-	"ВРЕМЯ ВЫШЛО",
-	"МИССИЯ ПРОВАЛЕНА",
-	"ВОТ И ВСЕ!",
+	"ЖИВ(НЕ УМЕР)",
+	"ГОЛОВА,ГЛАЗА",
+	"гпггщзл",
+	"УЗНИК МИФИКА"
 	"КОНЕЦ",
-	"FILINA?",
-	"DEAD",
-	"TRY AGAIN"
+	"TOD?",
+	"PRESS R TO RESTART",
+	"НЕ СРАТЬ!!!"
 }
 net.Receive("pophead",function(len)
 	local rag = net.ReadEntity()
