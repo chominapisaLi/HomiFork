@@ -71,7 +71,6 @@ function StartRound()
 		end
 	end
 
-	RunConsoleCommand("hostname","СEPBEP ЛOХOВ")
 
 	timer.Simple(5,function() flashlightOverride = false end)
 
@@ -79,8 +78,8 @@ function StartRound()
 
 	local textGmod = ""
 	local text = ""
-	text = text .. "Игровой режим	: " .. tostring(tbl.Name) .. "\n"
-
+	text =  "HomiForked | ".."Игровой режим	: " .. tostring(tbl.Name) .. "\n"
+	RunConsoleCommand("hostname",text)
 	RoundData = tbl.StartRound
 	RoundData = RoundData and RoundData() or {}
 
