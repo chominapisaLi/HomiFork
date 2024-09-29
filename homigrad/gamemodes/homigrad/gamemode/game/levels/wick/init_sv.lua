@@ -74,14 +74,11 @@ function wick.StartRoundSV()
     tdm.SpawnCommand(players,aviable,function(ply)
         ply.roleT = false
 
-        ply:Give("weapon_gurkha")
+        ply:Give("weapon_hg_hatchet")
         local wep = ply:Give("weapon_glock")
         wep:SetClip1(wep:GetMaxClip1())
         ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
-
-    local wep = ply:Give("weapon_mp5")
-    wep:SetClip1(wep:GetMaxClip1())
-    ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
+    ply:SetMaxHealth(#player.GetAll() * 150)
     end)
 
     tdm.SpawnCommand(wick.t,aviable2,function(ply)
