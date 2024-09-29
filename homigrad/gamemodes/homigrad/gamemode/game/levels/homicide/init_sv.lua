@@ -23,7 +23,7 @@ local Meele = {
         "weapon_hg_shovel",
         "weapon_hg_metalbat",
         "weapon_hg_crowbar",
-        "weapon_hg_kitknife",
+        "weapon_hg_kitknife"
 }      
 
 local function GetFriends(play)
