@@ -146,7 +146,7 @@ function basedefence.PlayerSpawn(ply,teamID)
     ply:SetPlayerColor(Color(math.random(55,165),math.random(55,165),math.random(55,165)):ToVector())
 
     ply:Give("weapon_hands")
-    ply:Give("weapon_kabar")
+    ply:Give("weapon_t")
 
     local wep = ply:Give("weapon_hk_usp")
     wep:SetClip1(wep:GetMaxClip1())

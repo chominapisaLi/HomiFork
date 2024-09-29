@@ -13,7 +13,7 @@ local models = {}
 for i = 1,9 do table.insert(models,"models/player/rusty/natguard/male_0" .. i .. ".mdl") end
 
 bahmut.blue = {"НАТО",Color(125,125,60),
-	weapons = {"weapon_megamedkit","weapon_binokle","weapon_hands","weapon_kabar","bandage","med_band_big","med_band_small","painkiller","weapon_hg_f1","weapon_handcuffs","weapon_radio"},
+	weapons = {"weapon_megamedkit","weapon_binokle","weapon_hands","weapon_t","bandage","med_band_big","med_band_small","painkiller","weapon_hg_f1","weapon_handcuffs","weapon_radio"},
 	main_weapon = {"weapon_mk18","weapon_m4a1","weapon_xm1014","weapon_m249"},
 	secondary_weapon = {"weapon_beretta","weapon_fiveseven","weapon_hk_usp"},
 	models = models

@@ -30,7 +30,7 @@ local function makeT(ply)
     table.insert(homicide.t,ply)
 
     if homicide.roundType == 1 then
-        ply:Give("weapon_kabar")
+        ply:Give("weapon_t")
         local wep = ply:Give("weapon_hk_usps")
         wep:SetClip1(wep:GetMaxClip1())
 
@@ -39,7 +39,7 @@ local function makeT(ply)
         ply:Give("weapon_hidebomb")
         ply:Give("weapon_hg_rgd5")
     elseif homicide.roundType == 2 then
-        ply:Give("weapon_kabar")
+        ply:Give("weapon_t")
 
         ply:Give("weapon_hg_t_syringepoison")
         ply:Give("weapon_hg_t_vxpoison")
@@ -47,14 +47,14 @@ local function makeT(ply)
         ply:Give("weapon_hidebomb")
         ply:Give("weapon_hg_rgd5")
     elseif homicide.roundType == 3 then
-        ply:Give("weapon_kabar")
+        ply:Give("weapon_t")
 
         ply:Give("weapon_hg_t_syringepoison")
         ply:Give("weapon_hg_t_vxpoison")
         
         ply:Give("weapon_hg_rgd5")
     else
-        ply:Give("weapon_kabar")
+        ply:Give("weapon_t")
 
         ply:Give("weapon_hidebomb")
         ply:Give("weapon_hg_rgd5")
