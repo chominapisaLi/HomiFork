@@ -9,7 +9,6 @@ local function makeT(ply)
     ply:GiveAmmo(6 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
 
     ply:Give("weapon_hg_rgd5")
-    ply:SetModel("models/arachnit/fortnite/characters/male/medium/skin/jq/john_wick_fortnite_player.mdl")
     local wep = ply:Give("weapon_mp5")
     wep:SetClip1(wep:GetMaxClip1())
     ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
@@ -18,6 +17,7 @@ local function makeT(ply)
     ply:SetHealth(#player.GetAll() * 200)
 
     ply:ChatPrint("Вы Джон Уик.")
+    ply:SetModel("models/arachnit/fortnite/characters/male/medium/skin/jq/john_wick_fortnite_player.mdl")
 end
 
 function wick.SpawnsCT()
@@ -119,10 +119,10 @@ local empty = {}
 function wick.PlayerSpawn(ply,teamID)
     local teamTbl = wick[wick.teamEncoder[teamID]]
     local color = teamID == 1 and Color(math.random(55,165),math.random(55,165),math.random(55,165)) or teamTbl[2]
-    
-
-    ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
-
+    if ply.roleCT then
+        PrintMessage(HUD_PRINTTALK,'TRUE')
+        ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
+    end
     ply:SetPlayerColor(color:ToVector())
 	ply:Give("weapon_hands")
     timer.Simple(0,function() ply.allowFlashlights = false end)
@@ -149,7 +149,9 @@ function wick.SyncRole()
     local role = {{},{}}
 
     for i,ply in pairs(team.GetPlayers(1)) do
-        if ply.roleT then table.insert(role[1],ply) end
+        if ply.roleT then table.insert(role[1],ply)
+        else ply.roleCT = true 
+        end
     end
 
     net.Start("homicide_roleget2")
