@@ -347,8 +347,12 @@ function homicide.PlayerSpawn(ply,teamID)
 	ply:Give("weapon_hands")
     timer.Simple(0,function() ply.allowFlashlights = false end)
     JMod.EZ_Equip_Armor(ply,"Medium-Vest",color)
-    if math.random(1,2) == 1 then 
+    local tvoyaostanovka = math.random(1,3) 
+    if tvoyaostanovka == 1 then 
         JMod.EZ_Equip_Armor(ply,"Traffic Cone",color)
+    elseif tvoyaostanovka == 2 then
+        JMod.EZ_Equip_Armor(ply,"Ceramic Pot",color)
+        
     else
         JMod.EZ_Equip_Armor(ply,'Metal Pot',color)
     end
