@@ -25,7 +25,7 @@ end
 function wick.StartRound(data)
     team.SetColor(1,wick.red[2])
 
-    game.CleanUpMap(false)
+    game.CleanUpMap(true)
 
     if SERVER then
         net.Start("roundType2")
