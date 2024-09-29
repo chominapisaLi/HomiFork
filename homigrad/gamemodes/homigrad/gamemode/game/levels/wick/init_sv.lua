@@ -10,7 +10,7 @@ local function makeT(ply)
 
     ply:Give("weapon_hg_rgd5")
 
-    local wep = ply:Give("weapon_ar15")
+    local wep = ply:Give("weapon_mp5")
     wep:SetClip1(wep:GetMaxClip1())
     ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
     ply.nopain = true
