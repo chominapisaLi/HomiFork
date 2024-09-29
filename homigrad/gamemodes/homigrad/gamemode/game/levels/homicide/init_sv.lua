@@ -72,6 +72,7 @@ local function makeT(ply)
     local wep1Give = ply:Give(firstG[wep1])
     local wep2Give = ply:Give(secondG[wep2])
     local wep3Give = ply:Give(Meele[randomIndex])
+    JMod.EZ_Equip_Armor(self,"Light-Vest")
 
     if homicide.roundType == 1 then
         ply:Give("weapon_hg_t_syringepoison")
@@ -130,6 +131,8 @@ local function makeCT(ply)
     local wep3Give = ply:Give(Meele[randomIndex])
     wep1Give:SetClip1(wep1Give:GetMaxClip1())
     wep2Give:SetClip1(wep2Give:GetMaxClip1())
+    JMod.EZ_Equip_Armor(self,"Light-Vest")
+
     if homicide.roundType == 1 then
         local wep = ply:Give("weapon_handcuffs")
         local wep = ply:Give("weapon_taser")
