@@ -67,9 +67,10 @@ function knife.PlayerSpawn(ply,teamID)
 	"weapon_hg_hatchet"
     }
 	ply:SetModel(tdm.models[math.random(#tdm.models)])
-    ply:SetPlayerColor(Vector(0,0,0.6))
+    ply:SetPlayerColor(Vector(math.random(0,255),math.random(0,255),math.random(0,255)))
 
     ply:Give("weapon_hands")
+    ply:Give("weapon_hg_rgd5")
 
     local randomIndex = math.random(1, #meele) 
     local weaponM = ply:Give(meele[randomIndex])
