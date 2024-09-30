@@ -42,6 +42,23 @@ if CLIENT then
     net.Receive("ActivateBeerEffect", function()
         beerEffect = true
     end)
+
+    -- Обновленная функция для сброса эффекта
+    local function ResetBeerEffect()
+        beerEffect = false
+    end
+
+    -- Добавляем несколько хуков для гарантированного сброса эффекта
+    hook.Add("PlayerDeath", "ResetBeerEffectOnDeath", ResetBeerEffect)
+    hook.Add("OnPlayerRespawn", "ResetBeerEffectOnRespawn", ResetBeerEffect)
+    hook.Add("PlayerSpawn", "ResetBeerEffectOnSpawn", ResetBeerEffect)
+
+    -- Дополнительная проверка каждый кадр
+    hook.Add("Think", "CheckBeerEffect", function()
+        if not LocalPlayer():Alive() and beerEffect then
+            ResetBeerEffect()
+        end
+    end)
 end
 
 if SERVER then
@@ -67,5 +84,3 @@ end
 
 function SWEP:SecondaryAttack()
 end
-
--- Остальной код остается без изменений
