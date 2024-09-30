@@ -1,21 +1,21 @@
 table.insert(LevelList,"knife")
-dm = {}
-dm.Name = "knife_gren"
-dm.LoadScreenTime = 5.5
-dm.CantFight = dm.LoadScreenTime
+knife = {}
+knife.Name = "knife_gren"
+knife.LoadScreenTime = 5.5
+knife.CantFight = knife.LoadScreenTime
 
-dm.RoundRandomDefalut = 1
-dm.NoSelectRandom = true
+knife.RoundRandomDefalut = 1
+knife.NoSelectRandom = true
 
 local red = Color(155,155,255)
 
-function dm.GetTeamName(ply)
+function knife.GetTeamName(ply)
     local teamID = ply:Team()
 
      if teamID == 1 then return "Пьяница",red end
 end
 
-function dm.StartRound(data)
+function knife.StartRound(data)
     team.SetColor(1,red)
     team.SetColor(2,blue)
     team.SetColor(1,green)
@@ -25,12 +25,12 @@ function dm.StartRound(data)
     if CLIENT then
         roundTimeStart = data[1]
         roundTime = data[2]
-        dm.StartRoundCL()
+        knife.StartRoundCL()
 
         return
     end
 
-    return dm.StartRoundSV()
+    return knife.StartRoundSV()
 end
 
 if SERVER then return end
@@ -46,11 +46,11 @@ local fuck,fuckLerp = 0,0
 
 
 local playsound = false
-function dm.StartRoundCL()
+function knife.StartRoundCL()
     playsound = true
 end
 
-function dm.HUDPaint_RoundLeft(white)
+function knife.HUDPaint_RoundLeft(white)
     local lply = LocalPlayer()
 
 	local startRound = roundTimeStart + 7 - CurTime()
@@ -76,11 +76,11 @@ function dm.HUDPaint_RoundLeft(white)
     end
 end
 
-net.Receive("dm die",function()
+net.Receive("knife die",function()
     timeStartAnyDeath = CurTime()
 end)
 
-function dm.CanUseSpectateHUD()
+function knife.CanUseSpectateHUD()
     return false
 end
 

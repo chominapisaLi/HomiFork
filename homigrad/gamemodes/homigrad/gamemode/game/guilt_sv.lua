@@ -69,16 +69,6 @@ end,1}
 function GuiltCheck(att,ply)
 	if att.Guilt >= 100 then
 		att.Guilt = 0
-		
-		if not att.noguilt and not att:HasGodMode() then
-			att:Kill()
-
-			if not validUserGroup[att:GetUserGroup()] then
-				RunConsoleCommand("ulx","fakeban",att:Name(),"10","Kicked and Banned for RDM")
-			else
-				RunConsoleCommand("ulx","fakeban",att:Name(),"10","Kicked and Banned for RDM")
-			end
-		end
 	end
 end
 

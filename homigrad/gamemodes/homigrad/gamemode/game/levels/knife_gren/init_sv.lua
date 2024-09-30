@@ -1,4 +1,4 @@
-function dm.StartRoundSV()
+function knife.StartRoundSV()
     tdm.RemoveItems()
 
 	roundTimeStart = CurTime()
@@ -24,7 +24,7 @@ function dm.StartRoundSV()
     return {roundTimeStart,roundTime}
 end
 
-function dm.RoundEndCheck()
+function knife.RoundEndCheck()
     local Alive = 0
 
     for i,ply in pairs(team.GetPlayers(1)) do
@@ -51,7 +51,7 @@ function dm.RoundEndCheck()
 
 end
 
-function dm.EndRound(winner)
+function knife.EndRound(winner)
 	print("End round, win '" .. tostring(winner) .. "'")
 
     PrintMessage(3,"Победил " .. ("последний..."))
@@ -59,11 +59,11 @@ end
 
 local red = Color(255,0,0)
 
-function dm.PlayerSpawn(ply,teamID)
+function knife.PlayerSpawn(ply,teamID)
     local meele = {
 	"weapon_t",
 	"weapon_knife",
-        "weapon_fireaxe",
+    "weapon_fireaxe",
 	"weapon_hg_hatchet"
     }
 	ply:SetModel(tdm.models[math.random(#tdm.models)])
@@ -83,11 +83,11 @@ function dm.PlayerSpawn(ply,teamID)
     
 end
 
-function dm.PlayerInitialSpawn(ply)
+function knife.PlayerInitialSpawn(ply)
     ply:SetTeam(1)
 end
 
-function dm.PlayerCanJoinTeam(ply,teamID)
+function knife.PlayerCanJoinTeam(ply,teamID)
 	if teamID == 2 or teamID == 3 then ply:ChatPrint("пашол нахуй") return false end
 
     return true
@@ -95,8 +95,8 @@ end
 
 function dm.GuiltLogic() return false end
 
-util.AddNetworkString("dm die")
-function dm.PlayerDeath()
-    net.Start("dm die")
+util.AddNetworkString("knife die")
+function knife.PlayerDeath()
+    net.Start("knife die")
     net.Broadcast()
 end
