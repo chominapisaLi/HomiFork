@@ -156,11 +156,7 @@ local text
 local hg_disable_stoprenderunfocus = CreateClientConVar("hg_disable_stoprenderunfocus","0",true)
 
 local prekols = {
-	"Get a job",
-	"Get a life",
-	"возможно, команда hg_disable_stoprenderunfocus 1 выключит этот прикол...",
-	"ураааа, ты свернулся... Потрогай траву, играть вечность плохо.",
-	"kys"
+	""
 }
 
 local developer = GetConVar("developer")
