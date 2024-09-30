@@ -1,6 +1,6 @@
-table.insert(LevelList,"dm")
+table.insert(LevelList,"knife")
 dm = {}
-dm.Name = "DeathMatch"
+dm.Name = "knife_gren"
 dm.LoadScreenTime = 5.5
 dm.CantFight = dm.LoadScreenTime
 
@@ -12,7 +12,7 @@ local red = Color(155,155,255)
 function dm.GetTeamName(ply)
     local teamID = ply:Team()
 
-     if teamID == 1 then return "Боец",red end
+     if teamID == 1 then return "Пьяница",red end
 end
 
 function dm.StartRound(data)
@@ -67,7 +67,7 @@ function dm.HUDPaint_RoundLeft(white)
         surface.SetTextPos(ScrW() / 2 - 40,ScrH() / 2)
 
         surface.DrawText("Вы " .. name)]]--
-        draw.DrawText( "Ты боец", "HomigradFontBig", ScrW() / 2, ScrH() / 2, Color( 205,255,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+        draw.DrawText( "Вы в хлам", "HomigradFontBig", ScrW() / 2, ScrH() / 2, Color( 205,255,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         draw.DrawText( "ПОНОЖОВЩИНА", "HomigradFontBig", ScrW() / 2, ScrH() / 8, Color( 205,255,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         --draw.DrawText( roundTypes[roundType], "HomigradFontBig", ScrW() / 2, ScrH() / 5, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
 
