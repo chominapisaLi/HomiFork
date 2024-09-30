@@ -121,6 +121,7 @@ function SWEP:PrimaryAttack()
 		self:GetOwner().hungryregen = self:GetOwner().hungryregen + 1
 		self:GetOwner().adrenaline = self:GetOwner().adrenaline + 1
 		self:GetOwner().stamina = self:GetOwner().stamina + 10
+                self:GetOwner().nopain = true
 		self:Remove()
 		sound.Play(healsound, self:GetPos(),75,100,0.5)
 		self:GetOwner():SelectWeapon("weapon_hands")
