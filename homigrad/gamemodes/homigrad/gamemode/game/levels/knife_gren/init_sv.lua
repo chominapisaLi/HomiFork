@@ -60,39 +60,26 @@ end
 local red = Color(255,0,0)
 
 function dm.PlayerSpawn(ply,teamID)
+    local meele = {
+	"weapon_t",
+	"weapon_knife",
+        "weapon_fireaxe",
+	"weapon_hg_hatchet"
+    }
 	ply:SetModel(tdm.models[math.random(#tdm.models)])
     ply:SetPlayerColor(Vector(0,0,0.6))
 
-
     ply:Give("weapon_hands")
-    if roundDmType == 1 then
-        local r = math.random(1,5)
-        ply:Give((r==1 and "weapon_mp7") or (r==2 and "weapon_ak74u") or (r==3 and "weapon_akm") or (r==4 and "weapon_galil") or (r==5 and "weapon_m4a1"))
-        ply:Give("weapon_t")
-        ply:Give("medkit")
-        ply:Give("med_band_big")
-        ply:SetAmmo( 90, (r==1 and 46) or (r==2 and 44) or (r==3 and 47) or (r>=4 and 45) )
-    elseif roundDmType == 2 then
-        local r = math.random(1,3)
-        ply:Give((r==1 and "weapon_spas12") or (r==2 and "weapon_xm1014") or (r==3 and "weapon_remington870"))
-        ply:Give("weapon_t")
-        ply:Give("medkit")
-        ply:Give("med_band_big")
-        ply:Give("weapon_hg_rgd5")
-        ply:SetAmmo( 90, 41 )
-    else
-        local r = math.random(1,3)
-        ply:Give((r==1 and "weapon_hk_usp") or (r==2 and "weapon_fiveseven") or (r==3 and "weapon_beretta"))
-        ply:Give("weapon_t")
-        ply:Give("med_band_big")
-        ply:Give("weapon_hg_rgd5")
-        ply:Give("weapon_hidebomb")
-        ply:SetAmmo( 50, 49 )
-    end
-    ply:Give("weapon_radio")
+
+    local randomIndex = math.random(1, #meele) 
+    local weaponM = ply:Give(meele[randomIndex])
+    ply:Give("med_band_big")
+    ply:Give("food_beer")
+    ply:Give("food_fishcan")
 
     ply:SetLadderClimbSpeed(100)
 
+    
 end
 
 function dm.PlayerInitialSpawn(ply)
