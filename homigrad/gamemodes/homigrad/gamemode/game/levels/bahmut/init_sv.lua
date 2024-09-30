@@ -125,15 +125,10 @@ function bahmut.PlayerSpawn(ply,teamID)
 	local teamTbl = bahmut[bahmut.teamEncoder[teamID]]
 	local color = teamTbl[2]
 	ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
-
+	
 	if teamID == 1 then
-		ply:SetBodygroup(1,2)
-		ply:SetBodygroup(2,1)
-		ply:SetBodygroup(4,1)
-		ply:SetBodygroup(5,1)
-		ply:SetBodygroup(6,1)
-		ply:SetBodygroup(7,1)
-		ply:SetBodygroup(9,2)
+		ply:SetModel('models/wagner/wagner_soldier.mdl')
+	
 	end
 
     ply:SetPlayerColor(color:ToVector())
