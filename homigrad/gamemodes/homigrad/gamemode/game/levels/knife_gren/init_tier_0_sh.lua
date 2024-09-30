@@ -1,6 +1,6 @@
 table.insert(LevelList,"knife")
 knife = {}
-knife.Name = "knife_gren"
+knife.Name = "Поножовщина"
 knife.LoadScreenTime = 5.5
 knife.CantFight = knife.LoadScreenTime
 
