@@ -76,6 +76,7 @@ function dm.PlayerSpawn(ply,teamID)
     ply:Give("med_band_big")
     ply:Give("food_beer")
     ply:Give("food_fishcan")
+    
 
     ply:SetLadderClimbSpeed(100)
 
