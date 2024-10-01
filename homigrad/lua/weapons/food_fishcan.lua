@@ -133,7 +133,7 @@ function SpawnMyModel()
 local playerPos = ply:GetPos()
 
         myModel:SetModel("models/jordfood/atun.mdl")
-        myModel:SetPos(Vector(0, 0, 100)) 
+        myModel:SetPos(playerPos + Vector(0, 0, 100))  
         myModel:Spawn()
         myModel:Activate()
     else
