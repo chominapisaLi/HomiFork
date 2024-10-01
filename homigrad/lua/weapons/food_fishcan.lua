@@ -121,7 +121,7 @@ function SWEP:PrimaryAttack()
     if SERVER then
         -- Увеличьте регенерацию голода игрока
         self:GetOwner().hungryregen = self:GetOwner().hungryregen + 2
-
+        self:Remove()
         -- Воспроизведите звук
         sound.Play(healsound, self:GetPos(), 75, 100, 0.5)
 
@@ -145,14 +145,10 @@ function SWEP:PrimaryAttack()
         else
             print("Не удалось создать модель")
         end
-
-        -- Удалите оружие (если нужно)
-        self:Remove()
-
-        -- Вернуться к рукопашному оружию (по вашему процессу)
-        self:GetOwner():SelectWeapon("weapon_hands")
+        self:SetNextPrimaryFire(CurTime() + 1) -- Задержка перед следующим выстрелом
     end
 end
+
 
 
 	end
