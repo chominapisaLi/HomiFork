@@ -133,7 +133,7 @@ function SWEP:PrimaryAttack()
         if IsValid(myModel) then
             local playerPos = self:GetOwner():GetPos()
             myModel:SetModel("models/jordfood/atun.mdl")
-            myModel:SetPos(playerPos + Vector(0, 0, 100)) -- Позиция над игроком
+            myModel:SetPos(playerPos + Vector(0, 0, 10)) -- Позиция над игроком
             myModel:Spawn()
             myModel:Activate()
             
