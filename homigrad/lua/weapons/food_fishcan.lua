@@ -123,6 +123,27 @@ function SWEP:PrimaryAttack()
 		self:Remove()
 		sound.Play(healsound, self:GetPos(),75,100,0.5)
 		self:GetOwner():SelectWeapon("weapon_hands")
+
+
+function SpawnMyModel()
+
+    local myModel = ents.Create("prop_physics")
+    if IsValid(myModel) then
+      
+local playerPos = ply:GetPos()
+
+        myModel:SetModel("models/jordfood/atun.mdl")
+        myModel:SetPos(Vector(0, 0, 100)) 
+        myModel:Spawn()
+        myModel:Activate()
+    else
+        print("Не удалось создать модель")
+    end
+end
+
+-- Вызывайте функцию для спавна модели
+hook.Add("InitPostEntity", "SpawnMyModelHook", SpawnMyModel)
+
 	end
 end
 
