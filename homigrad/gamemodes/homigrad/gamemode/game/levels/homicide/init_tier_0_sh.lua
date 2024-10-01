@@ -1,6 +1,6 @@
 table.insert(LevelList,"homicide")
 homicide = homicide or {}
-homicide.Name = "Homicide"
+homicide.Name = "Trouble in Homicide Town"
 
 homicide.red = {"Невиновный",Color(125,125,125),
     models = tdm.models

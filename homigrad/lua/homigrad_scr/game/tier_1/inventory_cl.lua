@@ -7,6 +7,18 @@ local blackListedAmmo = {
 	[9] = true,
 	[10] = true
 }
+local function PrintTable(t, indent)
+    indent = indent or 0
+    for key, value in pairs(t) do
+        local indentString = string.rep(" ", indent)
+        if type(value) == "table" then
+            print(indentString .. tostring(key) .. ":")
+            PrintTable(value, indent + 2)  -- Рекурсивный вызов для вложенных таблиц
+        else
+            print(indentString .. tostring(key) .. ": " .. tostring(value))
+        end
+    end
+end
 
 Gunshuy = {
 	"weapon_glock18",
@@ -135,6 +147,7 @@ local function OpenInventory(lootEnt)
         -- Получаем инвентарь другого объекта
         items = SafeReadTable()
         items_ammo = SafeReadTable()
+        PrintTable(items)
         if not IsValid(lootEnt) then 
             print("Invalid loot entity")
             return 
@@ -174,80 +187,150 @@ local function OpenInventory(lootEnt)
         draw.RoundedBox(0, 0, 0, w, h, black)
         surface.SetDrawColor(255, 255, 255, 128)
         surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
-
-        draw.SimpleText("Инвентарь " .. nickname, "DefaultFixedDropShadow", 6, 6, white)
+        if lootEnt:IsPlayer() then
+            draw.SimpleText("Инвентарь " .. nickname, "DefaultFixedDropShadow", 6, 6, white)
+        end
+        draw.SimpleText("Ящик", "DefaultFixedDropShadow", 6, 6, white)
     end
 
     local x, y = 40, 40
     local corner = 6
+    if lootEnt:IsPlayer() or lootEnt:IsRagdoll() then
+        for wep in pairs(items) do
+            local button = vgui.Create("DButton", panel)
+            button:SetPos(x, y)
+            button:SetSize(64, 64)
 
-    for wep in pairs(items) do
-        local button = vgui.Create("DButton", panel)
-        button:SetPos(x, y)
-        button:SetSize(64, 64)
-
-        x = x + button:GetWide() + 6
-        if x + button:GetWide() >= panel:GetWide() then
-            x = 40
-            y = y + button:GetTall() + 6
-        end
-
-        button:SetText("")
-
-        local wepTbl = weapons.Get(wep) or WeaponByModel[wep] or wep
-        local text = type(wepTbl) == "table" and wepTbl.PrintName or wep
-        text = getText(text, button:GetWide() - corner * 2)
-
-        button.Paint = function(self, w, h)
-            draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
-            surface.SetDrawColor(255, 255, 255, 128)
-            surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
-
-            for i, text in pairs(text) do
-                draw.SimpleText(text, "DefaultFixedDropShadow", corner, corner + (i - 1) * 12, white)
+            x = x + button:GetWide() + 6
+            if x + button:GetWide() >= panel:GetWide() then
+                x = 40
+                y = y + button:GetTall() + 6
             end
 
-            local x, y = self:LocalToScreen(0, 0)
-            DrawWeaponSelectionEX(wepTbl, x, y, w, h)
-        end
+            button:SetText("")
 
-        button.DoClick = function()
-			if lootEnt == lply then
-				-- Check if the player has the weapon in their inventory
-				if items[wep] then
-					-- Drop the weapon directly without equipping it first
-					local weaponClass = wep  -- Get the weapon class name
-					
-					-- Loop through player's weapons to find if they have it
-					for _, weapon in pairs(lply:GetWeapons()) do
-						if weapon:GetClass() == weaponClass then
-							-- Equip the weapon
-							input.SelectWeapon(weapon)
-		
-							-- Wait for a short time to ensure the weapon is equipped before dropping it
-							timer.Simple(0.1, function()
-								-- Send a console command to drop the weapon
-								RunConsoleCommand("say", "*drop")  -- Notify others
-								RunConsoleCommand("drop")  -- Drop the weapon directly
-								panel:Remove()  -- Close the inventory panel
-							end)
-							return
-						end
-					end
-					
-					print("Weapon not found in inventory")
-				end
-			else
-				-- Берем предмет из инвентаря другого объекта
-				net.Start("ply_take_item")
-				net.WriteEntity(lootEnt)
-				net.WriteString(tostring(wep))
-				net.SendToServer()
-			end
-		end
+            local wepTbl = weapons.Get(wep) or WeaponByModel[wep] or wep
+            local text = wep
+            text = getText(tostring(text), button:GetWide() - corner * 2)
 
-        button.DoRightClick = button.DoClick
+            button.Paint = function(self, w, h)
+                draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
+                surface.SetDrawColor(255, 255, 255, 128)
+                surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
+
+                for i, text in pairs(text) do
+                    draw.SimpleText(text, "DefaultFixedDropShadow", corner, corner + (i - 1) * 12, white)
+                end
+
+                local x, y = self:LocalToScreen(0, 0)
+                DrawWeaponSelectionEX(wepTbl, x, y, w, h)
+            end
+
+            button.DoClick = function()
+                if lootEnt == lply then
+                    -- Check if the player has the weapon in their inventory
+                    if items[wep] then
+                        -- Drop the weapon directly without equipping it first
+                        local weaponClass = wep  -- Get the weapon class name
+                        
+                        -- Loop through player's weapons to find if they have it
+                        for _, weapon in pairs(lply:GetWeapons()) do
+                            if weapon:GetClass() == weaponClass then
+                                -- Equip the weapon
+                                input.SelectWeapon(weapon)
+            
+                                -- Wait for a short time to ensure the weapon is equipped before dropping it
+                                timer.Simple(0.1, function()
+                                    -- Send a console command to drop the weapon
+                                    RunConsoleCommand("say", "*drop")  -- Notify others
+                                    panel:Remove()  -- Close the inventory panel
+                                end)
+                                return
+                            end
+                        end
+                        
+                        print("Weapon not found in inventory")
+                    end
+                else
+                    -- Берем предмет из инвентаря другого объекта
+                    net.Start("ply_take_item")
+                    net.WriteEntity(lootEnt)
+                    net.WriteString(wep)
+                    net.SendToServer()
+                end
+            end
+
+            button.DoRightClick = button.DoClick
+        end   
+    else
+        for wep,success in pairs(items) do
+            local button = vgui.Create("DButton", panel)
+            button:SetPos(x, y)
+            button:SetSize(64, 64)
+
+            x = x + button:GetWide() + 6
+            if x + button:GetWide() >= panel:GetWide() then
+                x = 40
+                y = y + button:GetTall() + 6
+            end
+
+            button:SetText("")
+
+            local wepTbl = weapons.Get(success) or WeaponByModel[success] or success
+            local text = success
+            text = getText(tostring(text), button:GetWide() - corner * 2)
+
+            button.Paint = function(self, w, h)
+                draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
+                surface.SetDrawColor(255, 255, 255, 128)
+                surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
+
+                for i, text in pairs(text) do
+                    draw.SimpleText(text, "DefaultFixedDropShadow", corner, corner + (i - 1) * 12, white)
+                end
+
+                local x, y = self:LocalToScreen(0, 0)
+                DrawWeaponSelectionEX(wepTbl, x, y, w, h)
+            end
+
+            button.DoClick = function()
+                if lootEnt == lply then
+                    -- Check if the player has the weapon in their inventory
+                    if items[success] then
+                        -- Drop the weapon directly without equipping it first
+                        local weaponClass = success  -- Get the weapon class name
+                        
+                        -- Loop through player's weapons to find if they have it
+                        for _, weapon in pairs(lply:GetWeapons()) do
+                            if weapon:GetClass() == weaponClass then
+                                -- Equip the weapon
+                                input.SelectWeapon(weapon)
+            
+                                -- Wait for a short time to ensure the weapon is equipped before dropping it
+                                timer.Simple(0.1, function()
+                                    -- Send a console command to drop the weapon
+                                    RunConsoleCommand("say", "*drop")  -- Notify others
+                                    panel:Remove()  -- Close the inventory panel
+                                end)
+                                return
+                            end
+                        end
+                        
+                        print("Weapon not found in inventory")
+                    end
+                else
+                    -- Берем предмет из инвентаря другого объекта
+                    net.Start("ply_take_item")
+                    net.WriteEntity(lootEnt)
+                    net.WriteString(success)
+                    net.SendToServer()
+                end
+            end
+
+            button.DoRightClick = button.DoClick
+        end   
     end
+
 
     for ammo, amt in pairs(items_ammo) do
         if blackListedAmmo[ammo] then continue end

@@ -11,11 +11,14 @@ local function send(ply,lootEnt,remove)
 		net.WriteTable(lootEnt.Info.Ammo)
 		net.Send(ply)
 	else
-		for ply in pairs(lootEnt.UsersInventory) do
-			if not IsValid(ply) or not ply:Alive() or remove then lootEnt.UsersInventory[ply] = nil continue end
+		if lootEnt:IsPlayer() then
+			for ply in pairs(lootEnt.UsersInventory) do
+				if not IsValid(ply) or not ply:Alive() or remove then lootEnt.UsersInventory[ply] = nil continue end
 
-			send(ply,lootEnt,remove)
+				send(ply,lootEnt,remove)
+			end
 		end
+
 	end
 end
 
@@ -63,11 +66,15 @@ local prekol = {
 	gmod_tool = true
 }
 
+
+
 net.Receive("inventory",function(len,ply)
 	local lootEnt = net.ReadEntity()
 	if not IsValid(lootEnt) then return end
-
-	lootEnt.UsersInventory[ply] = nil
+	if lootEnt:IsPlayer() then
+		lootEnt.UsersInventory[ply] = nil
+	end
+	
 	player.Event(ply,"inventory close",lootEnt)
 end)
 
@@ -79,53 +86,74 @@ net.Receive("ply_take_item",function(len,ply)
 
 	local wep = net.ReadString()
 	--local takeammo = net.ReadBool()
-
-	local lootInfo = lootEnt.Info
-	local wepInfo = lootInfo.Weapons[wep]
 	
-	if not wepInfo then return end
+	local lootInfo = lootEnt.Info
+	print(123123123)
+
 
 	if prekol[wep] and not ply:IsAdmin() then ply:Kick("xd))00") return end
 
 	if ply:HasWeapon(wep) then
-		if lootEnt:IsPlayer() and (lootEnt.curweapon == wep and not lootEnt.Otrub) then return end
-		if wepInfo.Clip1!=nil and wepInfo.Clip1 > 0 then
-			ply:GiveAmmo(wepInfo.Clip1,wepInfo.AmmoType)
-			wepInfo.Clip1 = 0
+		if lootInfo then
+			local wepInfo = lootEnt.Info.Weapons[wep]
+	
+			if (lootEnt.curweapon == wep and not lootEnt.Otrub) then return end
+			if wepInfo.Clip1!=nil and wepInfo.Clip1 > 0 then
+				ply:GiveAmmo(wepInfo.Clip1,wepInfo.AmmoType)
+				wepInfo.Clip1 = 0
+			else
+				ply:ChatPrint("У тебя уже есть это оружие.")
+			end
 		else
-			ply:ChatPrint("У тебя уже есть это оружие.")
+			if (lootEnt.curweapon == wep and not lootEnt.Otrub) then return end
+			if nil!=nil and 0 > 0 then
+				ply:GiveAmmo(wepInfo.Clip1,wepInfo.AmmoType)
+				wepInfo.Clip1 = 0
+			else
+				ply:ChatPrint("У тебя уже есть это оружие.")
+			end
 		end
+
 	else
-		if lootEnt:IsPlayer() and (lootEnt.curweapon == wep and not lootEnt.Otrub) then return end
-		
-		ply.slots = ply.slots or {}
-		
-		local realwep = weapons.Get(wep)
-		
-		if IsValid(lootEnt.wep) and lootEnt.curweapon == wep then
-			DespawnWeapon(lootEnt)
-			lootEnt.wep:Remove()
+		if lootEnt:IsPlayer() or lootEnt:IsRagdoll() then 
+			local wepInfo = lootEnt.Info.Weapons[wep]
+	
+			if (lootEnt.curweapon == wep and not lootEnt.Otrub) then return end
+			
+			ply.slots = ply.slots or {}
+			
+			local realwep = weapons.Get(wep)
+			
+			if IsValid(lootEnt.wep) and lootEnt.curweapon == wep then
+				DespawnWeapon(lootEnt)
+				lootEnt.wep:Remove()
+			end
+
+			local actwep = ply:GetActiveWeapon()
+
+			local wep1 = ply:Give(wep)
+			if IsValid(wep1) and wep1:IsWeapon() then
+				wep1:SetClip1(wepInfo.Clip1 or 0)
+			end
+			
+			ply:SelectWeapon(actwep:GetClass())
+
+			if lootEnt:IsPlayer() then lootEnt:StripWeapon(wep) end
+			lootInfo.Weapons[wep] = nil
+			table.RemoveByValue(lootInfo.Weapons2,wep)
+
+			if lootEnt:IsRagdoll() then
+				deadBodies[lootEnt:EntIndex()] = {lootEnt,lootEnt.Info}
+				net.Start("send_deadbodies")
+				net.WriteTable(deadBodies)
+				net.Broadcast()
+			end
+		else
+			local wep1 = ply:Give(wep)
+			ply:ChatPrint("Ты взял что то из ящика..")
+			lootEnt:Remove()
 		end
 
-		local actwep = ply:GetActiveWeapon()
-
-		local wep1 = ply:Give(wep)
-		if IsValid(wep1) and wep1:IsWeapon() then
-			wep1:SetClip1(wepInfo.Clip1 or 0)
-		end
-		
-		ply:SelectWeapon(actwep:GetClass())
-
-		if lootEnt:IsPlayer() then lootEnt:StripWeapon(wep) end
-		lootInfo.Weapons[wep] = nil
-		table.RemoveByValue(lootInfo.Weapons2,wep)
-
-		if lootEnt:IsRagdoll() then
-			deadBodies[lootEnt:EntIndex()] = {lootEnt,lootEnt.Info}
-			net.Start("send_deadbodies")
-			net.WriteTable(deadBodies)
-			net.Broadcast()
-		end
 	end
 
 	send(nil,lootEnt)
