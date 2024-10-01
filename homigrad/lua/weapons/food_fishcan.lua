@@ -125,10 +125,10 @@ function SWEP:PrimaryAttack()
         -- Удалите оружие
         self:Remove()
         
-        -- Воспроизведите звук
+
         sound.Play(healsound, self:GetPos(), 75, 100, 0.5)
         
-        -- Создайте модель
+
         local myModel = ents.Create("prop_physics")
         if IsValid(myModel) then
             local playerPos = self:GetOwner():GetPos()
@@ -137,7 +137,6 @@ function SWEP:PrimaryAttack()
             myModel:Spawn()
             myModel:Activate()
             
-            -- Удаление модели через 30 секунд
             timer.Simple(30, function()
                 if IsValid(myModel) then
                     myModel:Remove()
@@ -146,9 +145,7 @@ function SWEP:PrimaryAttack()
         else
             print("Не удалось создать модель")
         end
-        
-        -- Возврат к рукопашному оружию
-        self:GetOwner():SelectWeapon("weapon_hands")
+            self:GetOwner():SelectWeapon("weapon_hands")
     end
 end
 
