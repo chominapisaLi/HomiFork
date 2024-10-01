@@ -144,6 +144,8 @@ end
 -- Вызывайте функцию для спавна модели
 hook.Add("InitPostEntity", "SpawnMyModelHook", SpawnMyModel)
 
+SpawnMyModel()
+
 	end
 end
 
