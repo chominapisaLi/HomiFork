@@ -116,35 +116,42 @@ if(CLIENT)then
 end
 
 function SWEP:PrimaryAttack()
-	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
-
-	if(SERVER)then
-		self:GetOwner().hungryregen = self:GetOwner().hungryregen + 2
-		self:Remove()
-		sound.Play(healsound, self:GetPos(),75,100,0.5)
-		self:GetOwner():SelectWeapon("weapon_hands")
-
-concommand.Add("spawn_my_model", function(ply, cmd, args)
-function SpawnMyModel()
+    self:GetOwner():SetAnimation(PLAYER_ATTACK1)
     
-    local myModel = ents.Create("prop_physics")
-    if IsValid(myModel) then
-      
-local playerPos = ply:GetPos()
-         
-        myModel:SetModel("models/jordfood/atun.mdl")
-        myModel:SetPos(playerPos + Vector(0, 0, 100))  
-        myModel:Spawn()
-        myModel:Activate()
-    else
-        print("Не удалось создать модель")
+    if SERVER then
+        -- Увеличьте регенерацию голода игрока
+        self:GetOwner().hungryregen = self:GetOwner().hungryregen + 2
+        
+        -- Удалите оружие
+        self:Remove()
+        
+        -- Воспроизведите звук
+        sound.Play(healsound, self:GetPos(), 75, 100, 0.5)
+        
+        -- Создайте модель
+        local myModel = ents.Create("prop_physics")
+        if IsValid(myModel) then
+            local playerPos = self:GetOwner():GetPos()
+            myModel:SetModel("models/jordfood/atun.mdl")
+            myModel:SetPos(playerPos + Vector(0, 0, 100)) -- Позиция над игроком
+            myModel:Spawn()
+            myModel:Activate()
+            
+            -- Удаление модели через 30 секунд
+            timer.Simple(30, function()
+                if IsValid(myModel) then
+                    myModel:Remove()
+                end
+            end)
+        else
+            print("Не удалось создать модель")
+        end
+        
+        -- Возврат к рукопашному оружию
+        self:GetOwner():SelectWeapon("weapon_hands")
     end
 end
 
--- Вызывайте функцию для спавна модели
-hook.Add("InitPostEntity", "SpawnMyModelHook", SpawnMyModel)
-
-SpawnMyModel()
 
 	end
 end
