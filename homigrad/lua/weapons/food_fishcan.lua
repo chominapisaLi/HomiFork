@@ -119,33 +119,9 @@ function SWEP:PrimaryAttack()
     self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 
     if SERVER then
-        -- Увеличьте регенерацию голода игрока
         self:GetOwner().hungryregen = self:GetOwner().hungryregen + 2
         self:Remove()
-        -- Воспроизведите звук
         sound.Play(healsound, self:GetPos(), 75, 100, 0.5)
-
-        -- Создайте модель
-        local myModel = ents.Create("prop_physics")
-        if IsValid(myModel) then
-            local playerPos = self:GetOwner():GetPos()
-
-            -- Установите позицию модели чуть выше игрока
-            myModel:SetModel("models/jordfood/atun.mdl")
-            myModel:SetPos(playerPos + Vector(0, 0, 10)) -- Позиция чуть выше игрока
-            myModel:Spawn()
-            myModel:Activate()
-
-            -- Удалите модель через 30 секунд
-            timer.Simple(30, function()
-                if IsValid(myModel) then
-                    myModel:Remove()
-                end
-            end)
-        else
-            print("Не удалось создать модель")
-        end
-        self:SetNextPrimaryFire(CurTime() + 1) -- Задержка перед следующим выстрелом
     end
 end
 
