@@ -91,7 +91,33 @@ function granny.RoundEndCheck()
 	local Alive = tdm.GetCountLive(team.GetPlayers(1),function(ply) if ply.roleT or ply.isContr then return false end end)
 
     if roundTimeStart + roundTime < CurTime() then
-        EndRound(1)
+        if not homicide.police then
+			homicide.police = true
+            if homicide.roundType == 1 then
+                PrintMessage(3,"Спецназ приехал.")
+            else
+                PrintMessage(3,"Полиция приехала.")
+            end
+
+			local aviable = ReadDataMap("spawnpointsct")
+            local ctPlayers = tdm.GetListMul(player.GetAll(),1,function(ply) return not ply:Alive() and not ply.roleT and ply:Team() ~= 1002 end)
+			
+            local playsound = true
+            tdm.SpawnCommand(ctPlayers,aviable,function(ply)
+                timer.Simple(0,function()
+                    if homicide.roundType == 1 then
+                        ply:SetPlayerClass("contr")
+                    else
+                        ply:SetPlayerClass("police")
+                    end
+                    if playsound then
+                        ply:EmitSound("police_arrive")
+                        playsound = false
+                    end
+                end)
+            end)
+			
+		end
 	end
 
 	if TAlive == 0 and Alive == 0 then EndRound() return end
