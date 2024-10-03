@@ -3,13 +3,8 @@ local function makeT(ply)
     ply.roleT = true
     table.insert(granny.t,ply)
 
-    ply:Give("weapon_hg_hatchet")
-    local wep = ply:Give("weapon_hk_usp")
-    wep:SetClip1(wep:GetMaxClip1())
-    ply:GiveAmmo(6 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
-
-    ply:Give("weapon_hg_rgd5")
-    local wep = ply:Give("")
+    ply:Give("weapon_granny_bat")
+    local wep = ply:Give("weapon_xm1014")
     wep:SetClip1(wep:GetMaxClip1())
     ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
     ply.nopain = true
@@ -73,11 +68,6 @@ function granny.StartRoundSV()
 
     tdm.SpawnCommand(players,aviable,function(ply)
         ply.roleT = false
-
-        ply:Give("weapon_hg_hatchet")
-        local wep = ply:Give("weapon_glock")
-        wep:SetClip1(wep:GetMaxClip1())
-        ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
     ply:SetMaxHealth(#player.GetAll() * 150)
     end)
 
@@ -111,7 +101,7 @@ function granny.RoundEndCheck()
 end
 
 function granny.EndRound(winner)
-    PrintMessage(3,(winner == 1 and "Победа Джона Уика." or winner == 2 and "Победа наемников." or "Ничья"))
+    PrintMessage(3,(winner == 1 and "Победа бабки Грени." or winner == 2 and "Победа школьников." or "Ничья"))
 end
 
 local empty = {}
