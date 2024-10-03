@@ -11,7 +11,7 @@ granny.teamEncoder = {
 }
 
 granny.RoundRandomDefalut = 1
-granny.CanRandomNext = false
+granny.CanRandomNext = true
 
 local playsound = false
 if SERVER then
