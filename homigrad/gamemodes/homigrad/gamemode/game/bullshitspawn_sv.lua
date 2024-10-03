@@ -52,7 +52,6 @@ weaponscommon = {
 }
 
 weaponsuncommon = {
-	"weapon_glock18",
 	"weapon_per4ik",
 
 	"weapon_hg_crowbar",
@@ -261,22 +260,22 @@ end
 
 local vec = Vector(0,0,32)
 hook.Add("Boxes Think", "SpawnBoxes",function()
-	if #player.GetAll() == 0 or not roundActive then return end
+	--if #player.GetAll() == 0 or not roundActive then return end
 	
-	local func = TableRound().ShouldSpawnLoot
-	if func and func() == false then return end
+	--local func = TableRound().ShouldSpawnLoot
+	--if func and func() == false then return end
 
 
-	local randomWep = randomLoot()
-	local ent = ents.Create(not randomWep and "prop_physics" or randomWep)
-
-	if not randomWep then
-		ent:SetModel(KOROBKA_HUYNYI[math.random(#KOROBKA_HUYNYI)])
-	else
-		ent.Spawned = true
-	end
-	if IsValid(ent) then
-		ent:SetPos(spawns[math.random(#spawns)] + vec)
-		ent:Spawn()
-	end
+	--local randomWep = randomLoot()
+	--local ent = ents.Create(not randomWep and "prop_physics" or randomWep)
+--
+	--if not randomWep then
+	--	ent:SetModel(KOROBKA_HUYNYI[math.random(#KOROBKA_HUYNYI)])
+	--else
+	--	ent.Spawned = true
+	--end
+	--if IsValid(ent) then
+	--	ent:SetPos(spawns[math.random(#spawns)] + vec)
+	--	ent:Spawn()
+	--end
 end)

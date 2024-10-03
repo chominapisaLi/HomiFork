@@ -50,7 +50,7 @@ Guns = {
 "weapon_spas12"
 }
 GunsModel = {
-["weapon_glock18"]="models/weapons/insurgency/w_makarov.mdl",
+["weapon_glock18"]="models/pwb/weapons/w_glock17.mdl",
 ["weapon_p220"]="models/pwb/weapons/w_cz75.mdl",
 ["weapon_mp5"]="models/pwb2/weapons/w_mp5a3.mdl",
 ["weapon_ar15"]="models/pwb2/weapons/w_m4a1.mdl",

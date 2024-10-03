@@ -1,17 +1,18 @@
-table.insert(LevelList,"wick")
-wick = wick or {}
-wick.Name = "John Wick"
 
-wick.red = {"Наемник",Color(125,125,125),
+table.insert(LevelList,"granny")
+granny = granny or {}
+granny.Name = "бабка Грени"
+
+granny.red = {"Школьник",Color(125,125,125),
     models = tdm.models
 }
 
-wick.teamEncoder = {
+granny.teamEncoder = {
     [1] = "red"
 }
 
-wick.RoundRandomDefalut = 1
-wick.CanRandomNext = false
+granny.RoundRandomDefalut = 1
+granny.CanRandomNext = false
 
 local playsound = false
 if SERVER then
@@ -22,7 +23,7 @@ else
     end)
 end
 
-function wick.StartRound(data)
+function granny.StartRound(data)
     team.SetColor(1,wick.red[2])
 
     game.CleanUpMap(true)
@@ -37,7 +38,7 @@ function wick.StartRound(data)
         return
     end
 
-    return wick.StartRoundSV()
+    return granny.StartRoundSV()
 end
 
 if SERVER then return end
@@ -45,11 +46,11 @@ if SERVER then return end
 local red,blue = Color(200,0,10),Color(75,75,255)
 local gray = Color(122,122,122,255)
 function wick.GetTeamName(ply)
-    if ply.roleT then return "John Wick",red end
+    if ply.roleT then return "Грени",red end
 
     local teamID = ply:Team()
     if teamID == 1 then
-        return "Наемник",ScoreboardSpec
+        return "Школьник",ScoreboardSpec
     end
 end
 
@@ -95,9 +96,9 @@ function wick.HUDPaint_RoundLeft(white2)
         draw.DrawText( "John Wick", "HomigradFontBig", ScrW() / 2, ScrH() / 8, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
 
         if lply.roleT then
-            draw.DrawText( "Вы - Джон Уик, разберитесь со всеми наемниками.", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 155,55,55,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+            draw.DrawText( "Вы - бабка Грени, делай то что обычно и делаешь ибивай >:).", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 155,55,55,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         else
-            draw.DrawText( "Нейтрализуйте Джона Уика", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,55,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+            draw.DrawText( "Убейте бабку или выживите до приезда вертухаев", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,55,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         end
         return
     end
@@ -117,6 +118,6 @@ function wick.HUDPaint_RoundLeft(white2)
 
         color.a = 255 * (1 - dis / 750)
 
-        draw.SimpleText(ply.roleT and "Джон Уик" or "","HomigradFont",pos.x,pos.y,color,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+        draw.SimpleText(ply.roleT and "бабка Грени" or "","HomigradFont",pos.x,pos.y,color,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
     end
 end

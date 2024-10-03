@@ -1,6 +1,6 @@
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
-ENT.PrintName = "Ящик с оружием"
+ENT.PrintName = "Ящик"
 ENT.Author = "thebogler"
 ENT.Spawnable = true
 ENT.AdminSpawnable = true

@@ -12,7 +12,7 @@ cp.WinPoints[2] = cp.WinPoints[2] or 0
 local red, blue, gray = Color(255,75,75), Color(75,75,255), Color(200, 200, 200)
 
 cp.red = {"Красные",Color(255,75,75),
-    weapons = {"weapon_binokle","weapon_hg_flashbang","weapon_radio","weapon_gurkha","weapon_hands","med_band_big","med_band_small","medkit","painkiller"},
+    weapons = {"weapon_binokle","weapon_hg_flashbang","weapon_radio","weapon_t","weapon_hands","med_band_big","med_band_small","medkit","painkiller"},
     main_weapon = {"weapon_ak74u","weapon_akm","weapon_remington870","weapon_galil","weapon_rpk","weapon_galilsar","weapon_mp40"},
     secondary_weapon = {"weapon_p220","weapon_deagle","weapon_glock"},
     models = tdm.models

@@ -2,13 +2,17 @@ AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
-Gunshuy = {
-    "weapon_mp5",
-    "weapon_xm1014",
-    "weapon_remington870"
+medone = {
+    "medkit",
+    "adrenaline",
+    "megamedkit",
+    "med_band_small"
 }
-
-
+medtwo = {
+    "med_band_big",
+    "morphine",
+    "painkiller"
+}
 
 util.AddNetworkString("inventory")
 util.AddNetworkString("ply_take_item")
@@ -33,11 +37,12 @@ function ENT:Initialize()
     }
     
     -- Populate the Weapons table with a random weapon from Gunshuy
-    local randomWeapon = Gunshuy[math.random(1, #Gunshuy)]
+    local randomWeapon = medone[math.random(1, #medone)]
     self.Info.Weapons[randomWeapon] = {
         Clip1 =  -2
     }
-    self.Info.Weapons['weapon_molotok'] = {
+    local randomWeapon = medtwo[math.random(1, #medtwo)]
+    self.Info.Weapons[randomWeapon] = {
         Clip1 =  -2
     }
 end

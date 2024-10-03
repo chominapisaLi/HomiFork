@@ -8,8 +8,6 @@ Gunshuy = {
     "weapon_remington870"
 }
 
-
-
 util.AddNetworkString("inventory")
 util.AddNetworkString("ply_take_item")
 util.AddNetworkString("update_inventory")

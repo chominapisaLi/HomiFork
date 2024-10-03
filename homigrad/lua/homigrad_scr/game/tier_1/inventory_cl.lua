@@ -19,7 +19,10 @@ local function PrintTable(t, indent)
         end
     end
 end
+local inventoryOpen = false
+local panel = nil  -- Store the panel globally for reference.
 
+local Invent = false 
 Gunshuy = {
 	"weapon_glock18",
 	"weapon_p220",
@@ -122,8 +125,10 @@ local function getText(text,limitW)
     return newText
 end
 local function OpenInventory(lootEnt)
-    if IsValid(panel) then panel.override = true panel:Remove() end
-
+    if IsValid(panel) then 
+        panel.override = true 
+        panel:Remove() 
+    end
     local lply = LocalPlayer()
     local items = {}
     local items_ammo = {}
@@ -178,6 +183,7 @@ local function OpenInventory(lootEnt)
             net.Start("inventory")
             net.WriteEntity(lootEnt)
             net.SendToServer()
+            Invent = false 
         end
     end
 
@@ -195,7 +201,7 @@ local function OpenInventory(lootEnt)
 
     local x, y = 40, 40
     local corner = 6
-    if lootEnt:IsPlayer() or lootEnt:IsRagdoll() then
+    if lootEnt:IsPlayer() then
         for wep in pairs(items) do
             local button = vgui.Create("DButton", panel)
             button:SetPos(x, y)
@@ -210,7 +216,7 @@ local function OpenInventory(lootEnt)
             button:SetText("")
 
             local wepTbl = weapons.Get(wep) or WeaponByModel[wep] or wep
-            local text = wep
+            local text = weapons.Get(wep).PrintName or ''
             text = getText(tostring(text), button:GetWide() - corner * 2)
 
             button.Paint = function(self, w, h)
@@ -245,6 +251,10 @@ local function OpenInventory(lootEnt)
                                     RunConsoleCommand("say", "*drop")  -- Notify others
                                     panel:Remove()  -- Close the inventory panel
                                 end)
+                                timer.Simple(0.15, function()
+
+                                    panel:Remove()  -- Close the inventory panel
+                                end)
                                 return
                             end
                         end
@@ -257,13 +267,15 @@ local function OpenInventory(lootEnt)
                     net.WriteEntity(lootEnt)
                     net.WriteString(wep)
                     net.SendToServer()
+                    panel:Remove()
                 end
             end
 
             button.DoRightClick = button.DoClick
         end   
     else
-        for wep,success in pairs(items) do
+        for success in pairs(items) do
+
             local button = vgui.Create("DButton", panel)
             button:SetPos(x, y)
             button:SetSize(64, 64)
@@ -277,7 +289,7 @@ local function OpenInventory(lootEnt)
             button:SetText("")
 
             local wepTbl = weapons.Get(success) or WeaponByModel[success] or success
-            local text = success
+            local text = weapons.Get(success).PrintName
             text = getText(tostring(text), button:GetWide() - corner * 2)
 
             button.Paint = function(self, w, h)
@@ -319,11 +331,11 @@ local function OpenInventory(lootEnt)
                         print("Weapon not found in inventory")
                     end
                 else
-                    -- Берем предмет из инвентаря другого объекта
                     net.Start("ply_take_item")
                     net.WriteEntity(lootEnt)
                     net.WriteString(success)
                     net.SendToServer()
+                    panel:Remove()
                 end
             end
 
@@ -366,10 +378,18 @@ local function OpenInventory(lootEnt)
     end
 end
 
--- Хук для открытия инвентаря по нажатию C
+local inventoryOpen = false
+
 hook.Add("PlayerButtonDown", "OpenPlayerInventory", function(ply, button)
-    if button == KEY_C then
+    if button == KEY_C and not inventoryOpen then
         OpenInventory(ply)
+        inventoryOpen = true
+    end
+end)
+
+hook.Add("PlayerButtonUp", "ClosePlayerInventory", function(ply, button)
+    if button == KEY_C then
+        inventoryOpen = false
     end
 end)
 
