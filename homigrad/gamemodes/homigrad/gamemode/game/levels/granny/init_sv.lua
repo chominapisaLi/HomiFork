@@ -4,9 +4,6 @@ local function makeT(ply)
     table.insert(granny.t,ply)
 
     ply:Give("weapon_granny_bat")
-    local wep = ply:Give("weapon_xm1014")
-    wep:SetClip1(wep:GetMaxClip1())
-    ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
     ply.nopain = true
     ply:SetMaxHealth(#player.GetAll() * 400)
     ply:SetHealth(#player.GetAll() * 400)
