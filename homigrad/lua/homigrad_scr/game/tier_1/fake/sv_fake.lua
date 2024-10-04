@@ -13,18 +13,18 @@ Organs = {
 }
 
 RagdollDamageBoneMul={		--Умножения урона при попадании по регдоллу
-	[HITGROUP_LEFTLEG]=0.5,
-	[HITGROUP_RIGHTLEG]=0.5,
+	[HITGROUP_LEFTLEG]=1.5,
+	[HITGROUP_RIGHTLEG]=1.5,
 
-	[HITGROUP_GENERIC]=1,
+	[HITGROUP_GENERIC]=3,
 
-	[HITGROUP_LEFTARM]=0.5,
-	[HITGROUP_RIGHTARM]=0.5,
+	[HITGROUP_LEFTARM]=1.5,
+	[HITGROUP_RIGHTARM]=1.5,
 
-	[HITGROUP_CHEST]=1,
-	[HITGROUP_STOMACH]=1,
+	[HITGROUP_CHEST]=2,
+	[HITGROUP_STOMACH]=2,
 
-	[HITGROUP_HEAD]=2,
+	[HITGROUP_HEAD]=5,
 }
 
 bonetohitgroup={ --Хитгруппы костей
@@ -177,7 +177,7 @@ function Faking(ply,force) -- функция падения
 			bull:SetPos(bodyphy:GetPos()+bodyphy:GetAngles():Right()*7)
 			bull:SetMoveType( MOVETYPE_OBSERVER )
 			bull:SetParent(rag,rag:LookupAttachment("eyes"))
-			bull:SetHealth(1000)
+			bull:SetHealth(500)
 			bull:Spawn()
 			bull:Activate()
 			bull:SetNotSolid(true)
@@ -894,7 +894,7 @@ deadBodies = deadBodies or {}
 hook.Add("Think","VelocityFakeHitPlyCheck",function() --проверка на скорость в фейке (для сбивания с ног других игроков)
 	for i,rag in pairs(ents.FindByClass("prop_ragdoll")) do
 		if IsValid(rag) then
-			if rag:GetVelocity():Length() > 200 then
+			if rag:GetVelocity():Length() > 50 then
 				rag:SetCollisionGroup(COLLISION_GROUP_NONE)
 			else
 				rag:SetCollisionGroup(COLLISION_GROUP_WEAPON)
