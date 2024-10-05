@@ -128,7 +128,7 @@ hook.Add("PostPlayerDeath","RefreshPain",function(ply)
 end)
 
 function IsUnconscious(ply)
-	if ply.painlosing > 20 or ply.pain > 250 + ply:GetNWInt("SharpenAMT") * 5 or ply.Blood < 3000 or ply.heartstop then
+	if ply.painlosing > 15 and ply.Blood < 2000 or ply.pain > 350 + ply:GetNWInt("SharpenAMT") * 5  and not ply.Otrub then
 		ply.Otrub = true
 
 		ply:SetDSP(16)
