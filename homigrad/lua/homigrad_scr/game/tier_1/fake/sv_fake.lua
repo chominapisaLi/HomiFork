@@ -13,18 +13,18 @@ Organs = {
 }
 
 RagdollDamageBoneMul={		--Умножения урона при попадании по регдоллу
-	[HITGROUP_LEFTLEG]=0.5,
-	[HITGROUP_RIGHTLEG]=0.5,
+	[HITGROUP_LEFTLEG]=1,
+	[HITGROUP_RIGHTLEG]=1,
 
-	[HITGROUP_GENERIC]=1,
+	[HITGROUP_GENERIC]=4,
 
-	[HITGROUP_LEFTARM]=0.5,
-	[HITGROUP_RIGHTARM]=0.5,
+	[HITGROUP_LEFTARM]=1,
+	[HITGROUP_RIGHTARM]=1,
 
-	[HITGROUP_CHEST]=1,
-	[HITGROUP_STOMACH]=1,
+	[HITGROUP_CHEST]=3,
+	[HITGROUP_STOMACH]=3,
 
-	[HITGROUP_HEAD]=2,
+	[HITGROUP_HEAD]=5,
 }
 
 bonetohitgroup={ --Хитгруппы костей
