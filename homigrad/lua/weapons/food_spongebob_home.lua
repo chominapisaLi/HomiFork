@@ -91,6 +91,33 @@ function SWEP:PrimaryAttack()
 	end
 end
 
+function SWEP:EatingAnimation()
+    if SERVER then
+        local ply = self:GetOwner()
+        local eatingTime = 2 -- Duration of eating animation in seconds
+
+		if IsValid(self) and IsValid(ply) then
+			ply.hungryregen = ply.hungryregen + 2
+
+			-- Drop the empty can
+			local can = ents.Create("prop_physics")
+			can:SetModel(self.WorldModel)
+			can:SetPos(ply:GetShootPos() + ply:GetAimVector() * 20)
+			can:SetAngles(ply:EyeAngles())
+			can:Spawn()
+
+			-- Apply some force to make it look like it's being thrown
+			local phys = can:GetPhysicsObject()
+			if IsValid(phys) then
+				phys:SetVelocity(ply:GetAimVector() * 100)
+			end
+
+			-- Remove the weapon from the player's hands
+			self:Remove()
+		end
+    end
+end
+
 function SWEP:SecondaryAttack()
 end
 
