@@ -4,7 +4,8 @@ include("shared.lua")
 
 local eda = {
     "food_spongebob_home",
-    "food_lays"
+    "food_lays",
+    "food_emela"
 }
 
 util.AddNetworkString("inventory")
