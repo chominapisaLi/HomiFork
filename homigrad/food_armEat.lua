@@ -10,8 +10,8 @@ SWEP.Slot = 3
 SWEP.SlotPos = 3
 SWEP.Spawnable = true
 
-SWEP.ViewModel = "models/jordfood/can.mdl"
-SWEP.WorldModel = "models/jordfood/can.mdl"
+SWEP.ViewModel = "models/irp.mdl"
+SWEP.WorldModel = "models/irp.mdl"
 SWEP.ViewModelFOV = 54
 SWEP.UseHands = true
 
