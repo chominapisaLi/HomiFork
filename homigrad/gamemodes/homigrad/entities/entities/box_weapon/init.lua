@@ -1,4 +1,3 @@
-AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
@@ -15,7 +14,7 @@ util.AddNetworkString("ply_take_item")
 util.AddNetworkString("update_inventory")
 
 function ENT:Initialize()
-    self:SetModel("models/props_junk/wood_crate001a.mdl")
+    self:SetModel("models/sarma_crates/static_crate_64.mdl")
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
@@ -35,9 +34,6 @@ function ENT:Initialize()
     -- Populate the Weapons table with a random weapon from Gunshuy
     local randomWeapon = Gunshuy[math.random(1, #Gunshuy)]
     self.Info.Weapons[randomWeapon] = {
-        Clip1 =  -2
-    }
-    self.Info.Weapons['weapon_molotok'] = {
         Clip1 =  -2
     }
 end

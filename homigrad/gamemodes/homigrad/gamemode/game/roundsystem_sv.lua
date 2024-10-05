@@ -90,7 +90,7 @@ function StartRound()
 
 		local diff = (TableRound().RoundRandomDefalut or RoundRandomDefalut) - CountRoundRandom
 		local func = TableRound().CanRandomNext
-		func = func and func() or true
+		func = func or true
 		
 		if func and diff <= 0 then
 			local name = LevelRandom()
@@ -123,6 +123,7 @@ function StartRound()
 				local content = "До принудительного голосования: " .. diff .. " раундов." .. "\n"
 				textGmod = textGmod .. content
 				text = text .. content
+				PrintMessage(HUD_PRINTTALK,text)
 			end
 		end
 	end
@@ -139,8 +140,8 @@ end
 function LevelRandom()
 	for i,name in pairs(LevelList) do
 		local func = TableRound(name).CanRoundNext
-		
-		if func and func() == true then
+		print(i,name)
+		if func == true then
 			return name
 		end
 	end
@@ -150,13 +151,6 @@ function LevelRandom()
 
 	for i = 1,#randoms do
 		local name,key = table.Random(randoms)
-		randoms[key] = nil
-
-		if TableRound(name).NoSelectRandom then continue end
-
-		local func = TableRound(name).CanRandomNext
-		if func and func() == false then continue end
-
 		return name
 	end
 end
