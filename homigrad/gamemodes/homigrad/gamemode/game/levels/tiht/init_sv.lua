@@ -1,8 +1,35 @@
+local firstG = {
+    "weapon_mp5",
+    "weapon_ar15",
+    "weapon_akm",
+    "weapon_m4a1",
+    "weapon_xm1014",
+    "weapon_remington870"
+}
+
+local secondG = {
+        "weapon_beretta",
+	"weapon_deagle",
+	"weapon_fiveseven",
+	"weapon_glock"
+}
+ 
+local Meele = {
+	"weapon_pipeweapon_hg_hatchet",
+        "weapon_knife",
+        "weapon_police_bat",
+        "weapon_hg_fireaxe",
+        "weapon_hg_shovel",
+        "weapon_hg_metalbat",
+        "weapon_hg_crowbar",
+        "weapon_hg_kitknife"
+}      
+
 local function GetFriends(play)
     
     local huy = ""
 
-    for i, ply in pairs(homicide.t) do
+    for i, ply in pairs(tiht.t) do
         if play == ply then continue end
         huy = huy .. ply:Name() .. ", "
     end
@@ -10,7 +37,7 @@ local function GetFriends(play)
     return huy
 end
 
-COMMANDS.homicide_get = {function(ply,args)
+COMMANDS.tiht_get = {function(ply,args)
     if not ply:IsAdmin() then return end
 
     local role = {{},{}}
@@ -20,41 +47,35 @@ COMMANDS.homicide_get = {function(ply,args)
         if ply.roleCT then table.insert(role[2],ply) end
     end
 
-    net.Start("homicide_roleget")
+    net.Start("tiht_roleget")
     net.WriteTable(role)
     net.Send(ply)
 end}
 
 local function makeT(ply)
+
     ply.roleT = true
-    table.insert(homicide.t,ply)
-
-    if homicide.roundType == 1 then
-        ply:Give("weapon_t")
-        local wep = ply:Give("weapon_hk_usps")
-        wep:SetClip1(wep:GetMaxClip1())
-
-
-        ply:Give("weapon_hg_t_vxpoison")
-        ply:Give("weapon_hidebomb")
-        ply:Give("weapon_hg_rgd5")
-    elseif homicide.roundType == 2 then
-        ply:Give("weapon_t")
-
+    table.insert(tiht.t,ply)
+    
+    if tiht.roundType == 1 then
         ply:Give("weapon_hg_t_syringepoison")
         ply:Give("weapon_hg_t_vxpoison")
 
         ply:Give("weapon_hidebomb")
         ply:Give("weapon_hg_rgd5")
-    elseif homicide.roundType == 3 then
-        ply:Give("weapon_t")
+    elseif tiht.roundType == 2 then
+        ply:Give("weapon_hg_t_syringepoison")
+        ply:Give("weapon_hg_t_vxpoison")
+
+        ply:Give("weapon_hidebomb")
+        ply:Give("weapon_hg_rgd5")
+    elseif tiht.roundType == 3 then
 
         ply:Give("weapon_hg_t_syringepoison")
         ply:Give("weapon_hg_t_vxpoison")
         
         ply:Give("weapon_hg_rgd5")
     else
-        ply:Give("weapon_t")
 
         ply:Give("weapon_hidebomb")
         ply:Give("weapon_hg_rgd5")
@@ -72,16 +93,20 @@ end
 
 local function makeCT(ply)
     ply.roleCT = true
-    table.insert(homicide.ct,ply)
-    if homicide.roundType == 1 then
-        local wep = ply:Give("weapon_remington870")
+    table.insert(tiht.ct,ply)
+    if tiht.roundType == 1 then
+        local wep = ply:Give("weapon_handcuffs")
+        local wep = ply:Give("weapon_taser")
+        local wep = ply:Give("weapon_per4ik")
         wep:SetClip1(wep:GetMaxClip1())
-        AddNotificate( ply,"Вы невиновый с крупногабаритным огнестрельным оружием.")
-    elseif homicide.roundType == 2 then
-        local wep = ply:Give("weapon_beretta")
+        AddNotificate( ply,"Вы шериф с стяжками, тазером и перцовым балончиком")
+    elseif tiht.roundType == 2 then
+        local wep = ply:Give("weapon_handcuffs")
+        local wep = ply:Give("weapon_taser")
+        local wep = ply:Give("weapon_per4ik")
         wep:SetClip1(wep:GetMaxClip1())
-        AddNotificate( ply,"Вы невиновый со скрытым огнестрельным оружием.")
-    elseif homicide.roundType == 3 then
+        AddNotificate( ply,"Вы шериф с стяжками, тазером и перцовым балончиком")
+    elseif tiht.roundType == 3 then
         --nihuya
     else
         --nihuya tozhe
@@ -99,7 +124,7 @@ COMMANDS.russian_roulette = {function(ply,args)
 	end
 end}
 
-function homicide.Spawns()
+function tiht.Spawns()
     local aviable = {}
 
     for i,ent in pairs(ents.FindByClass("info_player*")) do
@@ -130,15 +155,15 @@ sound.Add({
 	sound = "snd_jack_hmcd_policesiren.wav"
 })
 
-function homicide.StartRoundSV()
+function tiht.StartRoundSV()
     tdm.RemoveItems()
     tdm.DirectOtherTeam(2,1,1)
 
-    homicide.police = false
+    tiht.police = false
 	roundTimeStart = CurTime()
 	roundTime = math.max(math.ceil(#player.GetAll() / 2.5),1) * 60
 
-    if homicide.roundType == 3 then
+    if tiht.roundType == 3 then
         roundTime = roundTime / 2
     end
 
@@ -147,22 +172,34 @@ function homicide.StartRoundSV()
     for i,ply in pairs(team.GetPlayers(2)) do ply:SetTeam(1) end
     --for i,ply in pairs(team.GetPlayers(2)) do ply:SetTeam(1) end
 
-    homicide.ct = {}
-    homicide.t = {}
+    tiht.ct = {}
+    tiht.t = {}
 
     local countT = 0
     local countCT = 0
 
-    local aviable = homicide.Spawns()
+    local aviable = tiht.Spawns()
     tdm.SpawnCommand(PlayersInGame(),aviable,function(ply)
         ply.roleT = false
         ply.roleCT = false
-
-        if homicide.roundType == 4 then
-            timer.Simple(0,function()
-                ply:Give("weapon_deagle")
-            end)
-        end
+        table.insert(tiht.ct,ply)
+        local Meele = {
+            "weapon_pipeweapon_hg_hatchet",
+                "weapon_knife",
+                "weapon_police_bat",
+                "weapon_hg_fireaxe",
+                "weapon_hg_shovel",
+                "weapon_hg_metalbat",
+                "weapon_hg_crowbar",
+                "weapon_hg_kitknife"
+        }      
+        local wep1 = math.random(1,#firstG)
+        local wep2 = math.random(1,#secondG)
+        local randomIndex = math.random(1, #Meele) 
+        print(wep1)
+        local wep1Give = ply:Give(firstG[wep1])
+        local wep2Give = ply:Give(secondG[wep2])
+        local wep3Give = ply:Give(Meele[randomIndex])
 
         if ply.forceT then
             ply.forceT = nil
@@ -194,22 +231,22 @@ function homicide.StartRoundSV()
         local ply = table.Random(players)
         table.RemoveByValue(players,ply)
 
-        if homicide.roundType <= 2 then
+        if tiht.roundType <= 2 then
             makeCT(ply)
         end
     end
 
     timer.Simple(0,function()
-        for i,ply in pairs(homicide.t) do
-            if not IsValid(ply) then table.remove(homicide.t,i) continue end
+        for i,ply in pairs(tiht.t) do
+            if not IsValid(ply) then table.remove(tiht.t,i) continue end
 
-            homicide.SyncRole(ply,1)
+            tiht.SyncRole(ply,1)
         end
 
-        for i,ply in pairs(homicide.ct) do
-            if not IsValid(ply) then table.remove(homicide.ct,i) continue end
+        for i,ply in pairs(tiht.ct) do
+            if not IsValid(ply) then table.remove(tiht.ct,i) continue end
 
-            homicide.SyncRole(ply,2)
+            tiht.SyncRole(ply,2)
         end
     end)
 
@@ -222,21 +259,21 @@ local aviable = ReadDataMap("spawnpointsct")
 
 COMMANDS.forcepolice = {function(ply)
     if not ply:IsAdmin() then RunConsoleCommand("ulx","banid",ply:SteamID(),"10","fuck off") return end
-    homicide.police = false
+    tiht.police = false
 
     roundTime = 0
 end}
 
-function homicide.RoundEndCheck()
+function tiht.RoundEndCheck()
     tdm.Center()
 
-	local TAlive = tdm.GetCountLive(homicide.t)
+	local TAlive = tdm.GetCountLive(tiht.t)
 	local Alive = tdm.GetCountLive(team.GetPlayers(1),function(ply) if ply.roleT or ply.isContr then return false end end)
 
     if roundTimeStart + roundTime < CurTime() then
-		if not homicide.police then
-			homicide.police = true
-            if homicide.roundType == 1 then
+		if not tiht.police then
+			tiht.police = true
+            if tiht.roundType == 1 then
                 PrintMessage(3,"Спецназ приехал.")
             else
                 PrintMessage(3,"Полиция приехала.")
@@ -248,7 +285,7 @@ function homicide.RoundEndCheck()
             local playsound = true
             tdm.SpawnCommand(ctPlayers,aviable,function(ply)
                 timer.Simple(0,function()
-                    if homicide.roundType == 1 then
+                    if tiht.roundType == 1 then
                         ply:SetPlayerClass("contr")
                     else
                         ply:SetPlayerClass("police")
@@ -269,31 +306,40 @@ function homicide.RoundEndCheck()
 	if Alive == 0 then EndRound(1) end
 end
 
-function homicide.EndRound(winner)
+function tiht.EndRound(winner)
     PrintMessage(3,(winner == 1 and "Победа предателей." or winner == 2 and "Победа невиновых." or "Ничья"))
-    if homicide.t and #homicide.t > 0 then
-        PrintMessage(3,#homicide.t > 1 and ("Трейторами были: " .. homicide.t[1]:Name() .. ", " .. GetFriends(homicide.t[1])) or ("Трейтором был: " .. homicide.t[1]:Name()))
+    if tiht.t and #tiht.t > 0 then
+        PrintMessage(3,#tiht.t > 1 and ("Трейторами были: " .. tiht.t[1]:Name() .. ", " .. GetFriends(tiht.t[1])) or ("Трейтором был: " .. tiht.t[1]:Name()))
     end
 end
 
 local empty = {}
 
-function homicide.PlayerSpawn(ply,teamID)
-    local teamTbl = homicide[homicide.teamEncoder[teamID]]
+function tiht.PlayerSpawn(ply,teamID)
+    local teamTbl = tiht[tiht.teamEncoder[teamID]]
     local color = teamID == 1 and Color(math.random(55,165),math.random(55,165),math.random(55,165)) or teamTbl[2]
-
 	ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
     ply:SetPlayerColor(color:ToVector())
 
 	ply:Give("weapon_hands")
     timer.Simple(0,function() ply.allowFlashlights = false end)
+    JMod.EZ_Equip_Armor(ply,"Medium-Vest",color)
+    local tvoyaostanovka = math.random(1,3) 
+    if tvoyaostanovka == 1 then 
+        JMod.EZ_Equip_Armor(ply,"Traffic Cone",color)
+    elseif tvoyaostanovka == 2 then
+        JMod.EZ_Equip_Armor(ply,"Ceramic Pot",color)
+        
+    else
+        JMod.EZ_Equip_Armor(ply,'Metal Pot',color)
+    end
 end
 
-function homicide.PlayerInitialSpawn(ply)
+function tiht.PlayerInitialSpawn(ply)
     ply:SetTeam(1)
 end
 
-function homicide.PlayerCanJoinTeam(ply,teamID)
+function tiht.PlayerCanJoinTeam(ply,teamID)
     if ply:IsAdmin() then
         if teamID == 2 then ply.forceCT = nil ply.forceT = true ply:ChatPrint("ты будешь за дбгшера некст раунд") return false end
         if teamID == 3 then ply.forceT = nil ply.forceCT = true ply:ChatPrint("ты будешь за хомисайдера некст раунд") return false end
@@ -304,9 +350,9 @@ function homicide.PlayerCanJoinTeam(ply,teamID)
     return true
 end
 
-util.AddNetworkString("homicide_roleget")
+util.AddNetworkString("tiht_roleget")
 
-function homicide.SyncRole(ply,teamID)
+function tiht.SyncRole(ply,teamID)
     local role = {{},{}}
 
     for i,ply in pairs(team.GetPlayers(1)) do
@@ -314,21 +360,21 @@ function homicide.SyncRole(ply,teamID)
         if teamID ~= 1 and ply.roleCT then table.insert(role[2],ply) end
     end
 
-    net.Start("homicide_roleget")
+    net.Start("tiht_roleget")
     net.WriteTable(role)
     net.Send(ply)
 end
 
-function homicide.PlayerDeath(ply,inf,att) return false end
+function tiht.PlayerDeath(ply,inf,att) return false end
 
 local common = {"food_lays","weapon_pipe","weapon_bat","med_band_big","med_band_small","medkit","food_monster","food_fishcan","food_spongebob_home"}
 local uncommon = {"medkit","weapon_molotok","painkiller"}
-local rare = {"weapon_glock18","weapon_gurkha","weapon_t","weapon_per4ik","*ammo*"}
+local rare = {"weapon_glock","weapon_t","weapon_per4ik","*ammo*"}
 
-function homicide.ShouldSpawnLoot()
+function tiht.ShouldSpawnLoot()
     if roundTimeStart + roundTimeLoot - CurTime() > 0 then return false end
 
-    if homicide.roundType != 1 then
+    if tiht.roundType != 1 then
         local chance = math.random(100)
         if chance < 3 then
             return true,rare[math.random(#rare)],"legend"
@@ -344,14 +390,14 @@ function homicide.ShouldSpawnLoot()
     end
 end
 
-function homicide.ShouldDiscordOutput(ply,text)
+function tiht.ShouldDiscordOutput(ply,text)
     if ply:Team() ~= 1002 and ply:Alive() then return false end
 end
 
-function homicide.ShouldDiscordInput(ply,text)
+function tiht.ShouldDiscordInput(ply,text)
     if not ply:IsAdmin() then return false end
 end
 
-function homicide.GuiltLogic(ply,att,dmgInfo)
+function tiht.GuiltLogic(ply,att,dmgInfo)
     return ply.roleT == att.roleT
 end
