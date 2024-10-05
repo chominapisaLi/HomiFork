@@ -4,8 +4,9 @@ knife.Name = "Поножовщина"
 knife.LoadScreenTime = 5.5
 knife.CantFight = knife.LoadScreenTime
 
-knife.RoundRandomDefalut = 1
-knife.NoSelectRandom = true
+knife.RoundRandomDefalut = 3
+knife.CanRandomNext = true
+knife.SupportCenter = true
 
 local red = Color(155,155,255)
 

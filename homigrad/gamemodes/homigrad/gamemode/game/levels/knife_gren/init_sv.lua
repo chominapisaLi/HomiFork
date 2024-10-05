@@ -62,9 +62,10 @@ local red = Color(255,0,0)
 function knife.PlayerSpawn(ply,teamID)
     local meele = {
 	"weapon_t",
-	"weapon_knife",
-    "weapon_fireaxe",
-	"weapon_hg_hatchet"
+	"weapon_hg_kitknife",
+    "weapon_hg_fireaxe",
+	"weapon_hg_hatchet",
+    "weapon_hg_crowbar"
     }
 	ply:SetModel(tdm.models[math.random(#tdm.models)])
     ply:SetPlayerColor(Vector(math.random(0,255),math.random(0,255),math.random(0,255)))

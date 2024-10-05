@@ -15,7 +15,7 @@ function bahmut.HUDPaint_RoundLeft(white)
             playsound = false
             surface.PlaySound("snd_jack_hmcd_deathmatch.mp3")
         end
-        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,131),0.5,0.5)
+        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,175),0.5,0.5)
 
 
         --[[surface.SetFont("HomigradFontBig")

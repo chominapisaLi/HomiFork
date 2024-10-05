@@ -1,7 +1,7 @@
 DeriveGamemode("sandbox")
 
-GM.Name = "Homigrad"
-GM.Author = "loh"
+GM.Name = "HomiForked"
+GM.Author = "thebogler & Sovyshska (and original creators)"
 GM.Email = "N/A"
 GM.Website = "N/A"
 GM.TeamBased = true

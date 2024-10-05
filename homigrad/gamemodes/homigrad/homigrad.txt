@@ -1,7 +1,7 @@
 "homigrad"
 {
 	"base"		"sandbox"
-	"title"		"Homigrad"
+	"title"		"HomiForked"
 	"maps"		""
 	"menusystem"	"1"
 }

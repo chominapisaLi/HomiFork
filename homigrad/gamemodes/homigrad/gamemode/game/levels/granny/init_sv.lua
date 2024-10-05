@@ -52,7 +52,7 @@ function granny.StartRoundSV()
     local aviable2 = granny.SpawnsT()
 
     local players = PlayersInGame()
-
+    print(1)
     local count = 1
     for i = 1,count do
         local ply = table.Random(players)
@@ -64,9 +64,9 @@ function granny.StartRoundSV()
     granny.SyncRole()
 
     tdm.SpawnCommand(players,aviable,function(ply)
-        ply.roleT = false
-    ply:SetMaxHealth(#player.GetAll() * 150)
+        ply:SetMaxHealth(#player.GetAll() * 150)
     end)
+    print(2)
 
     tdm.SpawnCommand(granny.t,aviable2,function(ply)
         timer.Simple(1,function()
@@ -75,7 +75,7 @@ function granny.StartRoundSV()
     end)
 
     tdm.CenterInit()
-
+    print(3)
     return {roundTimeLoot = roundTimeLoot}
 end
 
@@ -88,13 +88,10 @@ function granny.RoundEndCheck()
 	local Alive = tdm.GetCountLive(team.GetPlayers(1),function(ply) if ply.roleT or ply.isContr then return false end end)
 
     if roundTimeStart + roundTime < CurTime() then
-        if not homicide.police then
-			homicide.police = true
-            if homicide.roundType == 1 then
-                PrintMessage(3,"Спецназ приехал.")
-            else
-                PrintMessage(3,"Полиция приехала.")
-            end
+        if not granny.police then
+            print(1)
+			granny.police = true
+            PrintMessage(3,"Полиция приехала.")
 
 			local aviable = ReadDataMap("spawnpointsct")
             local ctPlayers = tdm.GetListMul(player.GetAll(),1,function(ply) return not ply:Alive() and not ply.roleT and ply:Team() ~= 1002 end)
@@ -133,8 +130,9 @@ function granny.PlayerSpawn(ply,teamID)
     local teamTbl = granny[granny.teamEncoder[teamID]]
     local color = teamID == 1 and Color(math.random(55,165),math.random(55,165),math.random(55,165)) or teamTbl[2]
     if ply.roleCT then
-        PrintMessage(HUD_PRINTTALK,'TRUE')
         ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
+    else
+        ply:SetModel("models/fulltilton/granny.mdl")
     end
     ply:SetPlayerColor(color:ToVector())
 	ply:Give("weapon_hands")

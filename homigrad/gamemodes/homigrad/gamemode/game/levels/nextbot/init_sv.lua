@@ -1,8 +1,7 @@
 local nextbots = {
-    "custom_ceno0",
-    "custom_ceno0_alt",
-    "npc_drg_huggy_wuggy",
-    "npc_drg_huggy_elmo"
+    "npc_angrybird",
+    "npc_butterdog",
+    "npc_polishtoilet"
 }
 
 function nextbot.CanRoundNext()

@@ -54,25 +54,8 @@ end}
 
 local function makeT(ply)
 
-    local Meele = {
-        "weapon_pipeweapon_hg_hatchet",
-            "weapon_knife",
-            "weapon_police_bat",
-            "weapon_hg_fireaxe",
-            "weapon_hg_shovel",
-            "weapon_hg_metalbat",
-            "weapon_hg_crowbar",
-            "weapon_hg_kitknife"
-    }      
     ply.roleT = true
     table.insert(homicide.t,ply)
-    local wep1 = math.random(1,#firstG)
-    local wep2 = math.random(1,#secondG)
-    local randomIndex = math.random(1, #Meele) 
-    print(wep1)
-    local wep1Give = ply:Give(firstG[wep1])
-    local wep2Give = ply:Give(secondG[wep2])
-    local wep3Give = ply:Give(Meele[randomIndex])
     
     if homicide.roundType == 1 then
         ply:Give("weapon_hg_t_syringepoison")
@@ -111,24 +94,6 @@ end
 local function makeCT(ply)
     ply.roleCT = true
     table.insert(homicide.ct,ply)
-    local Meele = {
-        "weapon_pipeweapon_hg_hatchet",
-            "weapon_knife",
-            "weapon_police_bat",
-            "weapon_hg_fireaxe",
-            "weapon_hg_shovel",
-            "weapon_hg_metalbat",
-            "weapon_hg_crowbar",
-            "weapon_hg_kitknife"
-    }      
-    local wep1 = math.random(1,#firstG)
-    local wep2 = math.random(1,#secondG)
-    local randomIndex = math.random(1, #Meele) 
-    print(wep1)
-    local wep1Give = ply:Give(firstG[wep1])
-    local wep2Give = ply:Give(secondG[wep2])
-    local wep3Give = ply:Give(Meele[randomIndex])
-    
     if homicide.roundType == 1 then
         local wep = ply:Give("weapon_handcuffs")
         local wep = ply:Give("weapon_taser")
@@ -217,12 +182,24 @@ function homicide.StartRoundSV()
     tdm.SpawnCommand(PlayersInGame(),aviable,function(ply)
         ply.roleT = false
         ply.roleCT = false
-
-        if homicide.roundType == 4 then
-            timer.Simple(0,function()
-                ply:Give("weapon_deagle")
-            end)
-        end
+        table.insert(homicide.ct,ply)
+        local Meele = {
+            "weapon_pipeweapon_hg_hatchet",
+                "weapon_knife",
+                "weapon_police_bat",
+                "weapon_hg_fireaxe",
+                "weapon_hg_shovel",
+                "weapon_hg_metalbat",
+                "weapon_hg_crowbar",
+                "weapon_hg_kitknife"
+        }      
+        local wep1 = math.random(1,#firstG)
+        local wep2 = math.random(1,#secondG)
+        local randomIndex = math.random(1, #Meele) 
+        print(wep1)
+        local wep1Give = ply:Give(firstG[wep1])
+        local wep2Give = ply:Give(secondG[wep2])
+        local wep3Give = ply:Give(Meele[randomIndex])
 
         if ply.forceT then
             ply.forceT = nil

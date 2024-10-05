@@ -1,4 +1,4 @@
-AddCSLuaFile("cl_init.lua")
+
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
@@ -19,7 +19,7 @@ util.AddNetworkString("ply_take_item")
 util.AddNetworkString("update_inventory")
 
 function ENT:Initialize()
-    self:SetModel("models/props_junk/wood_crate001a.mdl")
+    self:SetModel("models/sarma_crates/static_crate_48.mdl")
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
