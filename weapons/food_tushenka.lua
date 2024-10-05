@@ -2,7 +2,7 @@ SWEP.Base = 'weapon_base'
 AddCSLuaFile()
 
 SWEP.PrintName = "Банка тушёнки"
-SWEP.Author = "Нннн"
+SWEP.Author = "Нннн" 
 SWEP.Purpose = "Консервированный мясной продукт
 SWEP.Category = "Вкусности"
 
