@@ -39,7 +39,7 @@ hook.Add("HomigradDamage","PlayerPainGrowth",function(ply,hitGroup,dmginfo,rag,a
 
 		dmginfo:SetDamage(dmginfo:GetDamage())
 
-		if ply.painlosing > 10 or ply.pain > 250 + ply:GetNWInt("SharpenAMT") * 5 or ply.Blood < 3000 and not ply.Otrub then
+		if ply.painlosing > 15 or ply.pain > 350 + ply:GetNWInt("SharpenAMT") * 5 or ply.Blood < 2000 and not ply.Otrub then
 			ply.gotuncon = true
 		end
 	end
