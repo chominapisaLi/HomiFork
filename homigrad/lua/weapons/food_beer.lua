@@ -1,14 +1,14 @@
 SWEP.Base = 'weapon_base'
 AddCSLuaFile()
-SWEP.PrintName = "Пиво"
+SWEP.PrintName = "Водка"
 SWEP.Author = "Нннн"
-SWEP.Purpose = "Слабоалкогольный напиток"
+SWEP.Purpose = "Крепкий алкогольный напиток"
 SWEP.Category = "Вкусности"
 SWEP.Slot = 3
 SWEP.SlotPos = 3
 SWEP.Spawnable = true
-SWEP.ViewModel = "models/casual/food/w_heineken.mdl"
-SWEP.WorldModel = "models/casual/food/w_heineken.mdl"
+SWEP.ViewModel = "models/vodka.mdl"
+SWEP.WorldModel = "models/vodka.mdl"
 SWEP.ViewModelFOV = 54
 SWEP.UseHands = true
 SWEP.Primary.ClipSize = -1
