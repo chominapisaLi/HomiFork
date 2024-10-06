@@ -23,12 +23,40 @@ SWEP.DrawCrosshair = false
 
 local healsound = Sound("snd_jack_hmcd_drink"..math.random(1,3)..".wav")
 
-function SWEP:Initialize()
-    self:SetHoldType( "slam" )
-    if ( CLIENT ) then return end
-end
+
 
 if CLIENT then
+    local WorldModel = ClientsideModel(SWEP.WorldModel)
+	
+    WorldModel:SetNoDraw(true)
+
+    function SWEP:DrawWorldModel()
+        local _Owner = self:GetOwner()
+
+        if (IsValid(_Owner)) then
+            -- Specify a good position
+            local offsetVec = Vector(5,-2,7)
+            local offsetAng = Angle(180, 360, 0)
+            
+            local boneid = _Owner:LookupBone("ValveBiped.Bip01_R_Hand") -- Right Hand
+            if !boneid then return end
+
+            local matrix = _Owner:GetBoneMatrix(boneid)
+            if !matrix then return end
+
+            local newPos, newAng = LocalToWorld(offsetVec, offsetAng, matrix:GetTranslation(), matrix:GetAngles())
+
+            WorldModel:SetPos(newPos)
+            WorldModel:SetAngles(newAng)
+
+            WorldModel:SetupBones()
+        else
+            WorldModel:SetPos(self:GetPos())
+            WorldModel:SetAngles(self:GetAngles())
+        end
+
+        WorldModel:DrawModel()
+    end
     local beerEffect = false
     
     local function ApplyBeerEffect()
@@ -38,15 +66,17 @@ if CLIENT then
     end
 
     hook.Add("RenderScreenspaceEffects", "BeerPostProcessing", ApplyBeerEffect)
-
-    net.Receive("ActivateBeerEffect", function()
-        beerEffect = true
-    end)
-
     -- Обновленная функция для сброса эффекта
     local function ResetBeerEffect()
         beerEffect = false
     end
+    net.Receive("ActivateBeerEffect", function()
+        beerEffect = true
+        timer.Create('Akvapark',120,0,function()
+            ResetBeerEffect()          
+        end)
+    end)
+
 
     -- Добавляем несколько хуков для гарантированного сброса эффекта
     hook.Add("PlayerDeath", "ResetBeerEffectOnDeath", ResetBeerEffect)
@@ -55,6 +85,7 @@ if CLIENT then
 
     -- Дополнительная проверка каждый кадр
     hook.Add("Think", "CheckBeerEffect", function()
+        
         if not LocalPlayer():Alive() and beerEffect then
             ResetBeerEffect()
         end

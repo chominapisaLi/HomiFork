@@ -90,16 +90,21 @@ hook.Add("Player Think","homigrad-blood",function(ply,time)
 
 	--ply:EmitSound("snd_jack_hmcd_heartpound.wav",70,100,0.05 / ply.nextPulse,CHAN_AUTO)
 	
-	if ply.Bloodlosing > 0 then
-		ply.Bloodlosing = ply.Bloodlosing - 0.5
-		
-		ply.Blood = math.max(ply.Blood - ply.Bloodlosing / 2,0)
-
+	if ply.Bloodlosing > 0 and ply.Bloodlosing > 100 then
+		if ply.Bloodlosing > 1000 then 
+			ply.Bloodlosing = ply.Bloodlosing - 50
+		elseif ply.Bloodlosing > 500 and ply.Bloodlosing < 1000 then 
+			ply.Bloodlosing = ply.Bloodlosing - 25
+		else
+			ply.Bloodlosing = ply.Bloodlosing - 15
+		end
 		BloodParticle(ent:GetPos() + ent:OBBCenter(),VectorRand(-15,15))
 	elseif ply.Blood < 5000 and not ply.heartstop then
 		ply.Blood = ply.Blood + math.max(math.ceil(ply.hungryregen),1) * 10 + ply.adrenaline * 20
 	end
-
+	if ply.Blood > 0 then 
+		ply.Blood = math.max(ply.Blood - ply.Bloodlosing / 2,0)
+	end
 	if ply.bloodNext > time then return end
 	ply.bloodNext = time + 0.25
 

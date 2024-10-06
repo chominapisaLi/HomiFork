@@ -894,7 +894,7 @@ deadBodies = deadBodies or {}
 hook.Add("Think","VelocityFakeHitPlyCheck",function() --проверка на скорость в фейке (для сбивания с ног других игроков)
 	for i,rag in pairs(ents.FindByClass("prop_ragdoll")) do
 		if IsValid(rag) then
-			if rag:GetVelocity():Length() > 200 then
+			if rag:GetVelocity():Length() > 10 then
 				rag:SetCollisionGroup(COLLISION_GROUP_NONE)
 			else
 				rag:SetCollisionGroup(COLLISION_GROUP_WEAPON)
@@ -1028,7 +1028,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 
 			*/
 			--потом...
-			if ply:KeyDown( IN_JUMP ) and (table.Count(constraint.FindConstraints( ply:GetNWEntity("Ragdoll"), 'Rope' ))>0 or ((rag.IsWeld or 0) > 0)) and ply.stamina>45 and (ply.lastuntietry or 0) < CurTime() then
+			if ply:KeyDown( IN_JUMP ) and !(ply.Otrub) and (table.Count(constraint.FindConstraints( ply:GetNWEntity("Ragdoll"), 'Rope' ))>0 or ((rag.IsWeld or 0) > 0)) and ply.stamina>45 and (ply.lastuntietry or 0) < CurTime() then
 				ply.lastuntietry = CurTime() + 2
 				
 				rag.IsWeld = math.max((rag.IsWeld or 0) - 0.1,0)

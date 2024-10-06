@@ -76,7 +76,7 @@ function knife.PlayerSpawn(ply,teamID)
     local randomIndex = math.random(1, #meele) 
     local weaponM = ply:Give(meele[randomIndex])
     ply:Give("med_band_big")
-    ply:Give("food_beer")
+    ply:Give("food_vodka")
     ply:Give("food_fishcan")
     
 

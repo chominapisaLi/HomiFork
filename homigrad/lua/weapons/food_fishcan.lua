@@ -21,6 +21,8 @@ SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
 SWEP.DrawCrosshair = false
 
+SWEP.EatingSound = "player/pl_scout_dodge_can_drink.wav"
+
 function SWEP:Initialize()
     self:SetHoldType("slam")
 end
@@ -38,25 +40,36 @@ function SWEP:EatingAnimation()
         local ply = self:GetOwner()
         local eatingTime = 2 -- Duration of eating animation in seconds
 
-		if IsValid(self) and IsValid(ply) then
-			ply.hungryregen = ply.hungryregen + 2
+        if IsValid(self) and IsValid(ply) then
+            ply.hungryregen = ply.hungryregen + 2
 
-			-- Drop the empty can
-			local can = ents.Create("prop_physics")
-			can:SetModel(self.WorldModel)
-			can:SetPos(ply:GetShootPos() + ply:GetAimVector() * 20)
-			can:SetAngles(ply:EyeAngles())
-			can:Spawn()
+            self:EmitSound(self.EatingSound)
 
-			-- Apply some force to make it look like it's being thrown
-			local phys = can:GetPhysicsObject()
-			if IsValid(phys) then
-				phys:SetVelocity(ply:GetAimVector() * 100)
-			end
+            -- Start the eating animation
+            self:SetNWBool("IsEating", true)
+            self:SetNWFloat("EatingStartTime", CurTime())
 
-			-- Remove the weapon from the player's hands
-			self:Remove()
-		end
+            timer.Simple(eatingTime, function()
+                if IsValid(self) and IsValid(ply) then
+                    self:SetNWBool("IsEating", false)
+                    self:DropEmptyCan(ply)
+                    self:Remove()
+                end
+            end)
+        end
+    end
+end
+
+function SWEP:DropEmptyCan(ply)
+    local can = ents.Create("prop_physics")
+    can:SetModel(self.WorldModel)
+    can:SetPos(ply:GetShootPos() + ply:GetAimVector() * 20)
+    can:SetAngles(ply:EyeAngles())
+    can:Spawn()
+
+    local phys = can:GetPhysicsObject()
+    if IsValid(phys) then
+        phys:SetVelocity(ply:GetAimVector() * 100)
     end
 end
 
@@ -78,6 +91,7 @@ if CLIENT then
             local offsetVec = Vector(4, -1, 0)
             local offsetAng = Angle(180, -45, 90)
 
+
             newPos, newAng = LocalToWorld(offsetVec, offsetAng, matrix:GetTranslation(), matrix:GetAngles())
 
             WorldModel:SetPos(newPos)
@@ -90,43 +104,9 @@ if CLIENT then
 
         WorldModel:DrawModel()
     end
-
     function SWEP:PrimaryAttack()
-        self:SetNWFloat("EatingStartTime", CurTime())
-        self:SetNWBool("IsEating", true)
-    end
-
-    function SWEP:Think()
-        if self:GetNWBool("IsEating") then
-            local eatingProgress = math.min((CurTime() - self:GetNWFloat("EatingStartTime")) / 2, 1)
-            if eatingProgress >= 1 then
-                self:SetNWBool("IsEating", false)
-            end
-        end
-    end
-
-    function SWEP:GetViewModelPosition(pos, ang)
-        if self:GetNWBool("IsEating") then
-            local eatingProgress = math.min((CurTime() - self:GetNWFloat("EatingStartTime")) / 2, 1)
-            -- Move the viewmodel towards the camera and to the side
-            pos = pos - ang:Up() * (10 - eatingProgress * 20) + ang:Forward() * (30 - eatingProgress * 60) + ang:Right() * (7 + eatingProgress * 10)
-            
-            -- Rotate the viewmodel
-            ang:RotateAroundAxis(ang:Up(), 90 + eatingProgress * 45)
-            ang:RotateAroundAxis(ang:Right(), -10 - eatingProgress * 30)
-            ang:RotateAroundAxis(ang:Forward(), -10 - eatingProgress * 20)
-
-            -- Add some "eating" shake
-            local shake = math.sin(CurTime() * 20) * (1 - eatingProgress) * 0.5
-            pos = pos + ang:Right() * shake + ang:Up() * shake
-        else
-            -- Normal position when not eating
-            pos = pos - ang:Up() * 10 + ang:Forward() * 30 + ang:Right() * 7
-            ang:RotateAroundAxis(ang:Up(), 90)
-            ang:RotateAroundAxis(ang:Right(), -10)
-            ang:RotateAroundAxis(ang:Forward(), -10)
-        end
-        return pos, ang
+        if !IsFirstTimePredicted() then return end
+        self:EmitSound(self.EatingSound)
     end
 end
 

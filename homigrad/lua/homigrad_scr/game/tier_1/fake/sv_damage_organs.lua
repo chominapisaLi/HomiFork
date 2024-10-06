@@ -102,7 +102,7 @@ hook.Add("HomigradDamage","Organs",function(ply,hitgroup,dmginfo,rag,armorMul,ar
                 ply.Organs['lungs'] = math.max(ply.Organs['lungs'] - dmg,0)
                 if ply.Organs['lungs'] == 0 then
                     timer.Simple(3,function()
-                        if ply:Alive() then ply:ChatPrint("Ты чувствуешь, как воздух заполняет твою грудную клетку. ") end
+                        if ply:Alive() then ply:ChatPrint("Легкие повреждены, вы задыхаетесь") end
                     end)
                 end
             end
@@ -187,7 +187,7 @@ hook.Add("HomigradDamage","Organs",function(ply,hitgroup,dmginfo,rag,armorMul,ar
         local pos = ent:GetBonePosition(ent:LookupBone('ValveBiped.Bip01_Spine1'))
         local huy2 = util.IntersectRayWithOBB(dmgpos,penetration, pos, ang, Vector(-8,-3,-1),Vector(2,-2,1))
         if (huy or huy2) then --ply:ChatPrint("You were hit in the spine.")
-            if ply.Organs['spine']!=0 then
+            if ply.Organs['spine']!=0 and math.random(1,2) == 2 then
                 ply.Organs['spine']=math.Clamp(ply.Organs['spine']-dmg,0,1)
                 if ply.Organs['spine']==0 then
                     timer.Simple(0.01,function()

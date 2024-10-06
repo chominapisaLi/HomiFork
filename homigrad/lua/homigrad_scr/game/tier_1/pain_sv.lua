@@ -50,7 +50,7 @@ hook.Add("HomigradDamage","PlayerPainGrowth",function(ply,hitGroup,dmginfo,rag,a
 	
 	dmg = dmg / ply.painlosing
 	dmg = ply.nopain and 1 or dmg
-	ply.pain = ply.pain + dmg
+	ply.pain = ply.pain + dmg*0.5
 end)
 
 local empty = {}
@@ -60,13 +60,24 @@ util.AddNetworkString("info_pain")
 hook.Add("Player Think","homigrad-pain",function(ply,time)
 	if not ply:Alive() or (ply.painNext or time) > time or ply:HasGodMode() then return end
 	ply.painNext = time + 0.1
-	
 	if ply.painlosing > 5 then
 		ply.stamina = 30
 		ply.pain = ply.pain + 8
 		--ply.KillReason = "painlosing"
 		--ply:Kill()
 		
+	end
+	
+	if ply.Blood == 0 or ply.heartstop == true then
+		ply.KillReason = 'blood'
+		ply:Kill()
+		return 
+	end
+	if ply.o2 <= -2 then
+		-- ЭТО ВТОРОЙ!!!
+		ply:Kill()
+		ply.KillReason = 'O2'
+		return
 	end
 
 	if ply.pain >= 1800 then
@@ -88,7 +99,7 @@ hook.Add("Player Think","homigrad-pain",function(ply,time)
 		--ply:Kill()
 	end
 	--PrintMessage(3,tostring(ply.Otrub)..ply:Name())
-	ply.pain = math.max(ply.pain - ply.painlosing * 1 + ply.adrenalineNeed * k,0)
+	ply.pain = math.max(ply.pain - ply.painlosing * 1.5 + ply.adrenalineNeed * k,0)
 	ply.painlosing = math.max(ply.painlosing - 0.01,1)
 	
 	if ply.painNextNet <= time then
@@ -128,7 +139,7 @@ hook.Add("PostPlayerDeath","RefreshPain",function(ply)
 end)
 
 function IsUnconscious(ply)
-	if ply.painlosing > 15 and ply.Blood < 2000 or ply.pain > 350 + ply:GetNWInt("SharpenAMT") * 5  and not ply.Otrub then
+	if ply.painlosing > 15 and ply.Blood < 1000 or ply.pain > 350 + ply:GetNWInt("SharpenAMT") * 5  and not ply.Otrub then
 		ply.Otrub = true
 
 		ply:SetDSP(16)
@@ -158,7 +169,7 @@ function GetUnconscious(ply)
 	end
 
 	if not ply.fake then Faking(ply) end
-	if ply.gotuncon then ply.pain = ply.pain + 100 end
+	if ply.gotuncon then ply.pain = ply.pain + 0 end
 	ply.gotuncon = false
 
 	local rag = ply:GetNWEntity("Ragdoll")

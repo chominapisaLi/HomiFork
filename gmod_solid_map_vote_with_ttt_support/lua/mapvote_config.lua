@@ -95,9 +95,11 @@ SolidMapVote[ 'Config' ][ 'Show Map Play Count' ] = true
 -- Setting the option below to true will allow you to manually set the
 -- map pool using the table below. Only the maps inside the table will
 -- be able to be chosen for the vote.
-SolidMapVote[ 'Config' ][ 'Manual Map Pool' ] = false
+SolidMapVote[ 'Config' ][ 'Manual Map Pool' ] = true
 SolidMapVote[ 'Config' ][ 'Map Pool' ] = {
-
+    'de_port',
+    'cs_assault',
+    'ttt_clue_2022'
 }
 
 -- Allow players to use their mics while in the mapvote
@@ -160,7 +162,7 @@ SolidMapVote[ 'Config' ][ 'Extend Image' ] = 'http://i.imgur.com/zzBeMid.png'
 
 -- Set this to true if you want the option to choose a random map
 -- Set to false to disable
-SolidMapVote[ 'Config' ][ 'Enable Random' ] = true
+SolidMapVote[ 'Config' ][ 'Enable Random' ] = false 
 -- This option controls how the random button works
 -- 1 = Random map will be selected from the maps on the vote menu
 -- 2 = Random map will be selected from the entire map pool
@@ -174,5 +176,7 @@ SolidMapVote[ 'Config' ][ 'Missing Image Size' ] = { width = 1920, height = 1080
 -- In this table you can add information for the map to make it more
 -- appealing on the mapvote.
 SolidMapVote[ 'Config' ][ 'Specific Maps' ] = {
-    { filename = 'ttt_minecraft_b5', displayname = 'Minecraft B5', image = 'http://i2.imgbus.com/doimg/3co1mmfoncb63a7.jpg', width = 1920, height = 1080 },
+    { filename = 'ttt_clue_2022', displayname = 'Clue', image = 'https://i.imgur.com/e7tStQv.png', width = 1920, height = 1080 },
+    { filename = 'cs_assault', displayname = 'cs_assault', image = 'https://i.imgur.com/bsujzSu.png', width = 1920, height = 1080 },
+    { filename = 'de_port', displayname = 'Port', image = 'https://i.imgur.com/pxtYY3c.png', width = 1920, height = 1080 },
 }

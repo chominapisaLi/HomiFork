@@ -315,6 +315,7 @@ function SWEP:ApplyForce()
 					if ply.heartstop then
 						self:GetOwner():ChatPrint("У него нет пульса.")
 					else
+						print(ply.nextPulse)
 						self:GetOwner():ChatPrint(ply.nextPulse < 0.9 and "У него сильный пульс" or (ply.nextPulse <= 1.5 and "У него нормальный пульс") or (ply.nextPulse < 2 and "У него слабый пульс") or (ply.nextPulse >= 2 and "У него еле ощущаемый пульс."))
 					end
 				end

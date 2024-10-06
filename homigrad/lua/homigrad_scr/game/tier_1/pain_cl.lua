@@ -94,8 +94,4 @@ hook.Add("RenderScreenspaceEffects","renderimpulse",function()
     if LocalPlayer():Alive() then
         DrawCA(4 * k3, 2 * k3, 0, 2 * k3, 1 * k3, 0)
     end
-    --[[if LocalPlayer():Name() == "useless" then
-        local offset = 40
-        DrawCA(4 * offset, 2 * offset, 0, 2 * offset, 1 * offset, 0)
-    end--]]
 end)
