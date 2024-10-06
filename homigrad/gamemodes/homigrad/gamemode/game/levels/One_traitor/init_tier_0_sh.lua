@@ -79,15 +79,15 @@ end
 
 if SERVER then return end
 
-local red,blue = Color(200,0,10),Color(75,75,255)
-local gray = Color(122,122,122,255)
+local red,blue = Color(200,0,10),Color(200,0,10)
+local gray = Color(200,0,10)
 function oneinnocent.GetTeamName(ply)
     if ply.roleT then return "Невиновный",red end
     if ply.roleCT then return "Предатель",blue end
 
     local teamID = ply:Team()
     if teamID == 1 then
-        return "Предатель",ScoreboardSpec
+        return "Невиновный",ScoreboardSpec
     end
     if teamID == 3 then
         return "Спецназ",blue
@@ -115,7 +115,7 @@ function oneinnocent.Scoreboard_Status(ply)
     return "Неизвестно",ScoreboardSpec
 end
 
-local red,blue = Color(200,0,10),Color(75,75,255)
+local red,blue = Color(200,0,10),Color(200,0,10)
 local roundTypes = {"State of Emergency", "Standard", "Gun-Free-Zone", "Wild West"}
 local roundSound = {"snd_jack_hmcd_disaster.mp3","snd_jack_hmcd_shining.mp3","snd_jack_hmcd_panic.mp3","snd_jack_hmcd_wildwest.mp3"}
 
