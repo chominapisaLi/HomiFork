@@ -139,19 +139,19 @@ function oneinnocent.HUDPaint_RoundLeft(white2)
 
         surface.DrawText("Вы " .. name)]]--
         draw.DrawText( "Вы " .. name, "HomigradFontBig", ScrW() / 2, ScrH() / 2, Color( color.r,color.g,color.b,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
-        draw.DrawText( "Хомисайд", "HomigradFontBig", ScrW() / 2, ScrH() / 8, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
-        draw.DrawText( roundTypes[roundType], "HomigradFontBig", ScrW() / 2, ScrH() / 5, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+        draw.DrawText( "Хомисайд", "HomigradFontBig", ScrW() / 2, ScrH() / 8, Color( 155,55,97,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+        draw.DrawText( roundTypes[roundType], "HomigradFontBig", ScrW() / 2, ScrH() / 5, Color( 155,55,97,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
 
         if lply.roleT then
-            draw.DrawText( "Ваша задача выжить или убить всех до прибытия полиции >:)", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 155,55,55,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+            draw.DrawText( "Ваша задача выжить или убить всех до прибытия полиции >:)", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 155,55,97,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         elseif lply.roleCT then
             if oneinnocent.roundType == 2 then 
-                draw.DrawText( "У вас есть крупногабаритное оружие, постарайтесь нейтрализовать невиного >:)", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+                draw.DrawText( "У вас есть крупногабаритное оружие, постарайтесь нейтрализовать невиного >:)", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 155,55,97,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
             else
-                draw.DrawText( "У вас есть скрытое огнестрельное оружие, постарайтесь нейтрализовать невиного >:)", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+                draw.DrawText( "У вас есть скрытое огнестрельное оружие, постарайтесь нейтрализовать невиного >:)", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 155,55,97,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
             end
         else
-            draw.DrawText( "Найдите невиновного, свяжите или убейте его для победы. Не доверяйте никому... >:)", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,55,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+            draw.DrawText( "Найдите невиновного, свяжите или убейте его для победы. Не доверяйте никому... >:)", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 46,41,41,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         end
         return
     end
