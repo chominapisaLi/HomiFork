@@ -30,7 +30,7 @@ local function makeT(ply)
     table.insert(homicide.t,ply)
 
     if homicide.roundType == 1 then
-        ply:Give("weapon_bayonet")
+        ply:Give("weapon_kabar")
         local wep = ply:Give("weapon_hk_usps")
         wep:SetClip1(wep:GetMaxClip1())
 
