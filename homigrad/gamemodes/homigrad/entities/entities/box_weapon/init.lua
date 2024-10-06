@@ -4,7 +4,15 @@ include("shared.lua")
 Gunshuy = {
     "weapon_mp5",
     "weapon_xm1014",
-    "weapon_remington870"
+    "weapon_remington870",
+    "weapon_mp5",
+    "weapon_p220",
+    "weapon_civil_famas",
+    "weapon_mp40",
+    "weapon_galil",
+    "weapon_hk_usp",
+    "weapon_m4a1",
+    "weapon_galilsar",
 }
 
 
