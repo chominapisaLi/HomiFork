@@ -4,7 +4,8 @@ local firstG = {
     "weapon_akm",
     "weapon_m4a1",
     "weapon_xm1014",
-    "weapon_remington870"
+    "weapon_remington870",
+    "weapon_galilsar"
 }
 
 local secondG = {
