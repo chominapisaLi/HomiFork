@@ -279,7 +279,7 @@ function oneinnocent.RoundEndCheck()
 end
 
 function oneinnocent.EndRound(winner)
-    PrintMessage(3,(winner == 1 and "Победа предателей." or winner == 2 and "Победа невиновых." or "Ничья"))
+    PrintMessage(3,(winner == 1 and "Победа невиных." or winner == 2 and "Победа предателей." or "Ничья"))
     if oneinnocent.t and #oneinnocent.t > 0 then
         PrintMessage(3,#oneinnocent.t > 1 and ("Невиными были были: " .. oneinnocent.t[1]:Name() .. ", " .. GetFriends(oneinnocent.t[1])) or ("Невиным был: " .. oneinnocent.t[1]:Name()))
     end
@@ -289,7 +289,7 @@ local empty = {}
 
 function oneinnocent.PlayerSpawn(ply,teamID)
     local teamTbl = oneinnocent[oneinnocent.teamEncoder[teamID]]
-    local color = teamID == 1 and Color(math.random(55,165),math.random(55,165),math.random(55,165)) or teamTbl[2]
+    local color = teamID == 1 and Color(156,18,8) or teamTbl[2]
 
 	ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
     ply:SetPlayerColor(color:ToVector())
