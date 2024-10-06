@@ -46,5 +46,5 @@ SWEP.DrawSound = "snd_jack_hmcd_knifedraw.wav"
 SWEP.HitSound = "snd_jack_hmcd_knifehit.wav"
 SWEP.FlashHitSound = "snd_jack_hmcd_slash.wav"
 SWEP.ShouldDecal = true
-SWEP.HoldTypeWep = "melee"
+SWEP.HoldTypeWep = "knife"
 SWEP.DamageType = DMG_SLASH
