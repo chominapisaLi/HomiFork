@@ -9,8 +9,8 @@ SWEP.AdminSpawnable= true
 SWEP.AdminOnly = false
 
 SWEP.ViewModelFOV = 60
-SWEP.ViewModel = "models/weapons/insurgency/w_marinebayonet.mdl"
-SWEP.WorldModel = "models/weapons/insurgency/w_marinebayonet.mdl"
+SWEP.ViewModel = "models/weapons/j_knife_bayonet.mdl"
+SWEP.WorldModel = "models/weapons/j_knife_bayonet.mdl"
 SWEP.ViewModelFlip = false
 
 SWEP.AutoSwitchTo = false
