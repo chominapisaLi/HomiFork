@@ -3,8 +3,8 @@ SWEP.DrawWeaponInfoBox	= false
 SWEP.BounceWeaponIcon = false
 end
 
-SWEP.PrintName = "Кукри"
-SWEP.Instructions = "Режущий инструмент, используемый для рубки деревьев, листвы и других вещей, которые попадутся под руку. Обладает удобной рукоятью и длинным лезвием, благодаря чему становится отличным оружием ближнего боя."
+SWEP.PrintName = "Мачете"
+SWEP.Instructions = "Клинок с односторонней заточкой, выпуклым лезвием, иногда с загнутым к лезвию остриём."
 SWEP.Category = "Ближний Бой"
 
 SWEP.Spawnable= true
@@ -12,8 +12,8 @@ SWEP.AdminSpawnable= true
 SWEP.AdminOnly = false
 
 SWEP.ViewModelFOV = 60
-SWEP.ViewModel = "models/weapons/insurgency/v_gurkha.mdl"
-SWEP.WorldModel = "models/weapons/insurgency/w_gurkha.mdl"
+SWEP.ViewModel = "models/worldmodels/w_mw2019_machete_wm.mdl"
+SWEP.WorldModel = "models/worldmodels/w_mw2019_machete_wm.mdl"
 SWEP.ViewModelFlip = false
 
 SWEP.AutoSwitchTo = false
