@@ -427,14 +427,15 @@ for k, v in pairs(JMod.AmmoTable) do
 	end
 
 	if CLIENT then
-		language.Add(k .. "_ammo", k)
-
-		if v.ent then
-			language.Add(v.ent, v.nicename)
+		-- Принудительно конвертируем k в строку, если это не строка
+		language.Add(tostring(k) .. "_ammo", tostring(k))
+	
+		if v.ent and v.nicename then
+			-- Проверяем, что nicename и ent существуют, и конвертируем в строку
+			language.Add(tostring(v.ent), tostring(v.nicename))
 		end
 	end
 end
-
 function JMod.GetAmmoSpecs(typ)
 	if not JMod.AmmoTable[typ] then return nil end
 	local Result, BaseType = table.FullCopy(JMod.AmmoTable[typ]), string.Split(typ, "-")[1]

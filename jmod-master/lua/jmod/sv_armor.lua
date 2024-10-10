@@ -162,9 +162,6 @@ local function GetProtectionFromSlot(ply, slot, dmg, dmgAmt, protectionMul, shou
 
 									armorData.dur = armorData.dur - ArmorDmgAmt
 
-									if armorData.dur < ArmorInfo.dur * .25 then
-										JMod.EZarmorWarning(ply, "Бронепластина почти сломана")
-									end
 
 									if armorData.dur <= 0 then
 										JMod.RemoveArmorByID(ply, id, true)
