@@ -10,7 +10,7 @@ tiht.teamEncoder = {
     [1] = "red"
 }
 
-tiht.RoundRandomDefalut = 3
+tiht.RoundRandomDefalut = 1
 
 local playsound = false
 if SERVER then

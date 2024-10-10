@@ -10,7 +10,7 @@ oneinnocent.teamEncoder = {
     [1] = "red"
 }
 
-oneinnocent.RoundRandomDefalut = 3
+oneinnocent.RoundRandomDefalut = 1
 
 local playsound = false
 if SERVER then
@@ -87,7 +87,7 @@ function oneinnocent.GetTeamName(ply)
 
     local teamID = ply:Team()
     if teamID == 1 then
-        return "Невиновный",ScoreboardSpec
+        return "Предатель",ScoreboardSpec
     end
     if teamID == 3 then
         return "Спецназ",blue
@@ -139,7 +139,7 @@ function oneinnocent.HUDPaint_RoundLeft(white2)
 
         surface.DrawText("Вы " .. name)]]--
         draw.DrawText( "Вы " .. name, "HomigradFontBig", ScrW() / 2, ScrH() / 2, Color( color.r,color.g,color.b,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
-        draw.DrawText( "Хомисайд", "HomigradFontBig", ScrW() / 2, ScrH() / 8, Color( 155,55,97,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+        draw.DrawText( "Один Невиновный", "HomigradFontBig", ScrW() / 2, ScrH() / 8, Color( 155,55,97,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         draw.DrawText( roundTypes[roundType], "HomigradFontBig", ScrW() / 2, ScrH() / 5, Color( 155,55,97,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
 
         if lply.roleT then

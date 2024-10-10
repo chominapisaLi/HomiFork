@@ -39,5 +39,5 @@ function hl2dm.StartRound()
 
 	hl2dm.StartRoundSV()
 end
-hl2dm.RoundRandomDefalut = 2
+hl2dm.RoundRandomDefalut = 1
 hl2dm.SupportCenter = true

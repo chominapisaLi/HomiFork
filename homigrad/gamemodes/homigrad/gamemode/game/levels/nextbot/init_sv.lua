@@ -7,15 +7,14 @@ local nextbots = {
 function nextbot.CanRoundNext()
     if #ReadDataMap("points_nextbox") == 0 then return false end--пау пау пау бам мы стреляем по хохлам!11
 end
-
 function nextbot.StartRoundSV()
     tdm.RemoveItems()
 
-	roundTimeStart = CurTime()
-	roundTime = 60 * (2 + math.min(#player.GetAll() / 8,2))
+    roundTimeStart = CurTime()
+    roundTime = 60 * (2 + math.min(#player.GetAll() / 8, 2))
 
     local players = PlayersInGame()
-    for i,ply in pairs(players) do ply:SetTeam(1)  end
+    for i, ply in pairs(players) do ply:SetTeam(1) end
 
     local data = {}
     nextbot.twoteams = false
@@ -24,24 +23,41 @@ function nextbot.StartRoundSV()
     if nextbot.twoteams then
         AutoBalanceTwoTeam()
 
-        local spawnsT,spawnsCT = tdm.SpawnsTwoCommand()
-        tdm.SpawnCommand(team.GetPlayers(1),spawnsT)
-        tdm.SpawnCommand(team.GetPlayers(2),spawnsCT)
+        local spawnsT, spawnsCT = tdm.SpawnsTwoCommand()
+        tdm.SpawnCommand(team.GetPlayers(1), spawnsT)
+        tdm.SpawnCommand(team.GetPlayers(2), spawnsCT)
     else
-        local spawnsT,spawnsCT = tdm.SpawnsTwoCommand()
-        tdm.SpawnCommand(team.GetPlayers(1),spawnsT)
+        local spawnsT, spawnsCT = tdm.SpawnsTwoCommand()
+        tdm.SpawnCommand(team.GetPlayers(1), spawnsT)
     end
 
-    for i = 1,math.min(math.random(3),#ReadDataMap("points_nextbox")) do
-        local bot = table.Random(nextbots)
-        bot = ents.Create(bot)
-        local point = ReadPoint(table.Random(ReadDataMap("points_nextbox")))
-        bot:SetPos(point[1])
-        bot:Spawn()
-    end
+    -- Таймер на 5 секунд для отображения оставшегося времени до спавна некстботов
+    timer.Simple(5, function()
+        PrintMessage(HUD_PRINTTALK, "Некстботы появятся через 5 секунд!")  -- Сообщение всем игрокам
+    end)
 
-    for i,ply in pairs(players) do
-        ply:SetPlayerColor(Color(math.random(160),math.random(160),math.random(160)):ToVector())
+    -- Таймер на 10 секунд для спавна некстботов на точках спавна игроков
+    timer.Simple(10, function()
+        local spawnPoints = ents.FindByClass("info_player_start")  -- Ищем точки спавна игроков
+        if #spawnPoints == 0 then spawnPoints = ents.FindByClass("info_player_deathmatch") end  -- Альтернативные точки спавна
+
+        if #spawnPoints > 0 then
+            for i = 1, math.min(math.random(3), #spawnPoints) do
+                local bot = table.Random(nextbots)
+                bot = ents.Create(bot)
+                
+                local spawnPos = spawnPoints[math.random(#spawnPoints)]:GetPos()  -- Случайная точка спавна
+                bot:SetPos(spawnPos)  -- Спавним некстбота на этой точке
+                bot:Spawn()
+            end
+            PrintMessage(HUD_PRINTTALK, "Некстботы заспавнились!")  -- Сообщение игрокам о спавне некстботов
+        else
+            print("Точки спавна игроков не найдены!")
+        end
+    end)
+
+    for i, ply in pairs(players) do
+        ply:SetPlayerColor(Color(math.random(160), math.random(160), math.random(160)):ToVector())
     end
 
     return data

@@ -84,4 +84,4 @@ function dm.CanUseSpectateHUD()
     return false
 end
 
-hl2dm.RoundRandomDefalut = 3
+hl2dm.RoundRandomDefalut = 1

@@ -4,7 +4,7 @@ knife.Name = "Поножовщина"
 knife.LoadScreenTime = 5.5
 knife.CantFight = knife.LoadScreenTime
 
-knife.RoundRandomDefalut = 3
+knife.RoundRandomDefalut = 1
 knife.CanRandomNext = true
 knife.SupportCenter = true
 
@@ -85,4 +85,4 @@ function knife.CanUseSpectateHUD()
     return false
 end
 
-hl2dm.RoundRandomDefalut = 3
+hl2dm.RoundRandomDefalut = 1

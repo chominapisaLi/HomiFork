@@ -10,7 +10,7 @@ homicide.teamEncoder = {
     [1] = "red"
 }
 
-homicide.RoundRandomDefalut = 3
+homicide.RoundRandomDefalut = 1
 
 local playsound = false
 if SERVER then
