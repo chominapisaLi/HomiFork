@@ -63,7 +63,15 @@ local function ToggleScoreboard(toggle)
         HomigradScoreboard:MakePopup()
         HomigradScoreboard:SetKeyboardInputEnabled(false)
 		ScoreboardList[HomigradScoreboard] = true
-
+        -- Create the overlay panel
+        overlayPanel = vgui.Create("DPanel")
+        overlayPanel:SetParent(HomigradScoreboard)
+        overlayPanel:SetPos(0, 0)
+        overlayPanel:SetSize(scrw * 0.7, scrh * 0.9)
+        overlayPanel.Paint = function(self, w, h)
+            surface.SetDrawColor(0, 0, 0, 128)  -- Black with 0.5 transparency
+            surface.DrawRect(0, 0, w, h)
+        end
 		local wheelY = 0
 		local animWheelUp,animWheelDown = 0,0
 

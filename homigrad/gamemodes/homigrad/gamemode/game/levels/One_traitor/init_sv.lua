@@ -24,76 +24,76 @@ COMMANDS.oneinnocent_get = {function(ply,args)
     net.WriteTable(role)
     net.Send(ply)
 end}
-
 local function makeT(ply)
     ply.roleT = true
-    table.insert(oneinnocent.t,ply)
-
+    table.insert(oneinnocent.t, ply)
+    ply:Give("weapon_kabar")
+    
+    -- Выдача дополнительного оружия в зависимости от типа раунда
     if oneinnocent.roundType == 1 then
-        ply:Give("weapon_kabar")
-        local wep = ply:Give("weapon_hk_usps")
-
-
         ply:Give("weapon_hg_t_vxpoison")
         ply:Give("weapon_hidebomb")
         ply:Give("weapon_hg_rgd5")
     elseif oneinnocent.roundType == 2 then
         ply:Give("weapon_kabar")
-
         ply:Give("weapon_hg_t_syringepoison")
         ply:Give("weapon_hg_t_vxpoison")
-
         ply:Give("weapon_hidebomb")
         ply:Give("weapon_hg_rgd5")
     elseif oneinnocent.roundType == 3 then
         ply:Give("weapon_kabar")
-
         ply:Give("weapon_hg_t_syringepoison")
         ply:Give("weapon_hg_t_vxpoison")
-        
         ply:Give("weapon_hg_rgd5")
     else
         ply:Give("weapon_kabar")
-
         ply:Give("weapon_hidebomb")
         ply:Give("weapon_hg_rgd5")
-
     end
-
-    timer.Simple(5,function() ply.allowFlashlights = true end)
-
-    AddNotificate( ply,"Вы невиновный.")
-
-    if #GetFriends(ply) >= 1 then
-        timer.Simple(1,function() AddNotificate( ply,"Ваши товарищи " .. GetFriends(ply)) end)
-    end
+    
+    timer.Simple(5, function() 
+        if IsValid(ply) then
+            ply.allowFlashlights = true 
+        end
+    end)
+    
+    AddNotificate(ply, "Вы невиновный.")
+    
+    timer.Simple(1, function()
+        if IsValid(ply) and #GetFriends(ply) >= 1 then
+            AddNotificate(ply, "Ваши товарищи " .. GetFriends(ply))
+        end
+    end)
 end
-
 local function makeCT(ply)
     ply.roleCT = true
-    table.insert(oneinnocent.ct,ply)
+    table.insert(oneinnocent.ct, ply)
+
     if oneinnocent.roundType == 1 then
         local wep = ply:Give("weapon_remington870")
-        wep:SetClip1(wep:GetMaxClip1())
+        if IsValid(wep) then
+            wep:SetClip1(wep:GetMaxClip1())
+        end
         ply:Give("weapon_kabar")
         local wep1 = ply:Give("weapon_hk_usps")
-        wep:SetClip1(wep1:GetMaxClip1())
-
+        if IsValid(wep1) then
+            wep1:SetClip1(wep1:GetMaxClip1())
+        end
         ply:Give("weapon_hg_t_vxpoison")
         ply:Give("weapon_hidebomb")
         ply:Give("weapon_hg_rgd5")
-
-        AddNotificate( ply,"Вы предатель с крупногабаритным огнестрельным оружием.")
+        AddNotificate(ply, "Вы предатель с крупногабаритным огнестрельным оружием.")
     elseif oneinnocent.roundType == 2 then
         local wep = ply:Give("weapon_beretta")
-        wep:SetClip1(wep:GetMaxClip1())
-        AddNotificate( ply,"Вы предатель со скрытым огнестрельным оружием.")
+        if IsValid(wep) then
+            wep:SetClip1(wep:GetMaxClip1())
+        end
+        AddNotificate(ply, "Вы предатель со скрытым огнестрельным оружием.")
     elseif oneinnocent.roundType == 3 then
         --nihuya
     else
         --nihuya tozhe
     end
-
 end
 
 COMMANDS.russian_roulette = {function(ply,args)
@@ -166,8 +166,7 @@ function oneinnocent.StartRoundSV()
         ply.roleCT = false
 
         ply:Give("weapon_kabar")
-        local wep = ply:Give("weapon_hk_usps")
-        wep:SetClip1(wep:GetMaxClip1())
+
 
         ply:Give("weapon_hg_t_vxpoison")
         ply:Give("weapon_hidebomb")
@@ -295,6 +294,13 @@ function oneinnocent.PlayerSpawn(ply,teamID)
     ply:SetPlayerColor(color:ToVector())
 
 	ply:Give("weapon_hands")
+    
+    local wep = ply:Give("weapon_hk_usps")
+    if ply.roleT then
+        wep:SetClip1(0)
+    else
+        wep:SetClip1(wep:GetMaxClip1()) 
+    end
     timer.Simple(0,function() ply.allowFlashlights = false end)
 end
 

@@ -268,7 +268,7 @@ function Reload(wep)
 				wep.Amt=wep.Amt-needed
 				ply.Info.Ammo[wep.AmmoType]=wep.Amt
 
-				--print(ply.Info.Ammo[wep.AmmoType])
+				print(ply.Info.Ammo[wep.AmmoType])
 			end
 		end)
 	end

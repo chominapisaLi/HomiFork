@@ -83,69 +83,95 @@ net.Receive("ply_take_item", function(len, ply)
     if not IsValid(lootEnt) then return end
 
     local wep = net.ReadString()
-    
     local lootInfo = lootEnt.Info or {Weapons = {[wep] = true}, Ammo = {}}
 
-    if prekol[wep] and not ply:IsAdmin() then ply:Kick("xd))00") return end
-	for k,v in ipairs(lootInfo.Weapons) do
-		print(k,v)
-	end
+    if prekol[wep] and not ply:IsAdmin() then
+        ply:Kick("xd))00")
+        return
+    end
+
+    -- Подсчет предметов в инвентаре игрока (оружие и патроны)
+    local currentWeaponCount = 0
+    local currentAmmoCount = 0
+
+    -- Подсчет текущих оружий
+    for k, _ in pairs(ply:GetWeapons()) do
+        currentWeaponCount = currentWeaponCount + 1
+    end
+
+    -- Подсчет патронов
+    for _, ammoType in pairs(lootInfo.Ammo) do
+        currentAmmoCount = currentAmmoCount + ammoType  -- Предполагается, что ammoType это количество патронов
+    end
+
+    -- Проверка на ограничение (9 предметов)
+    if currentWeaponCount + currentAmmoCount >= 11 then
+        ply:ChatPrint("Ваш инвентарь полон! Вы не можете взять больше предметов.")
+        return
+    end
+
     if ply:HasWeapon(wep) then
-		print(lootInfo.Weapons[wep].Clip1)
         if lootInfo.Weapons[wep] then
             local wepInfo = lootInfo.Weapons[wep]
-    
+
             if (lootEnt.curweapon == wep and not lootEnt.Otrub) then return end
             if wepInfo.Clip1 and wepInfo.Clip1 > 0 then
                 ply:GiveAmmo(wepInfo.Clip1, wepInfo.AmmoType)
                 wepInfo.Clip1 = 0
-				
             else
-                ply:ChatPrint("У тебя уже есть это оружие.")
+                ply:ChatPrint("У тебя это уже есть.")
             end
         else
-            ply:ChatPrint("У тебя уже есть это оружие.")
+            ply:ChatPrint("У тебя это уже есть.")
         end
     else
-        if true then 
-            local wepInfo = lootInfo.Weapons[wep]
-    
-            if (lootEnt.curweapon == wep and not lootEnt.Otrub) then return end
-            
-            ply.slots = ply.slots or {}
-            if IsValid(lootEnt.wep) and lootEnt.curweapon == wep then
-                DespawnWeapon(lootEnt)
-                lootEnt.wep:Remove()
-            end
-            local actwep = ply:GetActiveWeapon()
-            local wep1 = ply:Give(wep)
-            if IsValid(wep1) and wep1:IsWeapon() then
-                wep1:SetClip1(wepInfo and wepInfo.Clip1 or 0)
-            end
-            if wepInfo.Clip1 and wepInfo.Clip1 == -2 then
-				wep1:SetClip1(wep1:GetMaxClip1())
-			end
-            ply:SelectWeapon(actwep:GetClass())
+        local wepInfo = lootInfo.Weapons[wep]
 
-            if lootEnt:IsPlayer() then lootEnt:StripWeapon(wep) end
-            lootInfo.Weapons[wep] = nil
-            if lootInfo.Weapons2 then
-                table.RemoveByValue(lootInfo.Weapons2, wep)
-            end
+        if (lootEnt.curweapon == wep and not lootEnt.Otrub) then return end
 
-            if lootEnt:IsRagdoll() then
-                deadBodies[lootEnt:EntIndex()] = {lootEnt, lootInfo}
-                net.Start("send_deadbodies")
-                net.WriteTable(deadBodies)
-                net.Broadcast()
-            end
-			local weapons_left = 0
-			for i in pairs(lootInfo.Weapons) do
-				print(i)
-				weapons_left=weapons_left+1
-			end 
-			print(weapons_left)
-			if tonumber(weapons_left) == tonumber(0) then lootEnt:Remove() end
+        ply.slots = ply.slots or {}
+
+        if IsValid(lootEnt.wep) and lootEnt.curweapon == wep then
+            DespawnWeapon(lootEnt)
+            lootEnt.wep:Remove()
+        end
+
+        local actwep = ply:GetActiveWeapon()
+        local wep1 = ply:Give(wep)
+
+        if IsValid(wep1) and wep1:IsWeapon() then
+            wep1:SetClip1(wepInfo and wepInfo.Clip1 or 0)
+        end
+
+        if wepInfo.Clip1 and wepInfo.Clip1 == -2 then
+            wep1:SetClip1(wep1:GetMaxClip1())
+        end
+
+        ply:SelectWeapon(actwep:GetClass())
+
+        if lootEnt:IsPlayer() then
+            lootEnt:StripWeapon(wep)
+        end
+
+        lootInfo.Weapons[wep] = nil
+        if lootInfo.Weapons2 then
+            table.RemoveByValue(lootInfo.Weapons2, wep)
+        end
+
+        if lootEnt:IsRagdoll() then
+            deadBodies[lootEnt:EntIndex()] = {lootEnt, lootInfo}
+            net.Start("send_deadbodies")
+            net.WriteTable(deadBodies)
+            net.Broadcast()
+        end
+
+        local weapons_left = 0
+        for i in pairs(lootInfo.Weapons) do
+            weapons_left = weapons_left + 1
+        end
+
+        if weapons_left == 0 then
+            lootEnt:Remove()
         end
     end
 

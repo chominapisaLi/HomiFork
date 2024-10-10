@@ -87,7 +87,7 @@ function oneinnocent.GetTeamName(ply)
 
     local teamID = ply:Team()
     if teamID == 1 then
-        return "Невиновный",ScoreboardSpec
+        return "Предатель",ScoreboardSpec
     end
     if teamID == 3 then
         return "Спецназ",blue
