@@ -1660,7 +1660,7 @@ end
 
 -- Привязываем инвентарь к кнопке C
 hook.Add("Think", "OpenInventoryOnC", function()
-    if input.IsKeyDown(KEY_C) then  -- Проверяем нажатие клавиши C
+    if input.IsKeyDown(KEY_C) and LocalPlayer():Alive() then  -- Проверяем нажатие клавиши C
         if not isCKeyHeld then  -- Проверяем, что клавиша C была только что нажата
             isCKeyHeld = true
             if not isInventoryOpen and panelParent == nil then
