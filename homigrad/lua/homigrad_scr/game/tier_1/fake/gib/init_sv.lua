@@ -116,12 +116,11 @@ function Gib_Input(rag,bone,dmgInfo)
 	end
 	end
 
-	if hitgroup == HITGROUP_HEAD and not dmgInfo:IsDamageType(DMG_CRUSH) and not gibRemove[phys_bone] then
+	if hitgroup == HITGROUP_HEAD and not dmgInfo:IsDamageType(DMG_CRUSH) and not gibRemove[phys_bone] and dmgInfo:IsDamageType(DMG_BUCKSHOT) then
 		sound.Emit(rag,"player/headshot" .. math.random(1,2) .. ".wav")
 		sound.Emit(rag,"physics/flesh/flesh_squishy_impact_hard" .. math.random(2,4) .. ".wav")
 		sound.Emit(rag,"physics/body/body_medium_break3.wav")
 		sound.Emit(rag,"physics/glass/glass_sheet_step" .. math.random(1,4) .. ".wav",90,50,2)
-
 		timer.Simple(0.05,function()
 			if not IsValid(rag) then return end
 
@@ -130,7 +129,7 @@ function Gib_Input(rag,bone,dmgInfo)
 
 		Gib_RemoveBone(rag,bone,phys_bone)
 
-		BloodParticleHeadshoot(rag:GetPhysicsObject(phys_bone):GetPos(),dmgInfo:GetDamageForce() * 2)
+		BloodParticleExplode(rag:GetPhysicsObject(phys_bone):GetPos(),dmgInfo:GetDamageForce() * 2)
 	end
 
 	if dmgInfo:GetDamage() >= 50 and dmgInfo:IsDamageType(DMG_BLAST) and not gibRemove[phys_bone] then
