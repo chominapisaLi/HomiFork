@@ -78,7 +78,7 @@ function wick.StartRoundSV()
         local wep = ply:Give("weapon_glock")
         wep:SetClip1(wep:GetMaxClip1())
         ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
-    ply:SetMaxHealth(#player.GetAll() * 150)
+        ply:SetMaxHealth(#player.GetAll() * 150)
     end)
 
     tdm.SpawnCommand(wick.t,aviable2,function(ply)
@@ -88,7 +88,11 @@ function wick.StartRoundSV()
     end)
 
     tdm.CenterInit()
-
+    for i,ply in pairs(player.GetAll()) do
+        if ply.roleT ~= true then
+            ply:SetModel(tdm.models[math.random(1,#tdm.models)])
+        end
+    end
     return {roundTimeLoot = roundTimeLoot}
 end
 
