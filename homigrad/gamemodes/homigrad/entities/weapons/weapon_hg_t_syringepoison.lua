@@ -1,8 +1,8 @@
 SWEP.Base = "medkit"
 
-SWEP.PrintName = "Тетродотоксин"
+SWEP.PrintName = "Ционид"
 SWEP.Author = "Homigrad"
-SWEP.Instructions = "Вколоть в позвоночник и ждать..."
+SWEP.Instructions = "Вколоть в правую вену и ждать..."
 
 SWEP.Spawnable = true
 SWEP.Category = "Примочки убийцы"
@@ -87,7 +87,7 @@ if SERVER then
 
         local huy = util.IntersectRayWithOBB(tracePos,traceDir, pos, ang, Vector(-8,-1,-1),Vector(2,0,1))
 
-        local bone = entreal:LookupBone("ValveBiped.Bip01_Spine1")
+        local bone = entreal:LookupBone("ValveBiped.Bip01_R_Hand")
 
         if not bone then return end
 
@@ -101,7 +101,7 @@ if SERVER then
 
         if huy or huy2 then
             ent.otravlen = true
-            timer.Create("Cyanid"..ent:EntIndex().."1", 30, 1, function()
+            timer.Create("Cyanid"..ent:EntIndex().."1", 15, 1, function()
                 if ent:Alive() and ent.otravlen then
                     ent:EmitSound("vo/npc/male01/moan0"..math.random(1,5)..".wav",60)
                 end
@@ -112,7 +112,7 @@ if SERVER then
                     end
                 end)
 
-                timer.Create( "Cyanid"..ent:EntIndex().."3", 15, 1, function()
+                timer.Create( "Cyanid"..ent:EntIndex().."3", 5, 1, function()
                     if ent:Alive() and ent.otravlen then
                         ent.KillReason = "poison"
                         ent:Kill()
@@ -140,7 +140,7 @@ else
 
         if not IsValid(ent) then return end
 
-        local bone = ent:LookupBone("ValveBiped.Bip01_Spine4")
+        local bone = ent:LookupBone("ValveBiped.Bip01_R_Hand")
 
         if not bone then return end
 
@@ -161,7 +161,7 @@ else
 
         local huy = util.IntersectRayWithOBB(tracePos,traceDir, pos, ang, Vector(-8,-1,-1),Vector(2,0,1))
 
-        local bone = ent:LookupBone("ValveBiped.Bip01_Spine1")
+        local bone = ent:LookupBone("ValveBiped.Bip01_R_Hand")
 
         if not bone then return end
 
