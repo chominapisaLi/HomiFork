@@ -1,8 +1,8 @@
 SWEP.Base = "medkit"
 
-SWEP.PrintName = "Ампула VX"
+SWEP.PrintName = "Новичок"
 SWEP.Author = "Homigrad"
-SWEP.Instructions = "Используй это на предмете, чтобы отравить подбирающего"
+SWEP.Instructions = "Нанеси на предмет, когда его подберут человек отравится"
 
 SWEP.Spawnable = true
 SWEP.Category = "Примочки убийцы"
@@ -44,7 +44,7 @@ local function eyeTrace(ply)
 end
 
 function SWEP:Initialize()
-	self:SetHoldType("normal")
+	self:SetHoldType("normal")  
 end
 
 function SWEP:PrimaryAttack()
@@ -74,7 +74,7 @@ if SERVER then
         if not ent.poisoned then return end
 
         ply.otravlen2 = true
-        timer.Create("Cyanid"..ply:EntIndex().."12", 30, 1, function()
+        timer.Create("Cyanid"..ply:EntIndex().."12", 10, 1, function()
             if ply:Alive() and ply.otravlen2 then
                 ply:EmitSound("vo/npc/male01/moan0"..math.random(1,5)..".wav",60)
             end
