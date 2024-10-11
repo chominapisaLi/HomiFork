@@ -9,7 +9,7 @@ local function makeT(ply)
     ply:SetHealth(#player.GetAll() * 400)
 
     ply:ChatPrint("Вы бабка Грени.")
-    ply:SetModel("models/fulltilton/granny.mdl")
+    ply:SetModel("models/centris/granny/grannypm.mdl")
 end
 
 function granny.SpawnsCT()
@@ -43,7 +43,6 @@ function granny.StartRoundSV()
 
     for i,ply in pairs(team.GetPlayers(2)) do ply:SetTeam(1) end
     for i,ply in pairs(player.GetAll()) do ply.roleT = false end
-
     granny.t = {}
 
     local countT = 0
@@ -73,7 +72,11 @@ function granny.StartRoundSV()
             ply.nopain = true
         end)
     end)
-
+    for i,ply in pairs(player.GetAll()) do
+        if ply.roleT ~= true then
+            ply:SetModel(tdm.models[math.random(1,#tdm.models)])
+        end
+    end
     tdm.CenterInit()
     print(3)
     return {roundTimeLoot = roundTimeLoot}
@@ -131,6 +134,7 @@ function granny.PlayerSpawn(ply,teamID)
     local color = teamID == 1 and Color(math.random(55,165),math.random(55,165),math.random(55,165)) or teamTbl[2]
     ply:SetPlayerColor(color:ToVector())
 	ply:Give("weapon_hands")
+
     timer.Simple(0,function() ply.allowFlashlights = false end)
 end
 
