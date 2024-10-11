@@ -46,4 +46,4 @@ SWEP.HitSound = "physics/metal/metal_sheet_impact_hard2.wav"
 SWEP.FlashHitSound = "weapons/melee/flesh_impact_blunt_04.wav"
 SWEP.ShouldDecal = false
 SWEP.HoldTypeWep = "melee2"
-SWEP.DamageType = DMG_CLUB
+SWEP.DamageType = DMG_BUCKSHOT
