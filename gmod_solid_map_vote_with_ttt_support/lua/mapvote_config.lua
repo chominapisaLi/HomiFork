@@ -181,6 +181,6 @@ SolidMapVote[ 'Config' ][ 'Specific Maps' ] = {
     { filename = 'ttt_clue_2022', displayname = 'Clue', image = 'https://i.imgur.com/e7tStQv.png', width = 1920, height = 1080 },
     { filename = 'cs_assault', displayname = 'cs_assault', image = 'https://i.imgur.com/bsujzSu.png', width = 1920, height = 1080 },
     { filename = 'de_port', displayname = 'Port', image = 'https://i.imgur.com/pxtYY3c.png', width = 1920, height = 1080 },
-    { filename = 'ttt_island_2013', displayname = 'Island', image = 'https://i.imgur.com/nUx4Y7p.png', width = 1920, height = 1080 }
+    { filename = 'ttt_island_2013', displayname = 'Island', image = 'https://i.imgur.com/nUx4Y7p.png', width = 1920, height = 1080 },
     { filename = 'ph_halloweenhouse_v3', displayname = 'HalloweenHouse', image = 'https://i.imgur.com/F2ilVkc.jpeg', width = 1920, height = 1080 }
 }
