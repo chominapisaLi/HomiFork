@@ -78,7 +78,7 @@ function StartRound()
 
 	local textGmod = ""
 	local text = ""
-	text =  "HomiForked | ".."Игровой режим	: " .. tostring(tbl.Name) .. "\n"
+	text =  "HomiForked | ".."Игровой режим	: " .. tostring(roundActiveName) .. "\n"
 	RunConsoleCommand("hostname",text)
 	RoundData = tbl.StartRound
 	RoundData = RoundData and RoundData() or {}
