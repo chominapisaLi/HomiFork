@@ -523,12 +523,11 @@ function Stun(Entity)
 		timer.Create("StunTime"..Entity:EntIndex(), 8, 1, function() end)
 		local fake = Entity:GetNWEntity("Ragdoll")
 		timer.Create( "StunEffect"..Entity:EntIndex(), 0.1, 80, function()
-			local rand = math.random(1,50)
-			if rand == 50 then
-			RagdollOwner(fake):Say("*drop")
+			local rand = math.random(1,25)
+			if rand == 25 then
+				RagdollOwner(fake):Say("*drop")
 			end
-			RagdollOwner(fake).pain = RagdollOwner(fake).pain + 3
-			fake:GetPhysicsObjectNum(1):SetVelocity(fake:GetPhysicsObjectNum(1):GetVelocity()+Vector(math.random(-55,55),math.random(-55,55),0))
+			Entity:GetPhysicsObjectNum(1):SetVelocity(Entity:GetPhysicsObjectNum(1):GetVelocity()+Vector(math.random(-55,55),math.random(-55,55),0))
 			fake:EmitSound("ambient/energy/spark2.wav")
 		end)
 	elseif Entity:IsRagdoll() then
@@ -540,7 +539,6 @@ function Stun(Entity)
 				if rand == 50 then
 					RagdollOwner(fake):Say("*drop")
 				end
-				RagdollOwner(fake).pain = RagdollOwner(fake).pain + 3
 				fake:GetPhysicsObjectNum(1):SetVelocity(fake:GetPhysicsObjectNum(1):GetVelocity()+Vector(math.random(-55,55),math.random(-55,55),0))
 				fake:EmitSound("ambient/energy/spark2.wav")
 			end)
@@ -655,6 +653,7 @@ local function RemoveRag(self)
 end
 
 local CustomWeight = {
+	['models/wagner/wagner_soldier.mdl'] = 120,
 	["models/player/police_fem.mdl"] = 50,
 	["models/player/police.mdl"] = 60,
 	["models/player/combine_soldier.mdl"] = 70,
@@ -673,7 +672,9 @@ local CustomWeight = {
 	["models/LeymiRBA/Gyokami/Gyokami.mdl"] = 50,
 	["models/player/smoky/Smoky.mdl"] = 65,
 	["models/player/smoky/Smokycl.mdl"] = 65,
-	["models/knyaje pack/dibil/sso_politepeople.mdl"] = 20
+	["models/knyaje pack/dibil/sso_politepeople.mdl"] = 20,
+	["models/centris/granny/grannypm.mdl"] = 90,
+	["models/arachnit/fortnite/characters/male/medium/skin/jq/john_wick_fortnite_player.mdl"] = 90
 }
 
 for i = 1,6 do
@@ -829,7 +830,7 @@ function PlayerMeta:CreateRagdoll(attacker,dmginfo,force) --изменение �
 
 	return rag
 end
-
+prikolweps = {'weapon_physgun'}
 hook.Add("JMod Armor Remove","Fake",function(ply,slot,item,drop)
 	local fake = ply:GetNWEntity("Ragdoll")
 	if not IsValid(fake) then return end
@@ -1093,8 +1094,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 					phys:ComputeShadowControl(shadowparams)
 				end
 			end
-
-			if ply.curweapon and weapons.Get(ply.curweapon).Primary.Automatic then
+			if ply.curweapon and weapons.Get(ply.curweapon).Primary.Automatic and not prikolweps[weapons.Get(ply.curweapon)] then
 				if ply:KeyDown(IN_ATTACK) then
 					if ply.FakeShooting then FireShot(ply.wep) end
 				end

@@ -1,4 +1,3 @@
-AddCSLuaFile()
 
 ENT.Type = "anim"
 ENT.PrintName = "Aid Package"

@@ -2,6 +2,10 @@
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
+local tyagi = {
+    "weapon_handcuffs",
+    "weapon_per4ik"
+}
 local eda = {
     "food_spongebob_home",
     "food_lays",
@@ -40,14 +44,26 @@ function ENT:Initialize()
     }
     
     -- Populate the Weapons table with a random weapon from Gunshuy
+    local random = math.random(1,10) 
     local randomWeapon = eda[math.random(1, #eda)]
     self.Info.Weapons[randomWeapon] = {
         Clip1 =  -2
     }
-    local randomWeapon = bita[math.random(1, #bita)]
-    self.Info.Weapons[randomWeapon] = {
-        Clip1 =  -2
-    }
+    print(random)
+    if random >= 5 then
+        local randomWeaponss = bita[math.random(1, #bita)]
+        self.Info.Weapons[randomWeaponss] = {
+            Clip1 =  -2
+        }
+    end
+    if random >= 8 then
+        print(1)
+        local randomWeaponsss = tyagi[math.random(1, #tyagi)]
+        self.Info.Weapons[randomWeaponsss] = {
+            Clip1 =  -2
+        }
+    end
+
 end
 
 function ENT:Use(activator, caller)

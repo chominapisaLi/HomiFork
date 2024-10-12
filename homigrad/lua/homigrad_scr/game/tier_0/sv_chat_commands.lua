@@ -232,20 +232,23 @@ end
 
 hook.Add("CheckPassword","sync",function(steamID)
 	steamID = util.SteamIDFrom64(steamID)
-
+	local sdf = 0
+	for i,ply in pairs(player.GetAll()) do
+		sdf += 1
+	end
 	local group = ULib.ucl.users[steamID]
 	if group and validUserGroup[group.group] then
-		RunConsoleCommand("sv_visiblemaxplayers",tostring(MaxPlayers + #getDonaters()))
+		RunConsoleCommand("sv_visiblemaxplayers",tostring(sdf + #getDonaters()))
 		return
 	end
 
 	--if CloseDev then return false,"dev" end
 
 	if MaxPlayers and #getNotDonaters() + 1 > MaxPlayers then
-		return false,"limit players\nСервер заполнен, но есть еще донат слоты!\nМожете их купить здесь http://80.85.241.23"
+		return false,"limit players"
 	end
 
-	if Sync then return false,"xd" end
+	if Sync then return false,"!!" end
 end)
 
 MaxPlayers = tonumber(SData_Get("maxplayers"))

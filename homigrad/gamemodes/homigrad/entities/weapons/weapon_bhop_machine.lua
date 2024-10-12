@@ -229,7 +229,7 @@ else
     end
 
     function SWEP:Deploy()
-        self:GetOwner() = self:GetOwner()
+        self:GetOwner()
 
         self.runSpeed = self:GetOwner():GetRunSpeed()
         self.walkSpeed = self:GetOwner():GetWalkSpeed()

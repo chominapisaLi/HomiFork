@@ -1,3 +1,4 @@
+AddCSLuaFile()
 SWEP.Base                   = "medkit"
 
 SWEP.PrintName 				= "Заказчик"

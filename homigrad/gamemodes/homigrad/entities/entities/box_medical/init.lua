@@ -3,17 +3,17 @@ AddCSLuaFile("shared.lua")
 include("shared.lua")
 
 medone = {
-    "medkit",
-    "adrenaline",
-    "megamedkit",
-    "med_band_small"
-}
-medtwo = {
+    "med_band_small",
     "med_band_big",
-    "morphine",
     "painkiller"
 }
-
+medtwo = {
+    "medkit"
+}
+medthree = {
+    "adrenaline",
+    "morphine"
+}
 util.AddNetworkString("inventory")
 util.AddNetworkString("ply_take_item")
 util.AddNetworkString("update_inventory")
@@ -35,16 +35,23 @@ function ENT:Initialize()
         Weapons = {},
         Ammo = {}
     }
-    
     -- Populate the Weapons table with a random weapon from Gunshuy
+    local random = math.random(1,10) 
     local randomWeapon = medone[math.random(1, #medone)]
     self.Info.Weapons[randomWeapon] = {
         Clip1 =  -2
     }
-    local randomWeapon = medtwo[math.random(1, #medtwo)]
-    self.Info.Weapons[randomWeapon] = {
-        Clip1 =  -2
-    }
+    if random >= 1 and random <= 3 then
+        local randomWeapon = medthree[math.random(1, #medthree)]
+        self.Info.Weapons[randomWeapon] = {
+            Clip1 =  -2
+        }
+    elseif random >= 7 then
+        local randomWeapon = medtwo[math.random(1, #medtwo)]
+        self.Info.Weapons[randomWeapon] = {
+            Clip1 =  -2
+        }
+    end
 end
 
 function ENT:Use(activator, caller)

@@ -1,5 +1,5 @@
 include("shared.lua")
-
+AddCSLuaFile()
 local healsound = Sound("snd_jack_bandage.wav")
 
 function SWEP:Heal(ent)

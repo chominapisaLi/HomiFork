@@ -5,8 +5,9 @@ local bhop
 function riot.StartRoundCL()
     sound.PlayURL("https://cdn.discordapp.com/attachments/1136982600829894656/1138472303294951544/challengecomplete_metal.wav","mono noblock",function(snd)
         bhop = snd
-
-        snd:SetVolume(1)
+        if snd ~= nil then
+            snd:SetVolume(1)
+        end
     end) 
 end
 

@@ -65,27 +65,3 @@ function SWEP:Heal(ent)
 		return true
 	end
 end
-function SWEP:PrimaryAttack()
-    self:GetOwner():SetAnimation(PLAYER_ATTACK1)
-    if(SERVER)then
-        
-        -- Create and throw the empty can
-        local ply = self:GetOwner()
-        local can = ents.Create("prop_physics")
-        can:SetModel(self.WorldModel)
-        can:SetPos(ply:GetShootPos() + ply:GetAimVector() * 20)
-        can:SetAngles(ply:EyeAngles())
-        can:Spawn()
-        
-        -- Apply some force to make it look like it's being thrown
-        local phys = can:GetPhysicsObject()
-        if IsValid(phys) then
-            phys:SetVelocity(ply:GetAimVector() * 200 + Vector(0, 0, 100))
-            phys:AddAngleVelocity(VectorRand() * 100)
-        end
-        
-        -- Remove the weapon and switch to hands
-        self:Remove()
-        ply:SelectWeapon("weapon_hands")
-    end
-end

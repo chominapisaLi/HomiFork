@@ -1638,13 +1638,13 @@ net.Receive("inventory", function()
 
     createInventoryPanel(lootEnt, items, items_ammo, false)
 end)
--- Определение глобальной переменной для проверки открытого инвентаря
+-- Определение глобальных переменных для проверки открытого инвентаря
 local isInventoryOpen = false
 local isCKeyHeld = false  -- Новая переменная для отслеживания состояния клавиши C
 
 -- Функция для открытия инвентаря
-local function OpenInventory()
-    if not isInventoryOpen then
+local function OpenInventory(lootEnt, items, items_ammo, isPlayerInventory)
+    if not isInventoryOpen then  -- Проверяем, открыт ли инвентарь
         isInventoryOpen = true
         createInventoryPanel(lootEnt, items, items_ammo, isPlayerInventory)  -- Ваш вызов функции инвентаря
     end
@@ -1652,21 +1652,26 @@ end
 
 -- Функция для закрытия инвентаря
 local function CloseInventory()
-    if isInventoryOpen then
+    if isInventoryOpen then  -- Проверяем, открыт ли инвентарь
         isInventoryOpen = false
-        if panelParent then panelParent:Remove() end  -- Удаляем окно инвентаря
+        if panelParent then 
+            panelParent:Remove()  -- Удаляем окно инвентаря
+            panelParent = nil  -- Сбрасываем переменную панели
+        end
     end
 end
 
 -- Привязываем инвентарь к кнопке C
 hook.Add("Think", "OpenInventoryOnC", function()
-    if input.IsKeyDown(KEY_C) and LocalPlayer():Alive() then  -- Проверяем нажатие клавиши C
-        if not isCKeyHeld  then  -- Проверяем, что клавиша C была только что нажата
+    if input.IsKeyDown(KEY_CAPSLOCK) and LocalPlayer():Alive() then  -- Проверяем нажатие клавиши C и что игрок жив
+        if not isCKeyHeld then  -- Проверяем, что клавиша C была только что нажата
             isCKeyHeld = true
-            if not isInventoryOpen and panelParent == nil then
-                OpenInventory()  -- Открываем инвентарь
+            if not isInventoryOpen then
+                -- Открываем инвентарь
+                OpenInventory()
             else
-                CloseInventory()  -- Закрываем инвентарь, если уже открыт
+                -- Закрываем инвентарь, если он уже открыт
+                CloseInventory()
             end
         end
     else
@@ -1674,9 +1679,21 @@ hook.Add("Think", "OpenInventoryOnC", function()
     end
 end)
 
--- Удаляем инвентарь по нажатию клавиш передвижения или G
-hook.Add("Think", "CloseInventoryOnKey", function()
-    if isInventoryOpen and (input.IsKeyDown(KEY_W) or input.IsKeyDown(KEY_S) or input.IsKeyDown(KEY_A) or input.IsKeyDown(KEY_D) or input.IsKeyDown(KEY_G)) then
-        CloseInventory()  -- Закрываем инвентарь при нажатии одной из указанных клавиш
+-- Закрытие инвентаря при нажатии клавиш передвижения или клавиши G
+hook.Add("Think", "CloseInventoryOnMove", function()
+    if isInventoryOpen then
+        if input.IsKeyDown(KEY_W) or input.IsKeyDown(KEY_A) or input.IsKeyDown(KEY_S) or input.IsKeyDown(KEY_D) or input.IsKeyDown(KEY_G) then
+            CloseInventory()  -- Закрываем инвентарь при нажатии передвижения или G
+        end
     end
+end)
+
+-- Событие для получения инвентаря с сервера и открытия панели инвентаря
+net.Receive("inventory", function()
+    local lootEnt = net.ReadEntity()
+    local items = net.ReadTable()
+    local items_ammo = net.ReadTable()
+    
+    -- Открываем инвентарь при получении данных
+    OpenInventory(lootEnt, items, items_ammo, false)
 end)

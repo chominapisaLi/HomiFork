@@ -937,7 +937,9 @@ hook.Add("Think","mouthanim",function()
 end)
 
 net.Receive("fuckfake",function(len)
-	LocalPlayer():SetNWEntity("Ragdoll",nil)
+	if LocalPlayer() ~= NULL and LocalPlayer():Alive() then
+		LocalPlayer():SetNWEntity("Ragdoll",nil)
+	end
 end)
 
 local tab = {

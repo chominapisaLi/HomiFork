@@ -1,4 +1,3 @@
-AddCSLuaFile()
 
 SWEP.Slot = 5
 SWEP.SlotPos = 1
