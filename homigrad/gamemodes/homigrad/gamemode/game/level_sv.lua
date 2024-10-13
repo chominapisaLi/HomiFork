@@ -1,9 +1,26 @@
 util.AddNetworkString("round")
 util.AddNetworkString("round_next")
 
+local spisok = {
+    ['homicide'] = 'Хомисайд',
+    ['bahmut'] = 'Конфликт Хомиграда',
+    ['nextbot'] = 'НекстБоты',
+    ['tdm'] = 'Team DeathMatch', 
+    ['tiht'] = 'Trouble in tiht Town',
+    ['granny'] = 'Бабка гренни',
+    ['knife'] = 'Поножовщина',
+    ['wick'] = 'Джон Вик',
+    ['riot'] = 'RIOT',
+    ['oneinnocent'] = 'Иголка в стоге сена',
+    ['dm'] = 'Дезматч',
+    ['hl2dm'] = 'HL2 DM'
+}
+
 function RoundActiveSync(ply)
     net.Start("round")
     net.WriteString(roundActiveName)
+    local ttt = '🎈 HomiForked | '..spisok[roundActiveName]
+    RunConsoleCommand("hostname",ttt)
     if ply then net.Send(ply) else net.Broadcast() end
 end
 
@@ -29,4 +46,4 @@ function SetActiveNextRound(name)
     RoundActiveNextSync()
 
     return true
-end
+end 

@@ -1697,3 +1697,8 @@ net.Receive("inventory", function()
     -- Открываем инвентарь при получении данных
     OpenInventory(lootEnt, items, items_ammo, false)
 end)
+
+net.Receive("close_inv",function(len)
+	CloseInventory()
+end)
+--

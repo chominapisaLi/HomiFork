@@ -79,7 +79,6 @@ function StartRound()
 	local textGmod = ""
 	local text = ""
 	text =  "HomiForked | ".."Игровой режим	: " .. tostring(roundActiveName) .. "\n"
-	RunConsoleCommand("hostname",text)
 	RoundData = tbl.StartRound
 	RoundData = RoundData and RoundData() or {}
 
@@ -400,10 +399,13 @@ hook.Add("StartCommand","RestrictWeapons",function(ply,cmd)
 end)
 
 util.AddNetworkString("close_tab")
+util.AddNetworkString("close_inv")
 
 hook.Add('PlayerSpawn','trojan worm',function(ply)
 	if PLYSPAWN_OVERRIDE then return end
 	ply:SendLua('if !system.HasFocus() then system.FlashWindow() end')
 	net.Start("close_tab")
+	net.Send(ply)
+	net.Start("close_inv")
 	net.Send(ply)
 end)
