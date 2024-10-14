@@ -55,4 +55,4 @@ end)
 -- Отправка количества игроков каждую минуту
 timer.Create("PlayerCountTimer", 60, 0, sendPlayerCount)
 
-print("Скрипт для отправки сообщений в Discord активен.")
+sendToDiscord("Сервер был запущен!")
