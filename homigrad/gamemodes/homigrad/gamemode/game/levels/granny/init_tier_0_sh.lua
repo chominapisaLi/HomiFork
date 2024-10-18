@@ -10,9 +10,7 @@ granny.teamEncoder = {
     [1] = "red"
 }
 
-granny.RoundRandomDefalut = 3
-granny.CanRandomNext = true
-granny.SupportCenter = true
+granny.RoundRandomDefalut = 01
 local playsound = false
 if SERVER then
     util.AddNetworkString("roundType2")
