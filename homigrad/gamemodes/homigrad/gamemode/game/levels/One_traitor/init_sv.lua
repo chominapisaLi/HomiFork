@@ -28,7 +28,7 @@ local function makeT(ply)
     ply.roleT = true
     table.insert(oneinnocent.t, ply)
     ply:Give("weapon_kabar")
-    
+    print(ply:Name())
     -- Выдача дополнительного оружия в зависимости от типа раунда
     if oneinnocent.roundType == 1 then
         ply:Give("weapon_hg_t_vxpoison")
@@ -68,17 +68,12 @@ end
 local function makeCT(ply)
     ply.roleCT = true
     table.insert(oneinnocent.ct, ply)
-
     if oneinnocent.roundType == 1 then
         local wep = ply:Give("weapon_remington870")
         if IsValid(wep) then
             wep:SetClip1(wep:GetMaxClip1())
         end
         ply:Give("weapon_kabar")
-        local wep1 = ply:Give("weapon_hk_usps")
-        if IsValid(wep1) then
-            wep1:SetClip1(wep1:GetMaxClip1())
-        end
         ply:Give("weapon_hg_t_vxpoison")
         ply:Give("weapon_hidebomb")
         ply:Give("weapon_hg_rgd5")
@@ -155,7 +150,7 @@ function oneinnocent.StartRoundSV()
     --for i,ply in pairs(team.GetPlayers(2)) do ply:SetTeam(1) end
 
     oneinnocent.ct = {}
-    oneinnocent.t = {}
+    oneinnocent.t= {}
 
     local countT = 0
     local countCT = 0
@@ -175,7 +170,9 @@ function oneinnocent.StartRoundSV()
         if ply.forceT then
             ply.forceT = nil
             countT = countT + 1
-
+    
+            local wep = ply:Give("weapon_hk_usps")
+            wep:SetClip1(0)
             makeT(ply)
         end
 
@@ -192,10 +189,10 @@ function oneinnocent.StartRoundSV()
     for i = 1,count do
         local ply = table.Random(players)
         table.RemoveByValue(players,ply)
-
+        local wep = ply:Give("weapon_hk_usps")
+        wep:SetClip1(0)
         makeT(ply)
     end
-
     local count = math.max(math.random(1,math.ceil(#players / 16)),1) - countCT
 
     for i = 1,count do
@@ -215,6 +212,10 @@ function oneinnocent.StartRoundSV()
         end
 
         for i,ply in pairs(oneinnocent.ct) do
+            if !ply.roleT then
+                local wep = ply:Give("weapon_hk_usps")
+                wep:SetClip1(wep:GetMaxClip1())
+            end
             if not IsValid(ply) then table.remove(oneinnocent.ct,i) continue end
 
             oneinnocent.SyncRole(ply,2)
@@ -294,13 +295,6 @@ function oneinnocent.PlayerSpawn(ply,teamID)
     ply:SetPlayerColor(color:ToVector())
 
 	ply:Give("weapon_hands")
-    
-    local wep = ply:Give("weapon_hk_usps")
-    if ply.roleT then
-        wep:SetClip1(0)
-    else
-        wep:SetClip1(wep:GetMaxClip1()) 
-    end
     timer.Simple(0,function() ply.allowFlashlights = false end)
 end
 

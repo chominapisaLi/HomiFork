@@ -100,9 +100,9 @@ function SWEP:PrimaryAttack()
     self:GetOwner():SetAnimation(PLAYER_ATTACK1)
     if SERVER then
         self:GetOwner().hungryregen = self:GetOwner().hungryregen + 1
-        self:GetOwner().adrenaline = self:GetOwner().adrenaline + 0
+        self:GetOwner().adrenaline = self:GetOwner().adrenaline + 1
         self:GetOwner().stamina = self:GetOwner().stamina + 10
-        self:GetOwner().nopain = true
+
         sound.Play(healsound, self:GetPos(), 75, 100, 0.5)
         
         net.Start("ActivateBeerEffect")

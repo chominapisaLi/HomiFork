@@ -15,7 +15,7 @@ function SWEP:SecondaryAttack()
 	self:SetNextSecondaryFire(CurTime() + self.Dealy)
 
 	local owner = self:GetOwner()
-	local ent = owner:GetEyeTraceDis(75).Entity
+	local ent = owner:GetEyeTrace(75).Entity
 	ent = (ent:IsPlayer() and ent) or (RagdollOwner(ent)) or (ent:GetClass() == "prop_ragdoll" and ent)
 	if not ent then return end
 

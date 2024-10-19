@@ -654,12 +654,12 @@ local function RemoveRag(self)
 end
 
 local CustomWeight = {
-	["models/player/police_fem.mdl"] = 50,
-	["models/player/police.mdl"] = 60,
-	["models/player/combine_soldier.mdl"] = 70,
-	["models/player/combine_super_soldier.mdl"] = 80,
-	["models/player/combine_soldier_prisonguard.mdl"] = 70,
-	["models/player/azov.mdl"] = 10,
+	["models/player/police_fem.mdl"] = 90,
+	["models/player/police.mdl"] = 90,
+	["models/player/combine_soldier.mdl"] = 90,
+	["models/player/combine_super_soldier.mdl"] = 90,
+	["models/player/combine_soldier_prisonguard.mdl"] = 90,
+	["models/player/azov.mdl"] = 90,
 	["models/player/Rusty/NatGuard/male_01.mdl"] = 90,
 	["models/player/Rusty/NatGuard/male_02.mdl"] = 90,
 	["models/player/Rusty/NatGuard/male_03.mdl"] = 90,
@@ -669,10 +669,10 @@ local CustomWeight = {
 	["models/player/Rusty/NatGuard/male_07.mdl"] = 90,
 	["models/player/Rusty/NatGuard/male_08.mdl"] = 90,
 	["models/player/Rusty/NatGuard/male_09.mdl"] = 90,
-	["models/LeymiRBA/Gyokami/Gyokami.mdl"] = 50,
-	["models/player/smoky/Smoky.mdl"] = 65,
-	["models/player/smoky/Smokycl.mdl"] = 65,
-	["models/knyaje pack/dibil/sso_politepeople.mdl"] = 20
+	["models/LeymiRBA/Gyokami/Gyokami.mdl"] = 90,
+	["models/player/smoky/Smoky.mdl"] = 90,
+	["models/player/smoky/Smokycl.mdl"] = 90,
+	["models/knyaje pack/dibil/sso_politepeople.mdl"] = 90
 }
 
 for i = 1,6 do
@@ -923,6 +923,7 @@ end )
 
 local dvec = Vector(0,0,-64)
 hook.Add("Player Think","FakeControl",function(ply,time) --управление в фейке
+	if ply.Otrub then return end 
 	ply.holdingartery = false
 	if not ply:Alive() then return end
 	local rag = ply:GetNWEntity("Ragdoll")
@@ -1071,7 +1072,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				end
 			end
 
-			if(ply:KeyDown(IN_ATTACK))then
+			if(ply:KeyDown(IN_ATTACK) and !ply.Otrub)then
 				local pos = ply:EyePos()
 				pos[3] = head:GetPos()[3]
 				if !ply.FakeShooting and ply.Organs["artery"]!=0 then
@@ -1105,7 +1106,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				end
 			end
 
-			if(ply:KeyDown(IN_ATTACK2))then
+			if(ply:KeyDown(IN_ATTACK2) and !ply.Otrub)then
 				local physa = rag:GetPhysicsObjectNum( rag:TranslateBoneToPhysBone(rag:LookupBone( "ValveBiped.Bip01_R_Hand" )) )
 				local phys = rag:GetPhysicsObjectNum( rag:TranslateBoneToPhysBone(rag:LookupBone( "ValveBiped.Bip01_L_Hand" )) ) --rhand
 				local ang=ply:EyeAngles()
@@ -1165,7 +1166,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 					end
 				end
 			end
-			if(ply:KeyDown(IN_USE))then
+			if(ply:KeyDown(IN_USE) or (ply:KeyDown(IN_ATTACK2)) or (ply:KeyDown(IN_ATTACK)))then
 				local phys = head
 				local angs = ply:EyeAngles()
 				angs:RotateAroundAxis(angs:Forward(),90)
@@ -1281,7 +1282,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 			local angs = ply:EyeAngles()
 			angs:RotateAroundAxis(angs:Forward(),90)
 			angs:RotateAroundAxis(angs:Up(),90)
-			local speed = 30
+			local speed = 160
 			
 			if(rag.ZacConsLH.Ent2:GetVelocity():LengthSqr()<1000) then
 				local shadowparams = {
@@ -1305,7 +1306,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 			local angs = ply:EyeAngles()
 			angs:RotateAroundAxis(angs:Forward(),90)
 			angs:RotateAroundAxis(angs:Up(),90)
-			local speed = 30
+			local speed = 160
 			
 			if(rag.ZacConsRH.Ent2:GetVelocity():LengthSqr()<1000)then
 				local shadowparams = {
