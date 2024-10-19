@@ -39,7 +39,6 @@ local newTbl = {}
 for i,mdl in pairs(KOROBKA_HUYNYI) do newTbl[mdl] = true end
 
 weaponscommon = {
-	"weapon_binokle",
 	"weapon_molotok",
 	"ent_drop_flashlight",
 

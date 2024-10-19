@@ -20,7 +20,7 @@ function dm.StartRound(data)
     team.SetColor(2,blue)
     team.SetColor(1,green)
 
-    game.CleanUpMap(false)
+    game.CleanUpMap(true)
 
     if CLIENT then
         roundTimeStart = data[1]

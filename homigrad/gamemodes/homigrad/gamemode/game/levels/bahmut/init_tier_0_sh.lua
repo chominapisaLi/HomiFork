@@ -3,7 +3,7 @@ bahmut = {}
 bahmut.Name = "Конфликт Хомиграда"
 
 bahmut.red = {"ЧВК\"ВАГНЕР\"",Color(60,75,60),
-	weapons = {"weapon_megamedkit","weapon_binokle","weapon_hg_sleagehammer","weapon_hands","med_band_big","med_band_small","medkit","painkiller","weapon_hg_rgd5","weapon_handcuffs","weapon_radio"},
+	weapons = {"weapon_megamedkit","weapon_hg_sleagehammer","weapon_hands","med_band_big","med_band_small","medkit","painkiller","weapon_hg_rgd5","weapon_handcuffs","weapon_radio"},
 	main_weapon = {"weapon_ak74u","weapon_akm","weapon_galil","weapon_rpk","weapon_galilsar"},
 	secondary_weapon = {"weapon_p220", "weapon_deagle","weapon_glock"},
 	models = {"models/knyaje pack/dibil/sso_politepeople.mdl"}
@@ -13,7 +13,7 @@ local models = {}
 for i = 1,9 do table.insert(models,"models/player/rusty/natguard/male_0" .. i .. ".mdl") end
 
 bahmut.blue = {"НАТО",Color(125,125,60),
-	weapons = {"weapon_megamedkit","weapon_binokle","weapon_hands","weapon_t","bandage","med_band_big","med_band_small","painkiller","weapon_hg_f1","weapon_handcuffs","weapon_radio"},
+	weapons = {"weapon_megamedkit","weapon_hands","weapon_t","bandage","med_band_big","med_band_small","painkiller","weapon_hg_f1","weapon_handcuffs","weapon_radio"},
 	main_weapon = {"weapon_mk18","weapon_m4a1","weapon_xm1014","weapon_m249"},
 	secondary_weapon = {"weapon_beretta","weapon_fiveseven","weapon_hk_usp"},
 	models = models
@@ -25,7 +25,7 @@ bahmut.teamEncoder = {
 }
 
 function bahmut.StartRound()
-	game.CleanUpMap(false)
+	game.CleanUpMap(true)
 
 	team.SetColor(1,bahmut.red[2])
 	team.SetColor(2,bahmut.blue[2])
