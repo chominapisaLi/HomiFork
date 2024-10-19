@@ -2,6 +2,7 @@ COMMANDS = COMMANDS or {}
 
 function COMMAND_FAKEPLYCREATE()
 	local fakePly = {}
+	function fakePly:ChatPrint(text) print(text) end
 
 	function fakePly:IsValid() return true end
 	function fakePly:IsAdmin() return true end
@@ -137,13 +138,6 @@ end)
 
 local PlayerMeta = FindMetaTable("Player")
 
-util.AddNetworkString("consoleprint")
-function PlayerMeta:ConsolePrint(text)
-	net.Start("consoleprint")
-	net.WriteString(text)
-	net.Send(self)
-end
-
 COMMANDS.help = {function(ply,args)
 	local text = ""
 
@@ -176,10 +170,6 @@ COMMANDS.help = {function(ply,args)
 	ply:ChatPrint(text)
 end,0}
 
-COMMANDS.viptest = {function(ply,args)
-	ply:Kick("xd")
-end}
-
 COMMANDS.sync = {function(ply,args)
 	Sync = tobool(args[1])
 
@@ -205,9 +195,6 @@ end}
 local validUserGroup = {
 	superadmin = true,
 	admin = true,
-	meagsponsor = true,
-	viptest = true,
-	donator = true
 }
 
 local function getNotDonaters()
@@ -222,7 +209,7 @@ end
 
 local function getDonaters()
 	local list = {}
-	for i,ply in pairs(player.GetAll()) do
+	for i,ply in ipairs(player.GetAll()) do
 		local steamID = ply:SteamID()
 		local group = ULib.ucl.users[steamID]
 		if group and validUserGroup[group.group] then list[#list + 1] = ply end
@@ -232,23 +219,20 @@ end
 
 hook.Add("CheckPassword","sync",function(steamID)
 	steamID = util.SteamIDFrom64(steamID)
-	local sdf = 0
-	for i,ply in pairs(player.GetAll()) do
-		sdf += 1
-	end
+
 	local group = ULib.ucl.users[steamID]
 	if group and validUserGroup[group.group] then
-		RunConsoleCommand("sv_visiblemaxplayers",tostring(sdf + #getDonaters()))
+		RunConsoleCommand("sv_visiblemaxplayers",tostring(MaxPlayers + #getDonaters()))
 		return
 	end
 
 	--if CloseDev then return false,"dev" end
 
 	if MaxPlayers and #getNotDonaters() + 1 > MaxPlayers then
-		return false,"limit players"
+		return false,"limit players\ndiscord.gg/JKE4wSFJzD"
 	end
 
-	if Sync then return false,"!!" end
+	if Sync then return false,"xd" end
 end)
 
 MaxPlayers = tonumber(SData_Get("maxplayers"))
@@ -275,7 +259,7 @@ COMMANDS.closedev = {function(ply,args)
 	SData_Set("dev",tostring(CloseDev))
 
 	if CloseDev then
-		PrintMessageChat(3,"Сервер закрыт. fuck you!")
+		PrintMessageChat(3,"Сервер закрыт на установку обновления")
 	else
 		PrintMessageChat(3,"Сервер открыт")
 	end
@@ -291,7 +275,7 @@ function player.GetListByName(name)
 		return player.GetAll()
 	end
 
-	for i,ply in pairs(player.GetAll()) do
+	for i,ply in ipairs(player.GetAll()) do
 		if string.find(string.lower(ply:Name()),string.lower(name)) then list[#list + 1] = ply end
 	end
 
