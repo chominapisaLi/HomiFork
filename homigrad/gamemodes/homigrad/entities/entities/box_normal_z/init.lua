@@ -50,14 +50,13 @@ function ENT:Initialize()
         Clip1 =  -2
     }
     print(random)
-    if random >= 5 then
+    if random >= 3 then
         local randomWeaponss = bita[math.random(1, #bita)]
         self.Info.Weapons[randomWeaponss] = {
             Clip1 =  -2
         }
     end
-    if random >= 8 then
-        print(1)
+    if random >= 5 then
         local randomWeaponsss = tyagi[math.random(1, #tyagi)]
         self.Info.Weapons[randomWeaponsss] = {
             Clip1 =  -2
