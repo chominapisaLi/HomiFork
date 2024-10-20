@@ -160,7 +160,7 @@ end
 
 function GetUnconscious(ply)
 	if ply:Alive() then
-		ply:ScreenFade(SCREENFADE.IN,Color(0,0,0,255),0.3,0.3)
+		ply:ScreenFade(SCREENFADE.IN,Color(0,0,0,255),0.5,0.5)
 		--ply:ConCommand( "soundfade 5 1" )
 		--ply:SetDSP(16)
 	else
