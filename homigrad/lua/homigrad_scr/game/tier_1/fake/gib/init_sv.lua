@@ -190,8 +190,10 @@ hook.Add("EntityTakeDamage","Gib",function(ent,dmgInfo)
 	if bonetohitgroup[bonename] then hitgroup = bonetohitgroup[bonename] end
 
 	local mul = RagdollDamageBoneMul[hitgroup]
-	
-	if dmgInfo:GetDamage() * mul < 350 then return end
+	if mul ~= nil then
+		if dmgInfo:GetDamage() * mul < 350 then return end
+	end
+
 	
 	Gib_Input(ent,ent:TranslatePhysBoneToBone(phys_bone),dmgInfo)
 end)

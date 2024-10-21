@@ -127,8 +127,8 @@ end,1}]]--
 
 concommand.Add( "hg_blevota", function( ply, cmd, args )
     if !ply:Alive() or ply.Otrub then return end
-    local r = math.random(1,30)
-    if r > 25 then
+    local r = math.random(1,1)
+    if r == 1 then
         local snd = table.Random(blevotasfx)
         ply:EmitSound(snd)
         timer.Create("Blevota"..ply:EntIndex(),0.1,15,function()

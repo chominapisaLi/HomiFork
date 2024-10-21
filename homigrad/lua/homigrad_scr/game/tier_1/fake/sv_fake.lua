@@ -416,13 +416,22 @@ hook.Add("DoPlayerDeath","blad",function(ply,att,dmginfo)
 	if IsValid(rag.bull) then rag.bull:Remove() end
 	
 	rag:SetNWEntity("RagdollController",Entity(-1))
-
-	if ply.IsBleeding or ply.Bloodlosing > 0 or ply.LastDMGInfo:IsDamageType(DMG_BULLET+DMG_SLASH+DMG_BLAST+DMG_ENERGYBEAM+DMG_NEVERGIB+DMG_ALWAYSGIB+DMG_PLASMA+DMG_AIRBOAT+DMG_SNIPER+DMG_BUCKSHOT) then
-		rag.IsBleeding=true
-		rag.bloodNext = CurTime()
-		rag.Blood = ply.Blood
-		table.insert(BleedingEntities,rag)
+	if ply.LastDMGInfo then
+		if ply.IsBleeding or ply.Bloodlosing > 0 or ply.LastDMGInfo:IsDamageType(DMG_BULLET+DMG_SLASH+DMG_BLAST+DMG_ENERGYBEAM+DMG_NEVERGIB+DMG_ALWAYSGIB+DMG_PLASMA+DMG_AIRBOAT+DMG_SNIPER+DMG_BUCKSHOT) then
+			rag.IsBleeding=true
+			rag.bloodNext = CurTime()
+			rag.Blood = ply.Blood
+			table.insert(BleedingEntities,rag)
+		end
+	else
+		if ply.IsBleeding or ply.Bloodlosing > 0 then
+			rag.IsBleeding=true
+			rag.bloodNext = CurTime()
+			rag.Blood = ply.Blood
+			table.insert(BleedingEntities,rag)
+		end
 	end
+
 
 	rag.Info = ply.Info
 	rag.deadbody = true

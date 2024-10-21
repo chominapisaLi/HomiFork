@@ -65,10 +65,12 @@ if SERVER then
             for i = 1,4 do
                 sound.Play("explosions/doi_ty_01_close.wav",SelfPos,140,math.random(80,110))
             end
-
-            if util.GetSurfaceIndex(ent:GetBoneSurfaceProp(0)) == 3 or util.GetSurfaceIndex(ent:GetBoneSurfaceProp(0)) == 66 then
-                JMod.FragSplosion(ent, SelfPos + Vector(0, 0, 20), 1024, 50, 3500, ent.owner or game.GetWorld())
+            if ent ~= NULL then
+                if util.GetSurfaceIndex(ent:GetBoneSurfaceProp(0)) == 3 or util.GetSurfaceIndex(ent:GetBoneSurfaceProp(0)) == 66 then
+                    JMod.FragSplosion(ent, SelfPos + Vector(0, 0, 20), 1024, 50, 3500, ent.owner or game.GetWorld())
+                end
             end
+
 
             timer.Simple(.1,function()
                 for i = 1, 5 do

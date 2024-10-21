@@ -1319,10 +1319,6 @@ local function createInventoryPanel(lootEnt, items, items_ammo, isPlayerInventor
                     net.WriteEntity(lootEnt)
                     net.WriteString(tostring(wep))
                     net.SendToServer()
-                    timer.Create('closee',0.1,0,function()
-                        panelParent:Remove()
-                    end)
-                    
                 end
                 
                 button.DoClick = button.DoRightClick

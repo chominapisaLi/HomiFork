@@ -3,7 +3,7 @@ riot.GetTeamName = tdm.GetTeamName
 local playsound = false
 local bhop
 function riot.StartRoundCL()
-    sound.PlayURL("https://cdn.discordapp.com/attachments/1136982600829894656/1138472303294951544/challengecomplete_metal.wav","mono noblock",function(snd)
+    sound.PlayURL("https://cdn.discordapp.com/attachments/1111941531562168360/1297996154058965103/politseyskaya-mashina-promchalas-po-ulitse-goroda.mp3","mono noblock",function(snd)
         bhop = snd
         if snd ~= nil then
             snd:SetVolume(1)

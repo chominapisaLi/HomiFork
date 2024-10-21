@@ -142,10 +142,12 @@ net.Receive("ply_take_item", function(len, ply)
         if IsValid(wep1) and wep1:IsWeapon() then
             wep1:SetClip1(wepInfo and wepInfo.Clip1 or 0)
         end
-
-        if wepInfo.Clip1 and wepInfo.Clip1 == -2 then
-            wep1:SetClip1(wep1:GetMaxClip1())
+        if wepInfo then
+            if wepInfo.Clip1 and wepInfo.Clip1 == -2 then
+                wep1:SetClip1(wep1:GetMaxClip1())
+            end
         end
+
 
         ply:SelectWeapon(actwep:GetClass())
 
