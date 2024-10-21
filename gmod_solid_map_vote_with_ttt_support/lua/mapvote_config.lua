@@ -97,11 +97,11 @@ SolidMapVote[ 'Config' ][ 'Show Map Play Count' ] = true
 -- be able to be chosen for the vote.
 SolidMapVote[ 'Config' ][ 'Manual Map Pool' ] = true
 SolidMapVote[ 'Config' ][ 'Map Pool' ] = {
-    'de_port',
-    'cs_assault',
     'ttt_clue_2022',
     'ttt_island_2013',
-    'ph_halloweenhouse_v3'
+    'ph_halloweenhouse_v3',
+    'gm_bbicotka_hmcd',
+    'ttt_overwatch'
 }
 
 -- Allow players to use their mics while in the mapvote
@@ -180,7 +180,8 @@ SolidMapVote[ 'Config' ][ 'Missing Image Size' ] = { width = 1920, height = 1080
 SolidMapVote[ 'Config' ][ 'Specific Maps' ] = {
     { filename = 'ttt_clue_2022', displayname = 'Clue', image = 'https://i.imgur.com/e7tStQv.png', width = 1920, height = 1080 },
     { filename = 'cs_assault', displayname = 'cs_assault', image = 'https://i.imgur.com/bsujzSu.png', width = 1920, height = 1080 },
-    { filename = 'de_port', displayname = 'Port', image = 'https://i.imgur.com/pxtYY3c.png', width = 1920, height = 1080 },
     { filename = 'ttt_island_2013', displayname = 'Island', image = 'https://i.imgur.com/nUx4Y7p.png', width = 1920, height = 1080 },
-    { filename = 'ph_halloweenhouse_v3', displayname = 'HalloweenHouse', image = 'https://i.imgur.com/F2ilVkc.jpeg', width = 1920, height = 1080 }
+    { filename = 'ph_halloweenhouse_v3', displayname = 'HalloweenHouse', image = 'https://i.imgur.com/F2ilVkc.jpeg', width = 1920, height = 1080 },
+    { filename = 'gm_bbicotka_hmcd', displayname = 'Bbicotka', image = 'https://i.imgur.com/NKXR7q4.png', width = 1920, height = 1080 },
+    { filename = 'ttt_overwatch', displayname = 'Overwatch', image = 'https://i.imgur.com/b3VHJ6k.png', width = 1920, height = 1080 }
 }
