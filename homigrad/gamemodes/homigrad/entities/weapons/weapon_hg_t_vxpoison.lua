@@ -76,17 +76,38 @@ if SERVER then
         ply.otravlen2 = true
         timer.Create("Cyanid"..ply:EntIndex().."12", 10, 1, function()
             if ply:Alive() and ply.otravlen2 then
+                
+                timer.Create("Blevota"..ent:EntIndex(),0.1,15,function()
+                    ent.Blood = math.Clamp(ent.Blood - 10,0,5000)
+                    local ent = RagdollOwner(ent) or ent
+                    local att = ent:GetAttachment(ent:LookupAttachment("eyes"))
+                    BloodParticle(att.Pos - att.Ang:Up() * 2,ent:EyeAngles():Forward()*150+VectorRand(-15,15)+ent:GetVelocity())
+                end)
                 ply:EmitSound("vo/npc/male01/moan0"..math.random(1,5)..".wav",60)
             end
 
             timer.Create( "Cyanid"..ply:EntIndex().."22", 10, 1, function()
                 if ply:Alive() and ply.otravlen2 then
+                    
+                    timer.Create("Blevota"..ent:EntIndex(),0.1,15,function()
+                        ent.Blood = math.Clamp(ent.Blood - 10,0,5000)
+                        local ent = RagdollOwner(ent) or ent
+                        local att = ent:GetAttachment(ent:LookupAttachment("eyes"))
+                        BloodParticle(att.Pos - att.Ang:Up() * 2,ent:EyeAngles():Forward()*150+VectorRand(-15,15)+ent:GetVelocity())
+                    end)
                     ply:EmitSound("vo/npc/male01/moan0"..math.random(1,5)..".wav",60)
                 end
             end)
 
             timer.Create( "Cyanid"..ply:EntIndex().."32", 15, 1, function()
                 if ply:Alive() and ply.otravlen2 then
+                    
+                    timer.Create("Blevota"..ent:EntIndex(),0.1,15,function()
+                        ent.Blood = math.Clamp(ent.Blood - 10,0,5000)
+                        local ent = RagdollOwner(ent) or ent
+                        local att = ent:GetAttachment(ent:LookupAttachment("eyes"))
+                        BloodParticle(att.Pos - att.Ang:Up() * 2,ent:EyeAngles():Forward()*150+VectorRand(-15,15)+ent:GetVelocity())
+                    end)
                     ply.KillReason = "poison"
                     ply:Kill()
                 end
