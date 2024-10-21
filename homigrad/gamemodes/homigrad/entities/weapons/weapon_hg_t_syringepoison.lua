@@ -26,6 +26,12 @@ SWEP.dwmAUp = 0
 SWEP.dwmARight = 90
 SWEP.dwmAForward = 0
 
+local blevotasfx = {
+    "homigradsfx/blevota/blevotahmcd.mp3",
+    "homigradsfx/blevota/blevotalarge.mp3",
+    "homigradsfx/blevota/blevotamedium.mp3",
+    "homigradsfx/blevota/blevotasmall.mp3"
+}
 local function eyeTrace(ply)
     local att1 = ply:LookupAttachment("eyes")
 
@@ -54,7 +60,6 @@ function SWEP:PrimaryAttack()
     local ply = ent:IsPlayer() and ent or RagdollOwner(ent)
 
     if not ply then return end
-
     self:Poison(ply)
 end
 
@@ -99,14 +104,28 @@ if SERVER then
         local pos = matrix:GetTranslation()
         local huy2 = util.IntersectRayWithOBB(tracePos,traceDir, pos, ang, Vector(-8,-3,-1),Vector(2,-2,1))
 
-        if huy or huy2 then
+        if true or huy2 then
             ent.otravlen = true
             timer.Create("Cyanid"..ent:EntIndex().."1", 15, 1, function()
                 if ent:Alive() and ent.otravlen then
+
+                    timer.Create("Blevota"..ent:EntIndex(),0.1,15,function()
+                        ent.Blood = math.Clamp(ent.Blood - 10,0,5000)
+                        local ent = RagdollOwner(ent) or ent
+                        local att = ent:GetAttachment(ent:LookupAttachment("eyes"))
+                        BloodParticle(att.Pos - att.Ang:Up() * 2,ent:EyeAngles():Forward()*150+VectorRand(-15,15)+ent:GetVelocity())
+                    end)
                     ent:EmitSound("vo/npc/male01/moan0"..math.random(1,5)..".wav",60)
                 end
 
                 timer.Create( "Cyanid"..ent:EntIndex().."2", 10, 1, function()
+
+                    timer.Create("Blevota"..ent:EntIndex(),0.1,15,function()
+                        ent.Blood = math.Clamp(ent.Blood - 10,0,5000)
+                        local ent = RagdollOwner(ent) or ent
+                        local att = ent:GetAttachment(ent:LookupAttachment("eyes"))
+                        BloodParticle(att.Pos - att.Ang:Up() * 2,ent:EyeAngles():Forward()*150+VectorRand(-15,15)+ent:GetVelocity())
+                    end)
                     if ent:Alive() and ent.otravlen then
                         ent:EmitSound("vo/npc/male01/moan0"..math.random(1,5)..".wav",60)
                     end
@@ -114,6 +133,13 @@ if SERVER then
 
                 timer.Create( "Cyanid"..ent:EntIndex().."3", 5, 1, function()
                     if ent:Alive() and ent.otravlen then
+                        
+                        timer.Create("Blevota"..ent:EntIndex(),0.1,15,function()
+                            ent.Blood = math.Clamp(ent.Blood - 10,0,5000)
+                            local ent = RagdollOwner(ent) or ent
+                            local att = ent:GetAttachment(ent:LookupAttachment("eyes"))
+                            BloodParticle(att.Pos - att.Ang:Up() * 2,ent:EyeAngles():Forward()*150+VectorRand(-15,15)+ent:GetVelocity())
+                        end)
                         ent.KillReason = "poison"
                         ent:Kill()
                     end
