@@ -157,7 +157,7 @@ function SolidMapVote.checkForRTV()
         not SolidMapVote.startVoteAfterRound then
             SolidMapVote.startVoteAfterRound = true
             SolidMapVote.RTVCompleted = true
-            SolidMapVote.sendMessage( { color_white, 'The map vote will open after the current round!' }, true )
+            SolidMapVote.sendMessage( { color_white, 'Следующий раунд - финальный' }, true )
 
         elseif not SolidMapVote.startVoteAfterRound then
             SolidMapVote.RTVCompleted = true
