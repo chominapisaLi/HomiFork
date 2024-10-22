@@ -1213,7 +1213,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				phys:ComputeShadowControl(shadowparams)
 				ply.holdingartery=true
 				if(IsValid(rag.ZacConsLH))then
-					ply:SetNWBool('LeftArm', true)
+					ply:SetNWBool('LeftArm', false )
 					rag.ZacConsLH:Remove()
 					rag.ZacConsLH=nil
 				end
