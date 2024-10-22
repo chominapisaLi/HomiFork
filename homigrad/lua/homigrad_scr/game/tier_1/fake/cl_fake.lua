@@ -15,7 +15,7 @@ hook.Add("HUDPaint","Fake",function()
     
     local w,h = ScrW(),ScrH()
 
-    if ply:GetNWBool("LeftArm") then
+    if ply:GetNWBool("LeftArmF") then
         local hand = rag:GetBonePosition(rag:LookupBone("ValveBiped.Bip01_L_Hand"))
         local pos = hand:ToScreen()
         pos.x = Clamp(pos.x,w / 2 - w / 4,w / 2 + w / 4)
@@ -25,7 +25,7 @@ hook.Add("HUDPaint","Fake",function()
         surface.DrawTexturedRectRotated(pos.x,pos.y,64,64,-90 + 25)
     end
 
-    if ply:GetNWBool("RightArm") then
+    if ply:GetNWBool("RightArmF") then
         local hand = rag:GetBonePosition(rag:LookupBone("ValveBiped.Bip01_R_Hand"))
         local pos = hand:ToScreen()
         pos.x = Clamp(pos.x,w / 2 - w / 4,w / 2 + w / 4)

@@ -1213,7 +1213,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				phys:ComputeShadowControl(shadowparams)
 				ply.holdingartery=true
 				if(IsValid(rag.ZacConsLH))then
-					ply:SetNWBool('LeftArm', false )
+					ply:SetNWBool('LeftArmF', false )
 					rag.ZacConsLH:Remove()
 					rag.ZacConsLH=nil
 				end
@@ -1238,7 +1238,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 					if(trace.Hit and !trace.HitSky)then
 						local cons = constraint.Weld(rag,trace.Entity,bone,trace.PhysicsBone,0,false,false)
 						if(IsValid(cons))then
-							ply:SetNWBool('LeftArm', true )
+							ply:SetNWBool('LeftArmF', true )
 							rag.ZacConsLH=cons
 						end
 						break
@@ -1248,7 +1248,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 		else
 			if ply.arterybleeding then ply.holdingartery=false end
 			if(IsValid(rag.ZacConsLH))then
-				ply:SetNWBool('LeftArm', false  )
+				ply:SetNWBool('LeftArmF', false  )
 				rag.ZacConsLH:Remove()
 				rag.ZacConsLH=nil
 			end
@@ -1568,4 +1568,12 @@ hook.Add("Player Think","holdentity",function(ply,time)
 	--[[if IsValid(ply.holdEntity) then
 
 	end--]]
+end)
+hook.Add('PlayerSpawn','playerSpawnedFake',function(ply)
+	ply:SetNWBool('LeftArmF', false )
+	ply:SetNWBool('RightArmF', false )
+end)
+hook.Add('PlayerDeath','playerSpawnedFake',function(ply)
+	ply:SetNWBool('LeftArmF', false )
+	ply:SetNWBool('RightArmF', false )
 end)
