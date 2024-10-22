@@ -1213,6 +1213,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				phys:ComputeShadowControl(shadowparams)
 				ply.holdingartery=true
 				if(IsValid(rag.ZacConsLH))then
+					ply:SetNWBool('LeftArm', true)
 					rag.ZacConsLH:Remove()
 					rag.ZacConsLH=nil
 				end
@@ -1237,6 +1238,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 					if(trace.Hit and !trace.HitSky)then
 						local cons = constraint.Weld(rag,trace.Entity,bone,trace.PhysicsBone,0,false,false)
 						if(IsValid(cons))then
+							ply:SetNWBool('LeftArm', true )
 							rag.ZacConsLH=cons
 						end
 						break
@@ -1246,6 +1248,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 		else
 			if ply.arterybleeding then ply.holdingartery=false end
 			if(IsValid(rag.ZacConsLH))then
+				ply:SetNWBool('LeftArm', false  )
 				rag.ZacConsLH:Remove()
 				rag.ZacConsLH=nil
 			end
@@ -1273,6 +1276,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 					if(trace.Hit and !trace.HitSky)then
 						local cons = constraint.Weld(rag,trace.Entity,bone,trace.PhysicsBone,0,false,false)
 						if(IsValid(cons))then
+							ply:SetNWBool('RightArm', true )
 							rag.ZacConsRH=cons
 						end
 						break
@@ -1281,6 +1285,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 			end
 		else
 			if(IsValid(rag.ZacConsRH))then
+				ply:SetNWBool('RightArm', false )
 				rag.ZacConsRH:Remove()
 				rag.ZacConsRH=nil
 			end
