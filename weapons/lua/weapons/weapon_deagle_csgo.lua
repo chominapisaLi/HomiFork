@@ -2,7 +2,7 @@ SWEP.Base = 'salat_base' -- base
 
 SWEP.PrintName 				= "Desert Eagle"
 SWEP.Author 				= "Homigrad"
-SWEP.Instructions			= "Desert Eagle или просто Deagle [ 4 ] — это полуавтоматический пистолет одинарного действия с газоотводным механизмом под калибр .44 Remington Magnum"
+SWEP.Instructions			= "Desert Eagle или просто Deagle — это полуавтоматический пистолет одинарного действия с газоотводным механизмом под калибр .44 Remington Magnum"
 SWEP.Category 				= "Оружие"
 SWEP.WepSelectIcon			= "pwb2/vgui/weapons/matebahomeprotection"
 
