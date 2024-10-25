@@ -2,7 +2,7 @@ SWEP.Base = "weapon_hg_melee_base"
 
 SWEP.PrintName = "Меч Семьи Блюндлей"
 SWEP.Category = "Ближний Бой"
-SWEP.Instructions = "-"
+SWEP.Instructions = "Меч — вид холодного оружия с прямым клинком, предназначенный для рубящего и колющего ударов."
 
 SWEP.Spawnable= true
 SWEP.AdminSpawnable= true
