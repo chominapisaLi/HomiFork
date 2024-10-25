@@ -1,7 +1,7 @@
 SWEP.Base = 'salat_base' -- base
 
 SWEP.PrintName 				= "Sawed-Off"
-SWEP.Author 				= "Homigrad"
+SWEP.Author 				= "нннн"
 SWEP.Instructions			= "Sawed-Off — это тип ружья с более коротким стволом под калибр 12/70"
 SWEP.Category 				= "Оружие"
 
