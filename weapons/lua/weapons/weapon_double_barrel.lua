@@ -1,8 +1,8 @@
 SWEP.Base = 'salat_base' -- base
 
-SWEP.PrintName 				= "Двухстволка"
+SWEP.PrintName 				= "Sawed-Off"
 SWEP.Author 				= "Homigrad"
-SWEP.Instructions			= "Дробовик под калибр 12/70"
+SWEP.Instructions			= "Sawed-Off — это тип ружья с более коротким стволом под калибр 12/70"
 SWEP.Category 				= "Оружие"
 
 SWEP.Spawnable 				= true
