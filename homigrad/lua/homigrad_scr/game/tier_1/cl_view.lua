@@ -321,6 +321,7 @@ local weps = {
 ["weapon_hk_usps"] = true,
 ["weapon_akm"] = true,
 ["weapon_deagle"] = true,
+["weapon_deagle_csgo"] = true,
 ["weapon_ak74u"] = true,
 ["weapon_l1a1"] = true,
 ["weapon_fal"] = true,
@@ -337,6 +338,7 @@ local weps = {
 ["weapon_ump"] = true,
 ["weapon_xm1014"] = true,
 ["weapon_remington870"] = true,
+["weapon_double_barrel"] = true,
 ["weapon_taser"] = true,
 ["weapon_sar2"] = true,
 ["weapon_rpgg"] = true,
@@ -576,6 +578,11 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 			vecWep = hand.Pos + hand.Ang:Up() * 4.4 - hand.Ang:Forward() * 4 + hand.Ang:Right() * 1.20
 			angWep = hand.Ang + Angle(-1,0,0)
 		end
+		if weaponClass == "weapon_double_barrel" then
+			--Vector(3.8,4,0.65)
+			vecWep = hand.Pos + hand.Ang:Up() * 4.5 - hand.Ang:Forward() * 4 + hand.Ang:Right() * 0.5
+			angWep = hand.Ang + Angle(0,0,0)
+		end
 		if weaponClass == "weapon_ar15" then
 			--Vector(5.05,7,0.725)
 			vecWep = hand.Pos + hand.Ang:Up() * 5.01 - hand.Ang:Forward() * 7 + hand.Ang:Right() * 0.725
@@ -594,6 +601,11 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 		if weaponClass == "weapon_deagle" then
 			--Vector(2.7,10,0.4)
 			vecWep = hand.Pos + hand.Ang:Up() * 2.7 - hand.Ang:Forward() * 10 + hand.Ang:Right() * 0.4
+			angWep = hand.Ang + Angle(-10,0,0)
+		end
+		if weaponClass == "weapon_deagle_csgo" then
+			--Vector(2.7,10,0.4)
+			vecWep = hand.Pos + hand.Ang:Up() * 3.3 - hand.Ang:Forward() * 10 + hand.Ang:Right() * 0.1
 			angWep = hand.Ang + Angle(-10,0,0)
 		end
 		if weaponClass == "weapon_fiveseven" then

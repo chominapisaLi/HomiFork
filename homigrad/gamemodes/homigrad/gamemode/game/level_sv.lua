@@ -13,7 +13,8 @@ local spisok = {
     ['riot'] = 'RIOT',
     ['oneinnocent'] = 'Иголка в стоге сена',
     ['dm'] = 'Дезматч',
-    ['hl2dm'] = 'HL2 DM'
+    ['hl2dm'] = 'HL2 DM',
+    ['hell_yeah'] = 'HELL YEAH!!!'
 }
 
 function RoundActiveSync(ply)

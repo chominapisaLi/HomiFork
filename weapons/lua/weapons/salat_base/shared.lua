@@ -448,7 +448,7 @@ function SWEP:FireBullet(dmg, numbul, spread)
 
 	ply:LagCompensation(true)
 
-	local obj = self:LookupAttachment("muzzle")
+	local obj = self:LookupAttachment("muzzle" or self.MuzzleAttachment or "1")
 	
 	local Attachment = self:GetAttachment(obj)
 
@@ -510,27 +510,21 @@ function SWEP:FireBullet(dmg, numbul, spread)
 
 		util.Effect("Impact",effectdata,true,true)
 		
-		--[[local effectdata = EffectData()
+		local effectdata = EffectData()
 		effectdata:SetEntity(tr.Entity)
 		effectdata:SetOrigin(tr.HitPos)
 		effectdata:SetStart(tr.StartPos)
 		effectdata:SetHitBox(tr.HitBox)
 		effectdata:SetFlags(0x0001)
 		util.Effect("Tracer",effectdata,true,true)
-		for i, ply in pairs(player.GetAll()) do
-			net.Start("shoot_tracer")
-			net.WriteTable(tr)
-			net.WriteEntity(self)
-			net.Send(ply)
-		end
 		local effectdata = EffectData()
 		effectdata:SetEntity(tr.Entity)
 		effectdata:SetOrigin(tr.HitPos)
 		effectdata:SetStart(tr.StartPos)
 		effectdata:SetHitBox(tr.HitBox)
-		effectdata:SetFlags(0x0001)]]--
-		--util.Effect("Tracer",effectdata,true,true)
-		--util.ParticleTracerEx("Tracer",tr.StartPos,tr.HitPos,true,self:EntIndex(),self:LookupAttachment("muzzle"))
+		effectdata:SetFlags(0x0001)
+		util.Effect("Tracer",effectdata,true,true)
+		util.ParticleTracerEx("Tracer",tr.StartPos,tr.HitPos,true,self:EntIndex(),self:LookupAttachment("muzzle"))
 		net.Start("shoot_huy")
 		net.WriteTable(tr)
 		net.Broadcast()

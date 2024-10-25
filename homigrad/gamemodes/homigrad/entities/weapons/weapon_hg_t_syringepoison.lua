@@ -71,10 +71,6 @@ if SERVER then
 
         local entreal = ent.fakeragdoll or ent
 
-        local bone = entreal:LookupBone("ValveBiped.Bip01_Spine4")
-
-        if not bone then return end
-
         local matrix = entreal:GetBoneMatrix(bone)
 
         if not matrix then return end

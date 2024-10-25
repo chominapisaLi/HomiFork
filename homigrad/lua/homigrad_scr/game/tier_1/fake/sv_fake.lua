@@ -1276,7 +1276,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 					if(trace.Hit and !trace.HitSky)then
 						local cons = constraint.Weld(rag,trace.Entity,bone,trace.PhysicsBone,0,false,false)
 						if(IsValid(cons))then
-							ply:SetNWBool('RightArm', true )
+							ply:SetNWBool('RightArmF', true )
 							rag.ZacConsRH=cons
 						end
 						break
@@ -1285,7 +1285,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 			end
 		else
 			if(IsValid(rag.ZacConsRH))then
-				ply:SetNWBool('RightArm', false )
+				ply:SetNWBool('RightArmF', false )
 				rag.ZacConsRH:Remove()
 				rag.ZacConsRH=nil
 			end

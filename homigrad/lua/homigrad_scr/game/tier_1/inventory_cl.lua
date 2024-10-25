@@ -32,6 +32,7 @@ Gunshuy = {
     "weapon_fiveseven",
     "weapon_hk_usp",
     "weapon_deagle",
+	"weapon_deagle_csgo",
     "weapon_beretta",
     "weapon_ak74u",
     "weapon_l1a1",
@@ -52,6 +53,7 @@ Gunshuy = {
     "weapon_glock",
     "weapon_mp7",
     "weapon_remington870",
+	"weapon_double_barrel",
     "weapon_xm1014",
     "bandage",
     "morphine",
@@ -1319,6 +1321,7 @@ local function createInventoryPanel(lootEnt, items, items_ammo, isPlayerInventor
                     net.WriteEntity(lootEnt)
                     net.WriteString(tostring(wep))
                     net.SendToServer()
+					panelParent:Close()
                 end
                 
                 button.DoClick = button.DoRightClick

@@ -204,6 +204,7 @@ local laserweps = {
 	["weapon_p220"] = true,
 	["weapon_galil"] = true,
 	["weapon_deagle"] = true,
+	["weapon_deagle_csgo"] = true,
 	["weapon_beanbag"] = true,
 	["weapon_glock"] = true
 }

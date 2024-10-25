@@ -1,6 +1,6 @@
 local vecZero = Vector(0,0,0)
 local vecInf = Vector(0,0,0) / 0
-
+local plyinfof = {}
 local function removeBone(rag,bone,phys_bone)
 	rag:ManipulateBoneScale(bone,vecZero)
 	--rag:ManipulateBonePosition(bone,vecInf) -- Thanks Rama (only works on certain graphics cards!)
@@ -26,7 +26,17 @@ local function recursive_bone(rag,bone,list)
 	end
 
 end
-
+function dump(o)
+	if type(o) == 'table' then
+	   local s = '{ '
+	   for k,v in pairs(o) do
+		  s = s .. '['..k..'] = ' .. dump(v) .. ','
+	   end
+	   return s .. '} '
+	else
+	   return tostring(o)
+	end
+ end
 function Gib_RemoveBone(rag,bone,phys_bone)
 	rag.gibRemove = rag.gibRemove or {}
 
@@ -78,9 +88,8 @@ local validBone = {
 	["ValveBiped.Bip01_R_Foot"] = true
 }
 
-function Gib_Input(rag,bone,dmgInfo)
-	if not IsValid(rag) then return end
-
+function Gib_Input(rag,bone,dmgInfo,ply)
+	
 	local hitgroup = bonetohitgroup[rag:GetBoneName(bone)]
 
 	local gibRemove = rag.gibRemove
@@ -115,8 +124,10 @@ function Gib_Input(rag,bone,dmgInfo)
 		return
 	end
 	end
-
-	if hitgroup == HITGROUP_HEAD and not dmgInfo:IsDamageType(DMG_CRUSH) and not gibRemove[phys_bone] and dmgInfo:IsDamageType(DMG_BUCKSHOT) then
+	local health = rag:Health() -- Метод для 
+	if ((dmgInfo:GetDamage() >= health/2 and not gibRemove[phys_bone]) and hitgroup == HITGROUP_HEAD and not dmgInfo:IsDamageType(DMG_CRUSH) and not gibRemove[phys_bone] )  then
+		
+		
 		sound.Emit(rag,"player/headshot" .. math.random(1,2) .. ".wav")
 		sound.Emit(rag,"physics/flesh/flesh_squishy_impact_hard" .. math.random(2,4) .. ".wav")
 		sound.Emit(rag,"physics/body/body_medium_break3.wav")
@@ -126,11 +137,27 @@ function Gib_Input(rag,bone,dmgInfo)
 
 			rag:EmitSound("physics/flesh/flesh_bloody_break.wav",90,75,2)
 		end)
+		if dmgInfo:IsDamageType(DMG_BUCKSHOT) then
+			Gib_RemoveBone(rag,bone,phys_bone)
 
-		Gib_RemoveBone(rag,bone,phys_bone)
+			BloodParticleExplode(rag:GetPhysicsObject(phys_bone):GetPos(),dmgInfo:GetDamageForce() * 2)
+		else
+			
+			if plyinfof[ply] and dmgInfo:IsDamageType(DMG_BULLET) then
+				if plyinfof[ply] == false then
+					plyinfof[ply] = true 
+					BloodParticleExplode(rag:GetPhysicsObject(phys_bone):GetPos(),dmgInfo:GetDamageForce() * 2)
+				end
+			else
+				plyinfof[ply] = true 
+				BloodParticleExplode(rag:GetPhysicsObject(phys_bone):GetPos(),dmgInfo:GetDamageForce() * 2)
+				
+			end
+			
+		end
 
-		BloodParticleExplode(rag:GetPhysicsObject(phys_bone):GetPos(),dmgInfo:GetDamageForce() * 2)
 	end
+	if not IsValid(rag) then return end
 
 	if dmgInfo:GetDamage() >= 50 and dmgInfo:IsDamageType(DMG_BLAST) and not gibRemove[phys_bone] then
 		local access
@@ -157,6 +184,7 @@ end
 hook.Add("PlayerDeath","Gib",function(ply)
 	dmgInfo = ply.LastDMGInfo
 	if not dmgInfo then return end
+	print(ply.SteamID)
 
 	--разве это не смешно когда ножом башка взрывается?
 	--нет
@@ -165,10 +193,9 @@ hook.Add("PlayerDeath","Gib",function(ply)
 		timer.Simple(0,function()
 			local rag = ply:GetNWEntity("Ragdoll")
 			local bone = rag:LookupBone(ply.LastHitBoneName)
-
 			if not IsValid(rag) or not bone then return end--неебу как пашол нахуй
-
-			Gib_Input(rag,bone,dmgInfo)
+			
+			Gib_Input(rag,bone,dmgInfo,rag:EntIndex())
 		end)
 	end
 end)
@@ -195,7 +222,7 @@ hook.Add("EntityTakeDamage","Gib",function(ent,dmgInfo)
 	end
 
 	
-	Gib_Input(ent,ent:TranslatePhysBoneToBone(phys_bone),dmgInfo)
+	Gib_Input(ent,ent:TranslatePhysBoneToBone(phys_bone),dmgInfo,ent:EntIndex())
 end)
 
 local max = math.max
