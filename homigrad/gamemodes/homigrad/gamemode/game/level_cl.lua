@@ -46,7 +46,7 @@ end)
 local white = Color(255,255,255)
 showRoundInfoColor = Color(255,255,255)
 local yellow = Color(255,255,0)
-
+local orange = Color(255, 147, 0)
 hook.Add("HUDPaint","homigrad-roundstate",function()
 	if roundActive then
 		local func = TableRound().HUDPaint_RoundLeft
@@ -74,5 +74,6 @@ hook.Add("HUDPaint","homigrad-roundstate",function()
 		local name,nextName = TableRound().Name,TableRound(roundActiveNameNext).Name
 		draw.SimpleText("Текущий режим : " .. name,"HomigradFont",ScrW() - 15,15,showRoundInfoColor,TEXT_ALIGN_RIGHT)
 		draw.SimpleText("Следущий режим : " .. nextName,"HomigradFont",ScrW() - 15,35,name ~= nextName and yellow or showRoundInfoColor,TEXT_ALIGN_RIGHT)
+		draw.SimpleText("> Сейчас идет Хэллоуин","HomigradFont",ScrW()-75,60,orange,TEXT_ALIGN_RIGHT)
 	end
 end)

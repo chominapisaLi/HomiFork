@@ -3,7 +3,7 @@ tiht = tiht or {}
 tiht.Name = "Trouble in Homicide Town"
 
 tiht.red = {"Невиновный",Color(125,125,125),
-    models = tdm.models
+    models = {"models/bala/monsterboys_pm.mdl", "models/player/cla/classic_ghostface.mdl", "models/players/mj_dbd_kk.mdl", "models/player/ghost_male_02/ghost_male_02.mdl", "models/models/konnie/jasonpart6/jasonpart6.mdl", "models/players/mj_dbd_kk.mdl", "models/players/mj_dbd_kk_joey.mdl", "models/players/mj_dbd_kk_julie.mdl", "models/players/mj_dbd_kk_susie.mdl"}
 }
 
 tiht.teamEncoder = {

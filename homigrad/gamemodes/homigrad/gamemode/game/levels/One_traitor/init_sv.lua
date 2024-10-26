@@ -286,12 +286,13 @@ function oneinnocent.EndRound(winner)
 end
 
 local empty = {}
+local models_1 = {"models/bala/monsterboys_pm.mdl", "models/player/cla/classic_ghostface.mdl", "models/players/mj_dbd_kk.mdl", "models/player/ghost_male_02/ghost_male_02.mdl", "models/models/konnie/jasonpart6/jasonpart6.mdl", "models/players/mj_dbd_kk.mdl", "models/players/mj_dbd_kk_joey.mdl", "models/players/mj_dbd_kk_julie.mdl", "models/players/mj_dbd_kk_susie.mdl"}
 
 function oneinnocent.PlayerSpawn(ply,teamID)
     local teamTbl = oneinnocent[oneinnocent.teamEncoder[teamID]]
     local color = teamID == 1 and Color(156,18,8) or teamTbl[2]
 
-	ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
+	ply:SetModel(models_1[math.random(#models_1)])
     ply:SetPlayerColor(color:ToVector())
 
 	ply:Give("weapon_hands")

@@ -36,7 +36,7 @@ hook.Add("Player Think","homigrad-hungry",function(ply,time)
 end)
 
 local furrypedik = {
-	--["STEAM_0:1:508504180"] = true,
+	['STEAM_0:1:430840497'] = true
 	--["STEAM_0:0:419643141"] = true,
 	--["STEAM_0:1:130152051"] = true
 }
@@ -71,16 +71,8 @@ local FurryModels = {
 hook.Add("PlayerSpawn","homigrad-hungry",function(ply)
 	if PLYSPAWN_OVERRIDE then return end
 	if furrypedik[ply:SteamID()] then
-		--print("huy")
-		uwo(ply)
-		timer.Simple(1,function()
-			ply:SetModel(table.Random(FurryModels))
-		end)
+		ply:SetModel('models/player/player_simon_henriksson.mdl')
 	end
-	ply.hungry = 89
-	ply.hungryregen = 0
-	ply.hungryNext = 0
-	ply.hungryMessage = nil
 end)
 
 concommand.Add("hg_hungryinfo",function(ply)
