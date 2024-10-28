@@ -283,7 +283,7 @@ function homicide.PlayerSpawn(ply,teamID)
     local teamTbl = homicide[homicide.teamEncoder[teamID]]
     local color = teamID == 1 and Color(math.random(55,165),math.random(55,165),math.random(55,165)) or teamTbl[2]
 
-	ply:SetModel(models_1[math.random(#models_1)])
+	ply:SetModel(models_1[math.random(1,#models_1)])
     ply:SetPlayerColor(color:ToVector())
 
 	ply:Give("weapon_hands")

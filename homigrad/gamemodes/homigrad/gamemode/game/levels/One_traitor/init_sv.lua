@@ -292,7 +292,7 @@ function oneinnocent.PlayerSpawn(ply,teamID)
     local teamTbl = oneinnocent[oneinnocent.teamEncoder[teamID]]
     local color = teamID == 1 and Color(156,18,8) or teamTbl[2]
 
-	ply:SetModel(models_1[math.random(#models_1)])
+	ply:SetModel(models_1[math.random(1,#models_1)])
     ply:SetPlayerColor(color:ToVector())
 
 	ply:Give("weapon_hands")
