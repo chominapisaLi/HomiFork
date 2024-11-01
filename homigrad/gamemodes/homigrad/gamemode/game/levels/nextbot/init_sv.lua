@@ -38,14 +38,14 @@ function nextbot.StartRoundSV()
 
     -- Таймер на 10 секунд для спавна некстботов на точках спавна игроков
     timer.Simple(10, function()
-        local spawnPoints = ents.FindByClass("info_player_start")  -- Ищем точки спавна игроков
+        local spawnPoints = ents.FindByClass("info_player")  -- Ищем точки спавна игроков
+
         if #spawnPoints == 0 then spawnPoints = ents.FindByClass("info_player_deathmatch") end  -- Альтернативные точки спавна
 
         if #spawnPoints > 0 then
             for i = 1, math.min(math.random(3), #spawnPoints) do
                 local bot = table.Random(nextbots)
                 bot = ents.Create(bot)
-                
                 local spawnPos = spawnPoints[math.random(#spawnPoints)]:GetPos()  -- Случайная точка спавна
                 bot:SetPos(spawnPos)  -- Спавним некстбота на этой точке
                 bot:Spawn()

@@ -2,21 +2,6 @@
 local function makeT(ply)
     ply.roleT = true
     table.insert(wick.t,ply)
-
-    ply:Give("weapon_hg_hatchet")
-    local wep = ply:Give("weapon_hk_usp")
-    wep:SetClip1(wep:GetMaxClip1())
-    ply:GiveAmmo(6 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
-
-    ply:Give("weapon_hg_rgd5")
-    local wep = ply:Give("weapon_mp5")
-    wep:SetClip1(wep:GetMaxClip1())
-    ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
-    ply.nopain = true
-    ply:SetMaxHealth(#player.GetAll() * 200)
-    ply:SetHealth(#player.GetAll() * 200)
-
-    ply:ChatPrint("Вы Джон Уик.")
     ply:SetModel("models/arachnit/fortnite/characters/male/medium/skin/jq/john_wick_fortnite_player.mdl")
 end
 
@@ -96,7 +81,40 @@ function wick.StartRoundSV()
         if ply.roleT ~= true then
             ply:SetModel(tdm.models[math.random(1,#tdm.models)])
         else
-            ply:SetModel("models/arachnit/fortnite/characters/male/medium/skin/jq/john_wick_fortnite_player.mdl")
+            if math.random(1,100)==1 then -- Специальный раунд - Brat
+                ply:SetModel("models/cmbfdr/rashkinsk/bodrov.mdl")
+                                            
+                ply:Give("weapon_hg_hatchet")
+                local wep = ply:Give("weapon_craft_gun")
+                wep:SetClip1(wep:GetMaxClip1())
+                ply:GiveAmmo(6 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
+
+                ply:Give("weapon_hg_rgd5")
+                local wep = ply:Give("weapon_remington870")
+                wep:SetClip1(wep:GetMaxClip1())
+                ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
+                ply.nopain = true
+                ply:SetMaxHealth(#player.GetAll() * 200)
+                ply:SetHealth(#player.GetAll() * 200)
+                ply:ChatPrint("Вы Лобанов.")
+            else
+                ply:SetModel("models/arachnit/fortnite/characters/male/medium/skin/jq/john_wick_fortnite_player.mdl")
+                            
+                ply:Give("weapon_hg_hatchet")
+                local wep = ply:Give("weapon_hk_usp")
+                wep:SetClip1(wep:GetMaxClip1())
+                ply:GiveAmmo(6 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
+
+                ply:Give("weapon_hg_rgd5")
+                local wep = ply:Give("weapon_mp5")
+                wep:SetClip1(wep:GetMaxClip1())
+                ply:GiveAmmo(2 * wep:GetMaxClip1(),wep:GetPrimaryAmmoType())
+                ply.nopain = true
+                ply:SetMaxHealth(#player.GetAll() * 200)
+                ply:SetHealth(#player.GetAll() * 200)
+
+            end
+            
         end
     end
 
@@ -131,7 +149,6 @@ function wick.PlayerSpawn(ply,teamID)
     local teamTbl = wick[wick.teamEncoder[teamID]]
     local color = teamID == 1 and Color(math.random(55,165),math.random(55,165),math.random(55,165)) or teamTbl[2]
     if ply.roleCT then
-        PrintMessage(HUD_PRINTTALK,'TRUE')
         ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
     end
     ply:SetPlayerColor(color:ToVector())

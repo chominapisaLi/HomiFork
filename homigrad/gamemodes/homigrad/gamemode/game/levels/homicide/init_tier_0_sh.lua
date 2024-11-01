@@ -1,9 +1,18 @@
 table.insert(LevelList,"homicide")
 homicide = homicide or {}
 homicide.Name = "Homicide"
+homicide.models = {}
+for i = 1,4 do
+	homicide.models[#homicide.models + 1] = "models/citizens/pavka/female_0"..i..".mdl"
+end
+for i = 1,9 do
+	homicide.models[#homicide.models + 1] = "models/citizens/pavka/male_0"..i..".mdl"
+end
+homicide.models[#homicide.models + 1] = "models/citizens/pavka/male_11.mdl"
+
 
 homicide.red = {"Невиновный",Color(125,125,125),
-    models = tdm.models
+    models = {}
 }
 
 homicide.teamEncoder = {

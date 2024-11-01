@@ -1,26 +1,26 @@
 SWEP.Base = 'salat_base' -- base
 
-SWEP.PrintName 				= "Glock 17"
+SWEP.PrintName 				= "Craft P99 Beretta"
 SWEP.Author 				= "Homigrad"
 SWEP.Instructions			= "Пистолет под калибр 9х19"
 SWEP.Category 				= "Оружие"
-SWEP.WepSelectIcon			= "pwb/sprites/glock17"
+SWEP.WepSelectIcon			= "pwb/sprites/m9"
 
 SWEP.Spawnable 				= true
 SWEP.AdminOnly 				= false
 
 ------------------------------------------
 
-SWEP.Primary.ClipSize		= 17
-SWEP.Primary.DefaultClip	= 17
+SWEP.Primary.ClipSize		= 15
+SWEP.Primary.DefaultClip	= 15
 SWEP.Primary.Automatic		= false
 SWEP.Primary.Ammo			= "9х19 mm Parabellum"
 SWEP.Primary.Cone = 0
-SWEP.Primary.Damage = 25
+SWEP.Primary.Damage = 10
 SWEP.Primary.Spread = 0
-SWEP.Primary.Sound = "hndg_glock17/glock_fire_01.wav"
-SWEP.Primary.SoundFar = "snd_jack_hmcd_smp_far.wav"
-SWEP.Primary.Force = 90/3
+SWEP.Primary.Sound = "m45/m45_fp.wav"
+SWEP.Primary.SoundFar = "m45/m45_dist.wav"
+SWEP.Primary.Force = 65/3
 SWEP.ReloadTime = 2
 SWEP.ShootWait = 0.12
 
@@ -44,12 +44,10 @@ SWEP.SlotPos				= 1
 SWEP.DrawAmmo				= true
 SWEP.DrawCrosshair			= false
 
-SWEP.ViewModel				= "models/tnb/weapons/w_glock.mdl"
-SWEP.WorldModel				= "models/tnb/weapons/w_glock.mdl"
+SWEP.ViewModel				= "models/weapons/darky_m/rust/w_sap.mdl"
+SWEP.WorldModel				= "models/weapons/darky_m/rust/w_sap.mdl"
 
-SWEP.dwsPos = Vector(13,13,5)
-SWEP.dwsItemPos = Vector(10,-1,-2)
+SWEP.vbwPos = Vector(8,-9,-8)
 
-SWEP.addAng = Angle(0.4,0,0)
-SWEP.addPos = Vector(0,0,-1)
---SWEP.vbwPos = Vector(7,-10,-6)
+SWEP.addPos = Vector(0,0,-0.9)
+SWEP.addAng = Angle(0.3,0,0)

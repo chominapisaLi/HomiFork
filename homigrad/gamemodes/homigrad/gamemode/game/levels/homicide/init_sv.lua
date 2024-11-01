@@ -74,10 +74,24 @@ local function makeCT(ply)
     ply.roleCT = true
     table.insert(homicide.ct,ply)
     if homicide.roundType == 1 then
+        JMod.EZ_Equip_Armor(ply,"Light-Helmet",Color(110, 110, 110))
+        JMod.EZ_Equip_Armor(ply,"Light-Vest",Color(110, 110, 110))
+        JMod.EZ_Equip_Armor(ply,"BallisticMask",Color(110, 110, 110))
+
+        JMod.EZ_Equip_Armor(ply,"Light-Right-Shoulder",Color(110, 110, 110))
+        JMod.EZ_Equip_Armor(ply,"Light-Left-Shoulder",Color(110, 110, 110))
+
         local wep = ply:Give("weapon_remington870")
         wep:SetClip1(wep:GetMaxClip1())
         AddNotificate( ply,"Вы невиновый с крупногабаритным огнестрельным оружием.")
     elseif homicide.roundType == 2 then
+        JMod.EZ_Equip_Armor(ply,"Light-Helmet",Color(110, 110, 110))
+        JMod.EZ_Equip_Armor(ply,"Light-Vest",Color(110, 110, 110))
+        JMod.EZ_Equip_Armor(ply,"BallisticMask",Color(110, 110, 110))
+
+        JMod.EZ_Equip_Armor(ply,"Light-Right-Shoulder",Color(110, 110, 110))
+        JMod.EZ_Equip_Armor(ply,"Light-Left-Shoulder",Color(110, 110, 110))
+
         local wep = ply:Give("weapon_beretta")
         wep:SetClip1(wep:GetMaxClip1())
         AddNotificate( ply,"Вы невиновый со скрытым огнестрельным оружием.")
@@ -117,7 +131,9 @@ function homicide.Spawns()
     for i,point in pairs(ReadDataMap("spawnpointsct")) do
         table.insert(aviable,point)
     end
-
+    for i,point in pairs(ReadDataMap("spawnpointspepoples")) do
+        table.insert(aviable,point)
+    end
     return aviable
 end
 
@@ -282,9 +298,18 @@ function homicide.PlayerSpawn(ply,teamID)
     local teamTbl = homicide[homicide.teamEncoder[teamID]]
     local color = teamID == 1 and Color(math.random(55,165),math.random(55,165),math.random(55,165)) or teamTbl[2]
 
-	ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
+	ply:SetModel(homicide.models[math.random(#homicide.models)])
     ply:SetPlayerColor(color:ToVector())
-
+    local random_math_znach = math.random(1,11)
+    if ply:GetBodygroupName(1) == 'torso' then
+        ply:SetBodygroup(1,math.random(1,16))
+        ply:SetBodygroup(2,math.random(1,6))
+        ply:SetBodygroup(4,math.random(0,1))
+    else
+        ply:SetBodygroup(2,math.random(1,16))    
+        ply:SetBodygroup(3,math.random(1,6))
+        ply:SetBodygroup(4,math.random(0,1))
+    end
 	ply:Give("weapon_hands")
     timer.Simple(0,function() ply.allowFlashlights = false end)
 end

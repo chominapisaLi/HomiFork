@@ -148,7 +148,7 @@ function Gib_Input(rag,bone,dmgInfo,ply)
 					plyinfof[ply] = true 
 					BloodParticleExplode(rag:GetPhysicsObject(phys_bone):GetPos(),dmgInfo:GetDamageForce() * 2)
 				end
-			else
+			elseif dmgInfo:IsDamageType(DMG_BULLET) then
 				plyinfof[ply] = true 
 				BloodParticleExplode(rag:GetPhysicsObject(phys_bone):GetPos(),dmgInfo:GetDamageForce() * 2)
 				

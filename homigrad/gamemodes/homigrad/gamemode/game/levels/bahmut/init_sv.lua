@@ -127,8 +127,14 @@ function bahmut.PlayerSpawn(ply,teamID)
 	ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
 	
 	if teamID == 1 then
-		ply:SetModel('models/wagner/wagner_soldier.mdl')
-	
+		local random_math_znach = math.random(1,11)
+		ply:SetBodygroup(1,random_math_znach)
+		ply:SetBodygroup(1,3)
+		ply:SetBodygroup(3,2)
+		ply:SetBodygroup(4,1)
+		ply:SetBodygroup(6,0)
+		ply:SetBodygroup(7,0)
+		ply:SetBodygroup(8,2)
 	end
 
     ply:SetPlayerColor(color:ToVector())
@@ -146,12 +152,8 @@ function bahmut.PlayerSpawn(ply,teamID)
 	local r = math.random(1,2)
 	JMod.EZ_Equip_Armor(ply,(r == 1 and "Medium-Vest") or (r == 2 and "Light-Vest"),color)
 
-	if roundStarter then
-		ply:Give("weapon_gredmimomet")
-		ply:Give("weapon_gredammo")
-		ply:Give("weapon_phone")
-		ply.allowFlashlights = true
-	end
+	ply.allowFlashlights = true
+	
 end
 
 function bahmut.PlayerCanJoinTeam(ply,teamID)

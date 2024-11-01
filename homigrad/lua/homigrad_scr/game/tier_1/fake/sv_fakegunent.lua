@@ -12,15 +12,15 @@ cir = {
 }
 
 Vectors = {
-["weapon_glock18"]=Vector(4,-1,2.5),
+["weapon_glock18"]=Vector(10,5,5),
 ["weapon_p220"]=Vector(13.5,-0.5,4),
-["weapon_mp5"]=Vector(0.5,-1,0),
+["weapon_mp5"]=Vector(16,0,5),
 ["weapon_ar15"]=Vector(-3,-1,0),
 ["weapon_ak74"]=Vector(14,-1,2),
 ["weapon_akm"]=Vector(13,-2,2),
 ["weapon_fiveseven"]=Vector(14,0,4),
 ["weapon_hk_usp"]=Vector(0,-0.5,0),
-["weapon_deagle"]=Vector(0,-0.5,0),
+["weapon_deagle"]=Vector(10,0,5),
 ["weapon_deagle_csgo"]=Vector(0,-0.5,0),
 ["weapon_beretta"]=Vector(13,0,4),
 ["weapon_ak74u"]=Vector(13,-1,2),
@@ -39,10 +39,10 @@ Vectors = {
 ["weapon_ump"]=Vector(2,-1,0),
 ["weapon_m3super"]=Vector(5,-2,0),
 ["weapon_hk_usps"]=Vector(-1,-0.6,1),
-["weapon_glock"]=Vector(14,0,4),
+["weapon_glock"]=Vector(5,-2,-4),
 ["weapon_mp7"]=Vector(0,0,0),
 ["weapon_remington870"]=Vector(-2,-1,0),
-["weapon_double_barrel"]=Vector(-2,-1,0),
+["weapon_double_barrel"]=Vector(2,0,5),
 ["weapon_xm1014"]=Vector(12,-1,4),
 ["bandage"]=Vector(0,0,0),
 ["weapon_taser"]=Vector(2,1.5,0),
@@ -115,6 +115,11 @@ function SpawnWeapon(ply,clip1)
 			elseif ply.curweapon == "weapon_hk_usps" then
 				local ang = ply.wep:GetAngles()
 				ang:RotateAroundAxis(ang:Forward(),90)
+				ply.wep:SetAngles(ang)
+			elseif ply.curweapon == "weapon_glock" then
+				local ang = ply.wep:GetAngles()
+				ang:RotateAroundAxis(ang:Up(),180)
+				ang:RotateAroundAxis(ang:Right(),10)
 				ply.wep:SetAngles(ang)
 			end
 

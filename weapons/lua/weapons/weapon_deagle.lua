@@ -1,6 +1,6 @@
 SWEP.Base = 'salat_base' -- base
 
-SWEP.PrintName 				= "Mateba Autorevolver HP"
+SWEP.PrintName 				= "Revolver R8"
 SWEP.Author 				= "Homigrad"
 SWEP.Instructions			= "Револьвер под калибр .44 Remington Magnum"
 SWEP.Category 				= "Оружие"
@@ -45,8 +45,8 @@ SWEP.SlotPos				= 1
 SWEP.DrawAmmo				= true
 SWEP.DrawCrosshair			= false
 
-SWEP.ViewModel				= "models/pwb2/weapons/w_matebahomeprotection.mdl"
-SWEP.WorldModel				= "models/pwb2/weapons/w_matebahomeprotection.mdl"
+SWEP.ViewModel				= "models/weapons/darky_m/rust/w_python.mdl"
+SWEP.WorldModel				= "models/weapons/darky_m/rust/w_python.mdl"
 
 function SWEP:ApplyEyeSpray()
     self.eyeSpray = self.eyeSpray - Angle(2,math.Rand(-0.5,0.5),0)

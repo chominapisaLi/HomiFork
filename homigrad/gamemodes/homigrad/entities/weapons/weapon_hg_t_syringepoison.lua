@@ -69,38 +69,7 @@ if SERVER then
 
     function SWEP:Poison(ent)
 
-        local entreal = ent.fakeragdoll or ent
-
-        local matrix = entreal:GetBoneMatrix(bone)
-
-        if not matrix then return end
-
-        local trace = eyeTrace(self:GetOwner())
-        local tracePos = trace.HitPos
-        local traceDir = trace.HitPos - trace.StartPos
-        traceDir:Normalize()
-        traceDir:Mul(4)
-
-        if not tracePos or not traceDir then return end 
-
-        local ang = matrix:GetAngles()
-        local pos = matrix:GetTranslation()
-
-        local huy = util.IntersectRayWithOBB(tracePos,traceDir, pos, ang, Vector(-8,-1,-1),Vector(2,0,1))
-
-        local bone = entreal:LookupBone("ValveBiped.Bip01_R_Hand")
-
-        if not bone then return end
-
-        local matrix = entreal:GetBoneMatrix(bone)
-
-        if not matrix then return end
-
-        local ang = matrix:GetAngles()
-        local pos = matrix:GetTranslation()
-        local huy2 = util.IntersectRayWithOBB(tracePos,traceDir, pos, ang, Vector(-8,-3,-1),Vector(2,-2,1))
-
-        if true or huy2 then
+        if true or true  then
             ent.otravlen = true
             timer.Create("Cyanid"..ent:EntIndex().."1", 15, 1, function()
                 if ent:Alive() and ent.otravlen then
@@ -129,15 +98,15 @@ if SERVER then
 
                 timer.Create( "Cyanid"..ent:EntIndex().."3", 5, 1, function()
                     if ent:Alive() and ent.otravlen then
-                        
+                        ent.KillReason = "poison"
+                        ent:Kill()                 
                         timer.Create("Blevota"..ent:EntIndex(),0.1,15,function()
                             ent.Blood = math.Clamp(ent.Blood - 10,0,5000)
                             local ent = RagdollOwner(ent) or ent
                             local att = ent:GetAttachment(ent:LookupAttachment("eyes"))
                             BloodParticle(att.Pos - att.Ang:Up() * 2,ent:EyeAngles():Forward()*150+VectorRand(-15,15)+ent:GetVelocity())
                         end)
-                        ent.KillReason = "poison"
-                        ent:Kill()
+
                     end
                 end)
             end)

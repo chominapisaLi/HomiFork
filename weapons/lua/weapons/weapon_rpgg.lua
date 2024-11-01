@@ -30,8 +30,8 @@ SWEP.SlotPos				= 0
 SWEP.DrawAmmo				= true
 SWEP.DrawCrosshair			= false
 
-SWEP.ViewModel				= "models/weapons/insurgency/w_rpg7.mdl"
-SWEP.WorldModel				= "models/weapons/insurgency/w_rpg7.mdl"
+SWEP.ViewModel				= "models/weapons/j_at_rpg7.mdl"
+SWEP.WorldModel				= "models/weapons/j_at_rpg7.mdl"
 
 function SWEP:PrimaryAttack()
     if self:Clip1() <= 0 then return end

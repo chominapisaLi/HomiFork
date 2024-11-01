@@ -45,8 +45,8 @@ SWEP.SlotPos				= 1
 SWEP.DrawAmmo				= true
 SWEP.DrawCrosshair			= false
 
-SWEP.ViewModel				= "models/csgo/weapons/w_pist_deagle.mdl"
-SWEP.WorldModel				= "models/csgo/weapons/w_pist_deagle.mdl"
+SWEP.ViewModel				= "models/pwb2/weapons/w_deserteagle.mdl"
+SWEP.WorldModel				= "models/pwb2/weapons/w_deserteagle.mdl"
 
 function SWEP:ApplyEyeSpray()
     self.eyeSpray = self.eyeSpray - Angle(2,math.Rand(-0.5,0.5),0)

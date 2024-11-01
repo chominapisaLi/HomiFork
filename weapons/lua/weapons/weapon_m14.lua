@@ -43,7 +43,7 @@ SWEP.SlotPos				= 0
 SWEP.DrawAmmo				= true
 SWEP.DrawCrosshair			= false
 
-SWEP.ViewModel				= "models/weapons/insurgency/w_m14.mdl"
-SWEP.WorldModel				= "models/weapons/insurgency/w_m14.mdl"
+SWEP.ViewModel				= "models/weapons/doi/w_garand.mdl"
+SWEP.WorldModel				= "models/weapons/doi/w_garand.mdl"
 
 SWEP.vbwPos = Vector(-8,-4,-6)

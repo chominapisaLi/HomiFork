@@ -8,6 +8,7 @@ hook.Add("Player Think","ControlPlayersAdmins",function(ply,time)
 
 	if ply:KeyDown(IN_ATTACK) and not ply.EnableSpectate and ply.allowGrab then
 		local enta = ply:GetEyeTrace().Entity
+		if !(enta:GetPhysicsObject() ~= NULL) then return false end
 		if enta:IsPlayer() and !enta.fake and !IsValid(ply.CarryEnt) then
 
 			Faking(enta)

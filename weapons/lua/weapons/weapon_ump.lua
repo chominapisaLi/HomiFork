@@ -42,8 +42,8 @@ SWEP.SlotPos				= 0
 SWEP.DrawAmmo				= true
 SWEP.DrawCrosshair			= false
 
-SWEP.ViewModel				= "models/weapons/insurgency/w_ump45.mdl"
-SWEP.WorldModel				= "models/weapons/insurgency/w_ump45.mdl"
+SWEP.ViewModel				= "models/weapons/w_smg_ump45.mdl"
+SWEP.WorldModel				= "models/weapons/w_smg_ump45.mdl"
 
 SWEP.vbwPos = Vector(-2,-4,-4)
 SWEP.vbwRifle = true

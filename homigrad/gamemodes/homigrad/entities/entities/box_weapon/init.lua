@@ -1,20 +1,36 @@
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
-Gunshuy = {
+local Gunshuy1 = {
     "weapon_mp5",
     "weapon_xm1014",
     "weapon_remington870",
     "weapon_mp5",
-    "weapon_p220",
     "weapon_civil_famas",
     "weapon_mp40",
     "weapon_galil",
-    "weapon_hk_usp",
     "weapon_m4a1",
     "weapon_galilsar",
 }
 
+local PISTOLS = {
+    "weapon_craft_gun",
+    "weapon_p220",
+    "weapon_deagle_csgo",
+    "weapon_glock",
+    "weapon_hk_usp",
+    "weapon_fiveseven",
+    "weapon_deagle",
+    "weapon_glock18"
+}
+
+local GRENADES = {
+    "weapon_hg_f1",
+    "weapon_hg_rgd5",
+    "weapon_hg_smokenade",
+    "weapon_hg_molotov",
+    "weapon_hg_flashbang"
+}
 
 
 util.AddNetworkString("inventory")
@@ -40,10 +56,23 @@ function ENT:Initialize()
     }
     
     -- Populate the Weapons table with a random weapon from Gunshuy
-    local randomWeapon = Gunshuy[math.random(1, #Gunshuy)]
+    local randomWeapon = PISTOLS[math.random(1, #PISTOLS)]
     self.Info.Weapons[randomWeapon] = {
         Clip1 =  -2
     }
+    local randomznachenye=math.random(1,1000)
+    if randomznachenye > 750 then
+        local randomWeapon = Gunshuy1[math.random(1, #Gunshuy1)]
+        self.Info.Weapons[randomWeapon] = {
+            Clip1 =  -2
+        }
+    end
+    if randomznachenye > 900 then
+        local randomWeapon = GRENADES[math.random(1, #GRENADES)]
+        self.Info.Weapons[randomWeapon] = {
+            Clip1 =  -2
+        }
+    end
 end
 
 function ENT:Use(activator, caller)

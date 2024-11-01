@@ -54,3 +54,4 @@ hook.Add("HUDPaint","Fake",function()
     /*surface.DrawCircle(pos.x,pos.y,size,255,255,255,a)
     surface.DrawCircle(pos.x,pos.y,size,255,255,255,a)*/
 end)
+

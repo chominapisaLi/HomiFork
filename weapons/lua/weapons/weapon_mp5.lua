@@ -44,8 +44,8 @@ SWEP.SlotPos				= 0
 SWEP.DrawAmmo				= true
 SWEP.DrawCrosshair			= false
 
-SWEP.ViewModel				= "models/pwb2/weapons/w_mp5a3.mdl"
-SWEP.WorldModel				= "models/pwb2/weapons/w_mp5a3.mdl"
+SWEP.ViewModel				= "models/pwb/weapons/w_mp5.mdl"
+SWEP.WorldModel				= "models/pwb/weapons/w_mp5.mdl"
 
 SWEP.dwsPos = Vector(20,20,5)
 SWEP.dwsItemPos = Vector(-7,0,1.5)

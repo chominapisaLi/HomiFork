@@ -182,7 +182,7 @@ function Faking(ply,force) -- функция падения
 			bull:Activate()
 			bull:SetNotSolid(true)
 			FakeBullseyeTrigger(rag,ply)
-			ply:HuySpectate(OBS_MODE_CHASE)
+			ply:HuySpectate(OBS_MODE_IN_EYE)
 			ply:SpectateEntity(ply:GetNWEntity("Ragdoll"))
 
 			ply:SetActiveWeapon(nil)
@@ -535,7 +535,6 @@ function Stun(Entity)
 			if rand == 50 then
 			RagdollOwner(fake):Say("*drop")
 			end
-			RagdollOwner(fake).pain = RagdollOwner(fake).pain + 3
 			fake:GetPhysicsObjectNum(1):SetVelocity(fake:GetPhysicsObjectNum(1):GetVelocity()+Vector(math.random(-55,55),math.random(-55,55),0))
 			fake:EmitSound("ambient/energy/spark2.wav")
 		end)
@@ -548,7 +547,6 @@ function Stun(Entity)
 				if rand == 50 then
 					RagdollOwner(fake):Say("*drop")
 				end
-				RagdollOwner(fake).pain = RagdollOwner(fake).pain + 3
 				fake:GetPhysicsObjectNum(1):SetVelocity(fake:GetPhysicsObjectNum(1):GetVelocity()+Vector(math.random(-55,55),math.random(-55,55),0))
 				fake:EmitSound("ambient/energy/spark2.wav")
 			end)
@@ -561,7 +559,6 @@ function Stun(Entity)
 		end
 	end
 end
-
 
 concommand.Add("fake",function(ply)
 	if timer.Exists("faketimer"..ply:EntIndex()) then return nil end
@@ -693,13 +690,19 @@ for i = 1,6 do
 end
 
 for i = 1,6 do
-	CustomWeight["models/monolithservers/mpd/male_0"..i..".mdl"] = 20
+	CustomWeight["models/monolithservers/mpd/male_0"..i..".mdl"] = 90
+end
+for i = 1,9 do
+	CustomWeight["models/player/tnb/citizens/female_"..i..".mdl"] = 90
+end
+CustomWeight["models/player/tnb/citizens/female_10.mdl"] = 90
+for i = 1,9 do
+	CustomWeight["models/player/tnb/citizens/male_0"..i..".mdl"] = 90
 end
 
-for i = 1,6 do
-	CustomWeight["models/monolithservers/mpd/male_0"..i.."_2.mdl"] = 20
+for i = 10,18 do
+	CustomWeight["models/player/tnb/citizens/male_"..i..".mdl"] = 90
 end
-
 
 util.AddNetworkString("custom name")
 
@@ -1081,7 +1084,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				end
 			end
 
-			if(ply:KeyDown(IN_ATTACK) and !ply.Otrub)then
+			if(ply:KeyDown(IN_ATTACK))then
 				local pos = ply:EyePos()
 				pos[3] = head:GetPos()[3]
 				if !ply.FakeShooting and ply.Organs["artery"]!=0 then
@@ -1105,7 +1108,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				end
 			end
 
-			if ply.curweapon and weapons.Get(ply.curweapon).Primary.Automatic then
+			if ply.curweapon ~= nil and ply.curweapon and weapons.Get(ply.curweapon).Primary.Automatic then
 				if ply:KeyDown(IN_ATTACK) then
 					if ply.FakeShooting then FireShot(ply.wep) end
 				end
@@ -1573,7 +1576,12 @@ hook.Add('PlayerSpawn','playerSpawnedFake',function(ply)
 	ply:SetNWBool('LeftArmF', false )
 	ply:SetNWBool('RightArmF', false )
 end)
-hook.Add('PlayerDeath','playerSpawnedFake',function(ply)
+hook.Add('PlayerDeath','playerSpawnedSFake',function(ply)
 	ply:SetNWBool('LeftArmF', false )
 	ply:SetNWBool('RightArmF', false )
 end)
+hook.Add('PlayerSpawnAsSpectator','playerSpawnedSSFake',function(ply)
+	ply:SetNWBool('LeftArmF', false )
+	ply:SetNWBool('RightArmF', false )
+end)
+

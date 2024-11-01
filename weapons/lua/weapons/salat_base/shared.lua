@@ -4,6 +4,8 @@ skins = {
 	donator = true,
 	superadmin = true,
 	microdonater = true,
+	blat = true,
+	headadmin = true,
 	admin = true
 }
 local vecZero = Vector(0,0,0)
@@ -11,7 +13,7 @@ local angZero = Angle(0,0,0)
 SWEP.Base = 'weapon_base' -- base
 
 SWEP.PrintName 				= "salat_base"
-SWEP.Author 				= "Homigrad"
+SWEP.Author 				= "homigrad"
 SWEP.Instructions			= ""
 SWEP.Category 				= "Other"
 SWEP.WepSelectIcon			= ""
@@ -75,9 +77,17 @@ hook.Add("HUDPaint","admin_hitpos",function()
 	if hg_show_hitposmuzzle:GetBool() and LocalPlayer():IsAdmin() then
 		local wep = LocalPlayer():GetActiveWeapon()
 		if not IsValid(wep) or wep.Base != "salat_base" then return end
-
-		local att = wep:LookupAttachment("muzzle")
-
+		local obj = self:LookupAttachment("muzzle")
+		local muzzleflash = self:LookupAttachment("muzzleflash")
+		local muzzle_flash = self:LookupAttachment("muzzle_flash")
+		local att
+		if obj and obj ~= 0 then
+			att = self:GetAttachment(obj)
+		elseif muzzleflash and muzzleflash ~= 0 then
+			att = self:GetAttachment(muzzleflash)
+		elseif muzzle_flash and muzzle_flash ~= 0 then
+			att = self:GetAttachment(muzzle_flash)
+		end
 		local att = wep:GetAttachment(att)
 		
 		if not att then
@@ -337,7 +347,7 @@ function SWEP:PrimaryAttack()
 		sound.Emit(self,self.Primary.Sound,511,2,100,self:GetOwner(),1)
 	else
 		sound.Emit(self,self.Primary.Sound,511,2,100,1)
-	end]]-- Шарик ты даун
+	end]]-- 
 
 	--[[
 	if SERVER then
@@ -439,6 +449,32 @@ else
 		end
 	end)
 end
+-- Функция для безопасного вывода таблицы
+function PrintTable(t, indent)
+    -- Устанавливаем отступ по умолчанию
+    indent = indent or 0
+    local indentString = string.rep("  ", indent) -- Создаем строку отступа
+
+    if type(t) ~= "table" then
+        print(indentString .. tostring(t)) -- Если не таблица, просто выводим значение
+        return
+    end
+
+    for key, value in pairs(t) do
+        -- Выводим ключ
+        if type(key) == "number" then
+            key = "[" .. key .. "]" -- Форматируем числовые ключи
+        else
+            key = "\"" .. key .. "\"" -- Форматируем строковые ключи
+        end
+
+        -- Выводим ключ и значение
+        print(indentString .. key .. " = ")
+
+        -- Рекурсивно выводим значение
+        PrintTable(value, indent + 1)
+    end
+end
 
 function SWEP:FireBullet(dmg, numbul, spread)
 	if self:Clip1() <= 0 then return end
@@ -448,10 +484,21 @@ function SWEP:FireBullet(dmg, numbul, spread)
 
 	ply:LagCompensation(true)
 
-	local obj = self:LookupAttachment("muzzle" or self.MuzzleAttachment or "1")
-	
-	local Attachment = self:GetAttachment(obj)
-
+	local obj = self:LookupAttachment("muzzle")
+	local muzzleflash = self:LookupAttachment("muzzleflash")
+	local muzzle_flash = self:LookupAttachment("muzzle_flash")
+	local one_just_fucking_one = self:LookupAttachment("1")
+	local Attachment
+	print(PrintTable(self:GetAttachments()))
+	if obj and obj ~= 0 then
+		Attachment = self:GetAttachment(obj)
+	elseif muzzleflash and muzzleflash ~= 0 then
+		Attachment = self:GetAttachment(muzzleflash)
+	elseif muzzle_flash and muzzle_flash ~= 0 then
+		Attachment = self:GetAttachment(muzzle_flash)
+	elseif one_just_fucking_one and one_just_fucking_one ~= 0 then
+		Attachment = self:GetAttachment(one_just_fucking_one)
+	end
 	if not Attachment then
 		local Pos,Ang = self:GetPosAng()
 		
@@ -510,21 +557,27 @@ function SWEP:FireBullet(dmg, numbul, spread)
 
 		util.Effect("Impact",effectdata,true,true)
 		
-		local effectdata = EffectData()
+		--[[local effectdata = EffectData()
 		effectdata:SetEntity(tr.Entity)
 		effectdata:SetOrigin(tr.HitPos)
 		effectdata:SetStart(tr.StartPos)
 		effectdata:SetHitBox(tr.HitBox)
 		effectdata:SetFlags(0x0001)
 		util.Effect("Tracer",effectdata,true,true)
+		for i, ply in pairs(player.GetAll()) do
+			net.Start("shoot_tracer")
+			net.WriteTable(tr)
+			net.WriteEntity(self)
+			net.Send(ply)
+		end
 		local effectdata = EffectData()
 		effectdata:SetEntity(tr.Entity)
 		effectdata:SetOrigin(tr.HitPos)
 		effectdata:SetStart(tr.StartPos)
 		effectdata:SetHitBox(tr.HitBox)
-		effectdata:SetFlags(0x0001)
-		util.Effect("Tracer",effectdata,true,true)
-		util.ParticleTracerEx("Tracer",tr.StartPos,tr.HitPos,true,self:EntIndex(),self:LookupAttachment("muzzle"))
+		effectdata:SetFlags(0x0001)]]--
+		--util.Effect("Tracer",effectdata,true,true)
+		--util.ParticleTracerEx("Tracer",tr.StartPos,tr.HitPos,true,self:EntIndex(),self:LookupAttachment("muzzle"))
 		net.Start("shoot_huy")
 		net.WriteTable(tr)
 		net.Broadcast()

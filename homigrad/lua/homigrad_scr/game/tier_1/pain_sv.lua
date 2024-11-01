@@ -111,6 +111,7 @@ hook.Add("Player Think","homigrad-pain",function(ply,time)
 	end
 
 	if IsUnconscious(ply) then
+		
 		GetUnconscious(ply)
 
 		--net.Start("inventory")
@@ -145,7 +146,6 @@ function IsUnconscious(ply)
 		ply:SetDSP(16)
 	else
 		ply.Otrub = false
-
 		if ply.EZarmor.effects.earPro then
 			ply:SetDSP(58)
 		else
@@ -165,7 +165,7 @@ function GetUnconscious(ply)
 		--ply:SetDSP(16)
 	else
 		--ply:ConCommand( "soundfade 0 1" )
-		--ply:SetDSP(0)
+		ply:SetDSP(0)
 	end
 
 	if not ply.fake then Faking(ply) end

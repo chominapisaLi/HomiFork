@@ -119,7 +119,9 @@ function oneinnocent.Spawns()
     for i,point in pairs(ReadDataMap("spawnpointsct")) do
         table.insert(aviable,point)
     end
-
+    for i,point in pairs(ReadDataMap("spawnpointspepoples")) do
+        table.insert(aviable,point)
+    end
     return aviable
 end
 
@@ -291,8 +293,19 @@ function oneinnocent.PlayerSpawn(ply,teamID)
     local teamTbl = oneinnocent[oneinnocent.teamEncoder[teamID]]
     local color = teamID == 1 and Color(156,18,8) or teamTbl[2]
 
-	ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
+
+	ply:SetModel(homicide.models[math.random(#homicide.models)])
     ply:SetPlayerColor(color:ToVector())
+    local random_math_znach = math.random(1,11)
+    if ply:GetBodygroupName(1) == 'torso' then
+        ply:SetBodygroup(1,math.random(1,16))
+        ply:SetBodygroup(2,math.random(1,6))
+        ply:SetBodygroup(4,math.random(0,1))
+    else
+        ply:SetBodygroup(2,math.random(1,16))    
+        ply:SetBodygroup(3,math.random(1,6))
+        ply:SetBodygroup(4,math.random(0,1))
+    end
 
 	ply:Give("weapon_hands")
     timer.Simple(0,function() ply.allowFlashlights = false end)

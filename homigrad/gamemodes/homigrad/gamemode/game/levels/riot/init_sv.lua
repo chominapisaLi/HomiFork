@@ -41,6 +41,21 @@ function riot.PlayerSpawn(ply,teamID)
 	ply:SetModel(teamTbl.models[math.random(#teamTbl.models)])
 
     ply:SetPlayerColor(color:ToVector())
+	if teamID==2 then
+		ply:SetModel(homicide.models[math.random(#homicide.models)])
+		ply:SetPlayerColor(color:ToVector())
+		local random_math_znach = math.random(1,11)
+		if ply:GetBodygroupName(1) == 'torso' then
+			ply:SetBodygroup(1,math.random(1,16))
+			ply:SetBodygroup(2,math.random(1,6))
+			ply:SetBodygroup(4,math.random(0,1))
+		else
+			ply:SetBodygroup(2,math.random(1,16))    
+			ply:SetBodygroup(3,math.random(1,6))
+			ply:SetBodygroup(4,math.random(0,1))
+		end
+	end
+
 
 	for i,weapon in pairs(teamTbl.weapons) do ply:Give(weapon) end
 
@@ -55,6 +70,7 @@ function riot.PlayerSpawn(ply,teamID)
 		local r = math.random(1,10)
 		if r == 10 then
 			JMod.EZ_Equip_Armor(ply,"Metal Pot",Color(255,255,255))
+			ply:Give('weapon_craft_gun')
 		end
 	end
 
