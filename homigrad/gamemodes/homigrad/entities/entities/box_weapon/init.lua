@@ -61,7 +61,7 @@ function ENT:Initialize()
         Clip1 =  -2
     }
     local randomznachenye=math.random(1,1000)
-    if randomznachenye > 750 then
+    if randomznachenye > 550 then
         local randomWeapon = Gunshuy1[math.random(1, #Gunshuy1)]
         self.Info.Weapons[randomWeapon] = {
             Clip1 =  -2

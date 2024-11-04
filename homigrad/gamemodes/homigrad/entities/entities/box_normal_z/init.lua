@@ -10,15 +10,20 @@ local eda = {
     "food_spongebob_home",
     "food_lays",
     "food_emela",
-    "food_tushenka"
+    "food_tushenka",
+    "food_skittlesb",
+    "food_skittles",
+    "food_fishcan"
 }
-
 local bita = {
     "weapon_bat",
     "weapon_hg_kitknife",
     "weapon_hg_crowbar",
     "weapon_hg_metalbat",
-    "weapon_t"
+    "weapon_t",
+    "weapon_pan",
+    "weapon_fireaxe",
+    "weapon_hatchet"
 }
 
 util.AddNetworkString("inventory")
@@ -50,13 +55,13 @@ function ENT:Initialize()
         Clip1 =  -2
     }
     print(random)
-    if random >= 3 then
+    if random >= 5 then
         local randomWeaponss = bita[math.random(1, #bita)]
         self.Info.Weapons[randomWeaponss] = {
             Clip1 =  -2
         }
     end
-    if random >= 5 then
+    if random >= 7 then
         local randomWeaponsss = tyagi[math.random(1, #tyagi)]
         self.Info.Weapons[randomWeaponsss] = {
             Clip1 =  -2
