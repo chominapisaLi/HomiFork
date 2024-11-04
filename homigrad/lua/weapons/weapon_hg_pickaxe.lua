@@ -1,15 +1,16 @@
 SWEP.Base = "weapon_hg_melee_base"
 
-SWEP.PrintName = "Кувалда"
+SWEP.PrintName = "Кирка"
 SWEP.Category = "Ближний Бой"
-SWEP.Instructions = "Ручной ударный инструмент, предназначенный для боя камня, нанесения исключительно сильных ударов при обработке металла, на демонтаже и монтаже конструкций."
+SWEP.Instructions = "Ручной ударный инструмент, предназначенный для работы по камню, каменистому грунту, очень плотному грунту"
+
 SWEP.Spawnable= true
 SWEP.AdminSpawnable= true
 SWEP.AdminOnly = false
 
 SWEP.ViewModelFOV = 60
-SWEP.ViewModel = "models/weapons/me_sledge/w_me_sledge.mdl"
-SWEP.WorldModel = "models/weapons/me_sledge/w_me_sledge.mdl"
+SWEP.ViewModel = "models/weapons/hl2meleepack/w_pickaxe.mdl"
+SWEP.WorldModel = "models/weapons/hl2meleepack/w_pickaxe.mdl"
 SWEP.ViewModelFlip = false
 
 SWEP.AutoSwitchTo = false
@@ -33,8 +34,8 @@ SWEP.Primary.Ammo = "none"
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Recoil = 0.5
-SWEP.Primary.Delay = 1.4
-SWEP.Primary.Force = 150
+SWEP.Primary.Delay = 3
+SWEP.Primary.Force = 190
 
 SWEP.Secondary.ClipSize = 0
 SWEP.Secondary.DefaultClip = 0
@@ -42,8 +43,8 @@ SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
 
 SWEP.DrawSound = "weapons/melee/holster_in_light.wav"
-SWEP.HitSound = "physics/metal/metal_sheet_impact_hard2.wav"
-SWEP.FlashHitSound = "weapons/melee/flesh_impact_blunt_04.wav"
-SWEP.ShouldDecal = false
+SWEP.HitSound = "weapons/shove_hit.wav"
+SWEP.FlashHitSound = "snd_jack_hmcd_axehit.wav"
+SWEP.ShouldDecal = true
 SWEP.HoldTypeWep = "melee2"
 SWEP.DamageType = DMG_BUCKSHOT

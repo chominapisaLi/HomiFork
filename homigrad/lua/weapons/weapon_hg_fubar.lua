@@ -29,12 +29,12 @@ SWEP.DrawCrosshair = false
 
 SWEP.DrawAmmo = true
 
-SWEP.Primary.Damage = 35
+SWEP.Primary.Damage = 60
 SWEP.Primary.Ammo = "none"
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Recoil = 0.5
-SWEP.Primary.Delay = 1.1
+SWEP.Primary.Delay = 3
 SWEP.Primary.Force = 100
 
 SWEP.Secondary.ClipSize = 0
@@ -47,4 +47,4 @@ SWEP.HitSound = "physics/metal/metal_sheet_impact_hard2.wav"
 SWEP.FlashHitSound = "weapons/melee/flesh_impact_blunt_03.wav"
 SWEP.ShouldDecal = false
 SWEP.HoldTypeWep = "melee2"
-SWEP.DamageType = DMG_CLUB
+SWEP.DamageType = DMG_BUCKSHOT
