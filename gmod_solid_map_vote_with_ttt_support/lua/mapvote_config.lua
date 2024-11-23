@@ -103,7 +103,7 @@ SolidMapVote[ 'Config' ][ 'Map Pool' ] = {
     'gm_bbicotka_hmcd',
     'ttt_overwatch',
     "deathrun_undertale",
-    "ttt_67way_2022"
+    "ttt_67thway_2022"
 }
 
 -- Allow players to use their mics while in the mapvote
