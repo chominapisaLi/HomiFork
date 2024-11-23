@@ -1,7 +1,8 @@
 table.insert(LevelList,"nextbot")
 nextbot = {}
 nextbot.Name = "NextBot"
-
+nextbot.HUDPaint_RoundFelt = true 
+nextbot.HUDPaint_RoundText = 'До окончания раунда: ' 
 local red,green,blue = Color(255,55,55),Color(55,255,55),Color(55,55,255)
 
 function nextbot.GetTeamName(ply)

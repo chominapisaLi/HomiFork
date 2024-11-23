@@ -20,7 +20,8 @@ homicide.teamEncoder = {
 }
 
 homicide.RoundRandomDefalut = 1
-
+homicide.HUDPaint_RoundFelt = true 
+homicide.HUDPaint_RoundText = 'До приезда полиции: ' 
 local playsound = false
 if SERVER then
     util.AddNetworkString("roundType")
@@ -139,7 +140,7 @@ function homicide.HUDPaint_RoundLeft(white2)
             playsound = false
             surface.PlaySound(roundSound[homicide.roundType])
         end
-        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,255),3,0.5)
+        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,175),0.5,0.5)
 
 
         --[[surface.SetFont("HomigradFontBig")

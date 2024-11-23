@@ -1178,526 +1178,463 @@ local function CreateRemoveButton(parent, x, y, armorID)
         net.SendToServer()
     end
 end
--- Определение глобальной переменной для проверки открытого инвентаря
+-- САСАТЬ!!
 local isInventoryOpen = false
 
 local panel, playerPanel, panelParent
-local function createInventoryPanel(lootEnt, items, items_ammo, isPlayerInventory)
-    if isInventoryOpen then
-        isInventoryOpen = false
-        if panelParent then panelParent:Remove() end  -- Удаляем окно инвентаря
-    end
-    if panelParent then return end
-    isPlayerInventory=false
-    local panelParent = vgui.Create("DFrame")
-    panelParent:SetAlpha(255)
-    panelParent:SetSize(ScrW(), ScrH())
-    panelParent:Center()
-    panelParent:SetDraggable(false)
-    panelParent:MakePopup()
-    panelParent:SetTitle("")
-    panelParent:SetMouseInputEnabled(false) -- Включаем ввод мыши
-
-    local panelParentss = vgui.Create("DFrame", panelParent)
-    panelParentss:SetAlpha(255)
-    panelParentss:SetSize(562, ScrH())
-    panelParentss:SetDraggable(false)
-    panelParentss:MakePopup()
-    panelParentss:SetTitle("")
-    panelParentss:ShowCloseButton(false)
-    local newPanel = vgui.Create("DFrame", panelParent)
-    newPanel:SetAlpha(255)
-    newPanel:SetSize(0.25 * panelParent:GetWide(), 0.98 * panelParent:GetTall()) -- Пропорциональный размер
-    newPanel:SetPos(ScrW()*0.75, ScrH()*0.02) -- Пропорциональная позиция
-    newPanel:SetDraggable(false)
-    newPanel:MakePopup()
-    newPanel:SetTitle("")
-    newPanel:SetDraggable(false)
-    newPanel:MakePopup()
-    newPanel:SetTitle("")
-    newPanel:ShowCloseButton(false)
-
-
-    local inv_player = vgui.Create("DFrame", panelParent)
-    inv_player:SetAlpha(255)
-    inv_player:SetSize(ScrW()*0.4601, ScrH()*0.09)
-    inv_player:Center()
-    inv_player:SetY(ScrH()*0.915)
-    inv_player:SetX(ScrW()*0.2909)
-    inv_player:SetDraggable(false)
-    inv_player:MakePopup()
-    inv_player:SetTitle("")
-    inv_player:ShowCloseButton(false)
-
-    function panelParent:OnKeyCodePressed(key)
-        if key == KEY_W or key == KEY_S or key == KEY_A or key == KEY_D or key == KEY_G then 
-            self:Remove() 
-            panelParent=nil 
-        end
-    end
-    
-    function newPanel:OnRemove()
-        if self.override then return end
-
-        if not isPlayerInventory then
-            net.Start("inventory")
-            net.WriteEntity(lootEnt)
-            net.SendToServer()
-        end
-    end
-    function inv_player:OnRemove()
-        if self.override then return end
-    end
-    inv_player.Paint = function(self, w, h)
-
-
-        draw.RoundedBox(0,0,0,w,h,black)
-        surface.SetDrawColor(255,255,255,128)
-        surface.DrawOutlinedRect(1,1,w - 2,h - 2)
-    end
-    panelParentss.Paint = function(self, w, h)
-
-
-        draw.RoundedBox(0,0,0,w,h,black)
-        surface.SetDrawColor(255,255,255,128)
-        surface.DrawOutlinedRect(1,1,w - 2,h - 2)
-
-    end
-    panelParent.Paint = function(self, w, h)
-        BlurBackground(self)
-        draw.SimpleText("HOMIFORKED", "HomigradFontLarge", w / 2, h / 2, Color(155, 155, 165, 5), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-        draw.RoundedBox(0, 0, 0, w, h, black)
-        surface.SetDrawColor(255, 255, 255, 128)
-        surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
-    end
-
-    newPanel.Paint = function(self, w, h)
-        draw.RoundedBox(0,0,0,w,h,black)
-        surface.SetDrawColor(255,255,255,128)
-        surface.DrawOutlinedRect(1,1,w - 2,h - 2)
-    end
-
-    local x, y = 10, 30
-    local corner = 6
-    if lootEnt ~= nil then
-        for wep, wepInfo in pairs(items) do
-            if blackListedWeps[wep] then continue end
-            local button = vgui.Create("DButton", newPanel)
-            button:SetPos(x, y)
-            button:SetSize(80, 80)
-
-            x = x + button:GetWide() + 6
-            if x + button:GetWide() >= newPanel:GetWide() then
-                x = 10
-                y = y + button:GetTall() + 6
-            end
-
-            button:SetText("")
-
-            local wepTbl = weapons.Get(wep) or WeaponByModel[wep] or wep
-            local text = type(wepTbl) == "table" and wepTbl.PrintName or wep
-            text = getText(text, button:GetWide() - corner * 2)
-
-            button.Paint = function(self, w, h)
-                draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
-                surface.SetDrawColor(255, 255, 255, 128)
-                surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
-
-                for i, textLine in pairs(text) do
-                    draw.SimpleText(textLine, "DefaultFixedDropShadow", corner, corner + (i - 1) * 12, white)
-                end
-
-                local x, y = self:LocalToScreen(0, 0)
-                DrawWeaponSelectionEX(wepTbl, x, y, w, h)
-
-                if isPlayerInventory then
-                    draw.SimpleText(tostring(wepInfo.Clip1 or ""), "DefaultFixedDropShadow", w - 5, h - 5, white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
-                end
-            end
-
-            if not isPlayerInventory then
-                button.DoRightClick = function()
-                    net.Start("ply_take_item")
-                    net.WriteEntity(lootEnt)
-                    net.WriteString(tostring(wep))
-                    net.SendToServer()
-					panelParent:Close()
-                end
-                
-                button.DoClick = button.DoRightClick
-            end
-        end
-
-        for ammo, amt in pairs(items_ammo) do
-            if blackListedAmmo[ammo] then continue end
-            local button = vgui.Create("DButton", newPanel)
-            button:SetPos(x, y)
-            button:SetSize(80, 80)
-
-            x = x + button:GetWide() + 6
-            if x + button:GetWide() >= newPanel:GetWide() then
-                x = 10
-                y = y + button:GetTall() + 6
-            end
-
-            button:SetText('')
-
-            local text = game.GetAmmoName(ammo)
-            text = getText(text, button:GetWide() - corner * 2)
-
-            button.Paint = function(self, w, h)
-                draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
-                surface.SetDrawColor(255, 255, 255, 128)
-                surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
-
-                local round = Material(AmmoTypes[tonumber(ammo)] or "vgui/hud/hmcd_person", "noclamp smooth")
-                surface.SetMaterial(round)
-                surface.SetDrawColor(255, 255, 255, 255)
-                surface.DrawTexturedRect(2, 2, w - 4, h - 4)
-
-                for i, textLine in pairs(text) do
-                    draw.SimpleText(textLine, "DefaultFixedDropShadow", corner, corner + (i - 1) * 12, white)
-                end
-
-                draw.SimpleText(tostring(amt), "DefaultFixedDropShadow", w - 5, h - 5, white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
-            end
-
-            if not isPlayerInventory then
-                button.DoClick = function()
-                    net.Start("ply_take_ammo")
-                    net.WriteEntity(lootEnt)
-                    net.WriteFloat(tonumber(ammo))
-                    net.SendToServer()
-                    timer.Create('closee',0.1,0,function()
-                        panelParent:Remove()
-                    end)
-                    
-                end
-                button.DoRightClick = button.DoClick
-            end
-        end
-    end
-    -- Функция для рекурсивного вывода таблицы
-    function printTable(t, indent)
-        indent = indent or 0  -- Установка отступа по умолчанию
-        for k, v in pairs(t) do
-            -- Отступ для каждого уровня вложенности
-            local space = string.rep(" ", indent)
-            if type(v) == "table" then
-                -- Если значение - таблица, рекурсивно выводим ее
-                print(space .. k .. ": ")
-                printTable(v, indent + 4)  -- Увеличиваем отступ для вложенной таблицы
-            else
-                -- Если значение не таблица, просто выводим его
-                print(space .. k .. ": " .. tostring(v))
-            end
-        end
-    end
-    
-
-    local x, y = 10, 10
-    local corner = 6
-    local items_plr = {}
-    local items_ammo_plr = {}
-    local lply = LocalPlayer()
-    for _, weapon in pairs(lply:GetWeapons()) do
-        local class = weapon:GetClass()
-        if not blackListedWeps[class] then
-            items_plr[class] = true
-        end
-    end
-    for ammoType, amount in pairs(lply:GetAmmo()) do
-        if not blackListedAmmo[ammoType] then
-            items_ammo_plr[ammoType] = amount
-        end
-    end
-    nickname = "игрока"
-    for wep, wepInfo in pairs(items_plr) do
-        if blackListedWeps[wep] then continue end
-        local bbbutton = vgui.Create("DButton", inv_player)
-        bbbutton:SetPos(x, y)
-        bbbutton:SetSize(80, 80)
-
-        x = x + bbbutton:GetWide() + 6
-        if x + bbbutton:GetWide() >= inv_player:GetWide() then
-            x = 10
-            y = y + bbbutton:GetTall() + 6
-        end
-
-        bbbutton:SetText("")
-
-        local wepTbl = weapons.Get(wep) or WeaponByModel[wep] or wep
-        local text = type(wepTbl) == "table" and wepTbl.PrintName or wep
-        text = getText(text, bbbutton:GetWide() - corner * 2)
-
-        bbbutton.Paint = function(self, w, h)
-            draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
-            surface.SetDrawColor(255, 255, 255, 128)
-            surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
-
-            for i, textLine in pairs(text) do
-                draw.SimpleText(textLine, "DefaultFixedDropShadow", corner, corner + (i - 1) * 12, white)
-            end
-
-            local x, y = self:LocalToScreen(0, 0)
-            DrawWeaponSelectionEX(wepTbl, x, y, w, h)
-
-        end
-
-        bbbutton.DoRightClick = function()
-            local lply = LocalPlayer()
-            for _, weapon in pairs(lply:GetWeapons()) do
-                if weapon:GetClass() == wep then
-                    input.SelectWeapon(weapon)
-                    timer.Simple(0.05, function()
-                        RunConsoleCommand("say", "*drop")
-                        panelParent:Remove()
-                    end)
-                    return
-                end
-            end
-            print("Weapon not found in inventory")
-        end
-        bbbutton.DoClick = bbbutton.DoRightClick
-    end
-
-    for ammo, amt in pairs(items_ammo_plr) do
-        if blackListedAmmo[ammo] then continue end
-        local button = vgui.Create("DButton", inv_player)
-        button:SetPos(x, y)
-        button:SetSize(80, 80)
-
-        x = x + button:GetWide() + 6
-        if x + button:GetWide() >= inv_player:GetWide() then
-            x = 10
-            y = y + button:GetTall() + 6
-        end
-
-        button:SetText('')
-
-        local text = game.GetAmmoName(ammo)
-        text = getText(text, button:GetWide() - corner * 2)
-
-        button.Paint = function(self, w, h)
-            draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
-            surface.SetDrawColor(255, 255, 255, 128)
-            surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
-
-            local round = Material(AmmoTypes[tonumber(ammo)] or "vgui/hud/hmcd_person", "noclamp smooth")
-            surface.SetMaterial(round)
-            surface.SetDrawColor(255, 255, 255, 255)
-            surface.DrawTexturedRect(2, 2, w - 4, h - 4)
-
-            for i, textLine in pairs(text) do
-                draw.SimpleText(textLine, "DefaultFixedDropShadow", corner, corner + (i - 1) * 12, white)
-            end
-
-            draw.SimpleText(tostring(amt), "DefaultFixedDropShadow", w - 5, h - 5, white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
-        end
-
-        if not isPlayerInventory then
-            button.DoClick = function()
-                net.Start( "drop_ammo" )
-                net.WriteFloat( ammo )
-                net.WriteFloat( amt )
-                net.SendToServer()
-                timer.Create('close',0.5,0,function()
-                    panelParent:Remove()
-                end)
-            end
-            button.DoRightClick = button.DoClick
-        end
-    end
-    
-	local Ply = LocalPlayer()
-	local weight = Ply.EZarmor.totalWeight
-
-	
-
-
-	panelParentss:MakePopup()
-
-	function panelParentss:OnClose()
-		if OpenDropdown then
-			OpenDropdown:Remove()
-		end
-	end
-
-	local PDispBG = vgui.Create("DPanel", panelParentss)
-	PDispBG:SetPos(50, 0)
-	PDispBG:SetSize(450, 800)
-
-	function PDispBG:Paint(w, h)
-		surface.SetDrawColor(50, 50, 50, 0)
-		surface.DrawRect(0, 0, w, h)
-	end
-
-	local PlayerDisplay = vgui.Create("DModelPanel", PDispBG)
-	PlayerDisplay:SetPos(0, 0)
-	PlayerDisplay:SetSize(PDispBG:GetWide(), PDispBG:GetTall())
-	PlayerDisplay:SetModel(Ply:GetModel())
-	PlayerDisplay:SetLookAt(PlayerDisplay:GetEntity():GetBonePosition(0))
-	PlayerDisplay:SetFOV(40)
-	PlayerDisplay:SetCursor("arrow")
-	local Ent = PlayerDisplay:GetEntity()
-
-	local PDispBT = vgui.Create("DButton", panelParentss)
-	PDispBT:SetPos(200, 30)
-	PDispBT:SetSize(450, 800)
-	PDispBT:SetText("")
-
-	function PDispBT:Paint(w, h)
-		surface.SetDrawColor(0, 0, 0, 0)
-		surface.DrawRect(0, 0, w, h)
-	end
-
-	local entAngs = nil
-	local curDif = nil
-	local lastCurPos = input.GetCursorPos()
-	local doneOnce = false
-
-	function PlayerDisplay:LayoutEntity(ent)
-
-		if not PDispBT:IsDown() then
-			entAngs = ent:GetAngles()
-			doneOnce = false
-		else
-			if not doneOnce then
-				lastCurPos = input.GetCursorPos()
-				doneOnce = true
-			end
-
-			curDif = input.GetCursorPos() - lastCurPos
+function createInventoryPanel(paneloffullscreen,lootEnt, items, items_ammo, isPlayerInventory)
+	if true  then
+		if not IsValid(paneloffullscreen) then return end -- Check if parent panel is valid
 			
-			ent:SetAngles( Angle( 0, entAngs.y + curDif % 360, 0 ) )
-		end
-	end
-	Ent:SetSkin(Ply:GetSkin())
-	for k, v in pairs( Ply:GetBodyGroups() ) do
-		local cur_bgid = Ply:GetBodygroup( v.id )
-		Ent:SetBodygroup( v.id, cur_bgid )
-	end
-	Ent.GetPlayerColor = function() return Vector( GetConVarString( "cl_playercolor" ) ) end
+		isPlayerInventory = isPlayerInventory or false
+		local panelParent = paneloffullscreen
+		
+		-- Remove any existing panels first
+		if IsValid(panel) then panel:Remove() end
+		if IsValid(playerPanel) then playerPanel:Remove() end
+		
+		-- Create background panel
+		isPlayerInventory=false
+		local panelParent = paneloffullscreen
+		local panelParentss = vgui.Create("DFrame", panelParent)
+		panelParentss:SetAlpha(255)
+		panelParentss:SetSize(562, ScrH())
+		panelParentss:SetDraggable(false)
+		panelParentss:MakePopup()
+		panelParentss:SetTitle("")
+		panelParentss:ShowCloseButton(false)
+		local newPanel = vgui.Create("DFrame", panelParent)
+		newPanel:SetAlpha(255)
+		newPanel:SetSize(0.25 * panelParent:GetWide(), 0.98 * panelParent:GetTall()) -- Пропорциональный размер
+		newPanel:SetPos(ScrW()*0.75, ScrH()*0.02) -- Пропорциональная позиция
+		newPanel:SetDraggable(false)
+		newPanel:MakePopup()
+		newPanel:SetTitle("")
+		newPanel:SetDraggable(false)
+		newPanel:MakePopup()
+		newPanel:SetTitle("")
+		newPanel:ShowCloseButton(false)
+	
+	
+		local inv_player = vgui.Create("DFrame", panelParent)
+		inv_player:SetAlpha(255)
+		inv_player:SetSize(ScrW()*0.4601, ScrH()*0.09)
+		inv_player:Center()
+		inv_player:SetY(ScrH()*0.915)
+		inv_player:SetX(ScrW()*0.2909)
+		inv_player:SetDraggable(false)
+		inv_player:MakePopup()
+		inv_player:SetTitle("")
+		inv_player:ShowCloseButton(false)
 	
 
-	if Ply.EZarmor.suited and Ply.EZarmor.bodygroups then
-		PlayerDisplay:SetColor(Ply:GetColor())
-
-		for k, v in pairs(Ply.EZarmor.bodygroups) do
-			Ent:SetBodygroup(k, v)
+		
+		function newPanel:OnRemove()
+			if self.override then return end
+	
+			if not isPlayerInventory then
+				net.Start("inventory")
+				net.WriteEntity(lootEnt)
+				net.SendToServer()
+			end
 		end
-	end
-
-	function PlayerDisplay:PostDrawModel(ent)
-		ent.EZarmor = Ply.EZarmor
-		JMod.ArmorPlayerModelDraw(ent)
-	end
-
-	function PlayerDisplay:DoClick()
-		if OpenDropdown then
-			OpenDropdown:Remove()
+		function inv_player:OnRemove()
+			if self.override then return end
 		end
-	end
-
-	function panelParentss:OnRemove()
-		ent = PlayerDisplay:GetEntity()
-		if not ent.EZarmor then return end
-		if not ent.EZarmor.items then return end
-        if panelParent ~= nil then panelParent:Remove() end
-        
-		for id, v in pairs(ent.EZarmor.items) do
-			if(ent.EZarmorModels[id])then ent.EZarmorModels[id]:Remove() end
+		inv_player.Paint = function(self, w, h)
+	
+	
+			draw.RoundedBox(0,0,0,w,h,black)
+			surface.SetDrawColor(255,255,255,128)
+			surface.DrawOutlinedRect(1,1,w - 2,h - 2)
 		end
+		panelParentss.Paint = function(self, w, h)
+	
+	
+			draw.RoundedBox(0,0,0,w,h,black)
+			surface.SetDrawColor(255,255,255,128)
+			surface.DrawOutlinedRect(1,1,w - 2,h - 2)
+	
+		end
+		newPanel.Paint = function(self, w, h)
+			draw.RoundedBox(0,0,0,w,h,black)
+			surface.SetDrawColor(255,255,255,128)
+			surface.DrawOutlinedRect(1,1,w - 2,h - 2)
+		end
+	
+		local x, y = 10, 30
+		local corner = 6
+		if lootEnt ~= nil then
+			for wep, wepInfo in pairs(items) do
+				if blackListedWeps[wep] then continue end
+				local button = vgui.Create("DButton", newPanel)
+				button:SetPos(x, y)
+				button:SetSize(80, 80)
+	
+				x = x + button:GetWide() + 6
+				if x + button:GetWide() >= newPanel:GetWide() then
+					x = 10
+					y = y + button:GetTall() + 6
+				end
+	
+				button:SetText("")
+	
+				local wepTbl = weapons.Get(wep) or WeaponByModel[wep] or wep
+				local text = type(wepTbl) == "table" and wepTbl.PrintName or wep
+				text = getText(text, button:GetWide() - corner * 2)
+	
+				button.Paint = function(self, w, h)
+					draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
+					surface.SetDrawColor(255, 255, 255, 128)
+					surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
+	
+					for i, textLine in pairs(text) do
+						draw.SimpleText(textLine, "DefaultFixedDropShadow", corner, corner + (i - 1) * 12, white)
+					end
+	
+					local x, y = self:LocalToScreen(0, 0)
+					DrawWeaponSelectionEX(wepTbl, x, y, w, h)
+	
+					if isPlayerInventory then
+						draw.SimpleText(tostring(wepInfo.Clip1 or ""), "DefaultFixedDropShadow", w - 5, h - 5, white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
+					end
+				end
+	
+				if not isPlayerInventory then
+					button.DoRightClick = function()
+						net.Start("ply_take_item")
+						net.WriteEntity(lootEnt)
+						net.WriteString(tostring(wep))
+						net.SendToServer()
+						panelParent:Remove()
+					end
+					
+					button.DoClick = button.DoRightClick
+				end
+			end
+	
+			for ammo, amt in pairs(items_ammo) do
+				if blackListedAmmo[ammo] then continue end
+				local button = vgui.Create("DButton", newPanel)
+				button:SetPos(x, y)
+				button:SetSize(80, 80)
+	
+				x = x + button:GetWide() + 6
+				if x + button:GetWide() >= newPanel:GetWide() then
+					x = 10
+					y = y + button:GetTall() + 6
+				end
+	
+				button:SetText('')
+	
+				local text = game.GetAmmoName(ammo)
+				text = getText(text, button:GetWide() - corner * 2)
+	
+				button.Paint = function(self, w, h)
+					draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
+					surface.SetDrawColor(255, 255, 255, 128)
+					surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
+	
+					local round = Material(AmmoTypes[tonumber(ammo)] or "vgui/hud/hmcd_person", "noclamp smooth")
+					surface.SetMaterial(round)
+					surface.SetDrawColor(255, 255, 255, 255)
+					surface.DrawTexturedRect(2, 2, w - 4, h - 4)
+	
+					for i, textLine in pairs(text) do
+						draw.SimpleText(textLine, "DefaultFixedDropShadow", corner, corner + (i - 1) * 12, white)
+					end
+	
+					draw.SimpleText(tostring(amt), "DefaultFixedDropShadow", w - 5, h - 5, white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
+				end
+	
+				if not isPlayerInventory then
+					button.DoClick = function()
+						net.Start("ply_take_ammo")
+						net.WriteEntity(lootEnt)
+						net.WriteFloat(tonumber(ammo))
+						net.SendToServer()
+						timer.Create('closee',0.1,0,function()
+							panelParent:Remove()
+						end)
+						
+					end
+					button.DoRightClick = button.DoClick
+				end
+			end
+		end
+		-- Функция для рекурсивного вывода таблицы
+		function printTable(t, indent)
+			indent = indent or 0  -- Установка отступа по умолчанию
+			for k, v in pairs(t) do
+				-- Отступ для каждого уровня вложенности
+				local space = string.rep(" ", indent)
+				if type(v) == "table" then
+					-- Если значение - таблица, рекурсивно выводим ее
+					print(space .. k .. ": ")
+					printTable(v, indent + 4)  -- Увеличиваем отступ для вложенной таблицы
+				else
+					-- Если значение не таблица, просто выводим его
+					print(space .. k .. ": " .. tostring(v))
+				end
+			end
+		end
+		
+	
+		local x, y = 10, 10
+		local corner = 6
+		local items_plr = {}
+		local items_ammo_plr = {}
+		local lply = LocalPlayer()
+		for _, weapon in pairs(lply:GetWeapons()) do
+			local class = weapon:GetClass()
+			if not blackListedWeps[class] then
+				items_plr[class] = true
+			end
+		end
+		for ammoType, amount in pairs(lply:GetAmmo()) do
+			if not blackListedAmmo[ammoType] then
+				items_ammo_plr[ammoType] = amount
+			end
+		end
+		nickname = "игрока"
+		for wep, wepInfo in pairs(items_plr) do
+			if blackListedWeps[wep] then continue end
+			local bbbutton = vgui.Create("DButton", inv_player)
+			bbbutton:SetPos(x, y)
+			bbbutton:SetSize(80, 80)
+	
+			x = x + bbbutton:GetWide() + 6
+			if x + bbbutton:GetWide() >= inv_player:GetWide() then
+				x = 10
+				y = y + bbbutton:GetTall() + 6
+			end
+	
+			bbbutton:SetText("")
+	
+			local wepTbl = weapons.Get(wep) or WeaponByModel[wep] or wep
+			local text = type(wepTbl) == "table" and wepTbl.PrintName or wep
+			text = getText(text, bbbutton:GetWide() - corner * 2)
+	
+			bbbutton.Paint = function(self, w, h)
+				draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
+				surface.SetDrawColor(255, 255, 255, 128)
+				surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
+	
+				for i, textLine in pairs(text) do
+					draw.SimpleText(textLine, "DefaultFixedDropShadow", corner, corner + (i - 1) * 12, white)
+				end
+	
+				local x, y = self:LocalToScreen(0, 0)
+				DrawWeaponSelectionEX(wepTbl, x, y, w, h)
+	
+			end
+	
+			bbbutton.DoRightClick = function()
+				local lply = LocalPlayer()
+				for _, weapon in pairs(lply:GetWeapons()) do
+					if weapon:GetClass() == wep then
+						input.SelectWeapon(weapon)
+						timer.Simple(0.05, function()
+							RunConsoleCommand("say", "*drop")
+							panelParent:Remove()
+						end)
+						return
+					end
+				end
+				print("Weapon not found in inventory")
+			end
+			bbbutton.DoClick = bbbutton.DoRightClick
+		end
+	
+		for ammo, amt in pairs(items_ammo_plr) do
+			if blackListedAmmo[ammo] then continue end
+			local button = vgui.Create("DButton", inv_player)
+			button:SetPos(x, y)
+			button:SetSize(80, 80)
+	
+			x = x + button:GetWide() + 6
+			if x + button:GetWide() >= inv_player:GetWide() then
+				x = 10
+				y = y + button:GetTall() + 6
+			end
+	
+			button:SetText('')
+	
+			local text = game.GetAmmoName(ammo)
+			text = getText(text, button:GetWide() - corner * 2)
+	
+			button.Paint = function(self, w, h)
+				draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
+				surface.SetDrawColor(255, 255, 255, 128)
+				surface.DrawOutlinedRect(1, 1, w - 2, h - 2)
+	
+				local round = Material(AmmoTypes[tonumber(ammo)] or "vgui/hud/hmcd_person", "noclamp smooth")
+				surface.SetMaterial(round)
+				surface.SetDrawColor(255, 255, 255, 255)
+				surface.DrawTexturedRect(2, 2, w - 4, h - 4)
+	
+				for i, textLine in pairs(text) do
+					draw.SimpleText(textLine, "DefaultFixedDropShadow", corner, corner + (i - 1) * 12, white)
+				end
+	
+				draw.SimpleText(tostring(amt), "DefaultFixedDropShadow", w - 5, h - 5, white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
+			end
+	
+			if not isPlayerInventory then
+				button.DoClick = function()
+					net.Start( "drop_ammo" )
+					net.WriteFloat( ammo )
+					net.WriteFloat( amt )
+					net.SendToServer()
+					timer.Create('close',0.5,0,function()
+						panelParent:Remove()
+					end)
+				end
+				button.DoRightClick = button.DoClick
+			end
+		end
+		
+		local Ply = LocalPlayer()
+		local weight = Ply.EZarmor.totalWeight
+	
+		
+	
+	
+		panelParentss:MakePopup()
+	
+		function panelParentss:OnClose()
+			if OpenDropdown then
+				OpenDropdown:Remove()
+			end
+		end
+	
+		local PDispBG = vgui.Create("DPanel", panelParentss)
+		PDispBG:SetPos(50, 0)
+		PDispBG:SetSize(450, 800)
+	
+		function PDispBG:Paint(w, h)
+			surface.SetDrawColor(50, 50, 50, 0)
+			surface.DrawRect(0, 0, w, h)
+		end
+	
+		local PlayerDisplay = vgui.Create("DModelPanel", PDispBG)
+		PlayerDisplay:SetPos(0, 0)
+		PlayerDisplay:SetSize(PDispBG:GetWide(), PDispBG:GetTall())
+		PlayerDisplay:SetModel(Ply:GetModel())
+		PlayerDisplay:SetLookAt(PlayerDisplay:GetEntity():GetBonePosition(0))
+		PlayerDisplay:SetFOV(40)
+		PlayerDisplay:SetCursor("arrow")
+		local Ent = PlayerDisplay:GetEntity()
+	
+		local PDispBT = vgui.Create("DButton", panelParentss)
+		PDispBT:SetPos(200, 30)
+		PDispBT:SetSize(450, 800)
+		PDispBT:SetText("")
+	
+		function PDispBT:Paint(w, h)
+			surface.SetDrawColor(0, 0, 0, 0)
+			surface.DrawRect(0, 0, w, h)
+		end
+	
+		local entAngs = nil
+		local curDif = nil
+		local lastCurPos = input.GetCursorPos()
+		local doneOnce = false
+	
+		function PlayerDisplay:LayoutEntity(ent)
+	
+			if not PDispBT:IsDown() then
+				entAngs = ent:GetAngles()
+				doneOnce = false
+			else
+				if not doneOnce then
+					lastCurPos = input.GetCursorPos()
+					doneOnce = true
+				end
+	
+				curDif = input.GetCursorPos() - lastCurPos
+				
+				ent:SetAngles( Angle( 0, entAngs.y + curDif % 360, 0 ) )
+			end
+		end
+		Ent:SetSkin(Ply:GetSkin())
+		for k, v in pairs( Ply:GetBodyGroups() ) do
+			local cur_bgid = Ply:GetBodygroup( v.id )
+			Ent:SetBodygroup( v.id, cur_bgid )
+		end
+		Ent.GetPlayerColor = function() return Vector( GetConVarString( "cl_playercolor" ) ) end
+		
+	
+		if Ply.EZarmor.suited and Ply.EZarmor.bodygroups then
+			PlayerDisplay:SetColor(Ply:GetColor())
+	
+			for k, v in pairs(Ply.EZarmor.bodygroups) do
+				Ent:SetBodygroup(k, v)
+			end
+		end
+	
+		function PlayerDisplay:PostDrawModel(ent)
+			ent.EZarmor = Ply.EZarmor
+			JMod.ArmorPlayerModelDraw(ent)
+		end
+	
+		function PlayerDisplay:DoClick()
+			if OpenDropdown then
+				OpenDropdown:Remove()
+			end
+		end
+	
+		function panelParentss:OnRemove()
+			ent = PlayerDisplay:GetEntity()
+			if not ent.EZarmor then return end
+			if not ent.EZarmor.items then return end
+			if panelParent ~= nil then panelParent:Remove() end
+			
+			for id, v in pairs(ent.EZarmor.items) do
+				if(ent.EZarmorModels[id])then ent.EZarmorModels[id]:Remove() end
+			end
+		end
+		
+		---
+		CreateArmorSlotButton(panelParentss, "head", 15, 50)
+		CreateArmorSlotButton(panelParentss, "eyes", 15, 150)
+		CreateArmorSlotButton(panelParentss, "mouthnose", 15, 250)
+		CreateArmorSlotButton(panelParentss, "ears", 15, 350)
+		CreateArmorSlotButton(panelParentss, "leftshoulder", 15, 450)
+		CreateArmorSlotButton(panelParentss, "leftforearm", 15, 550)
+		CreateArmorSlotButton(panelParentss, "leftthigh", 15, 650)
+		CreateArmorSlotButton(panelParentss, "leftcalf", 15, 750)
+		---
+		CreateArmorSlotButton(panelParentss, "rightshoulder", 410, 50)
+		CreateArmorSlotButton(panelParentss, "rightforearm", 410, 150)
+		CreateArmorSlotButton(panelParentss, "chest", 410, 250)
+		CreateArmorSlotButton(panelParentss, "back", 410, 350)
+		CreateArmorSlotButton(panelParentss, "pelvis", 410, 450)
+		CreateArmorSlotButton(panelParentss, "rightthigh", 410, 550)
+		CreateArmorSlotButton(panelParentss, "rightcalf", 410, 650)
+		return newPanel, inv_player
+	else
+		
 	end
-    
-	---
-	CreateArmorSlotButton(panelParentss, "head", 15, 50)
-	CreateArmorSlotButton(panelParentss, "eyes", 15, 150)
-	CreateArmorSlotButton(panelParentss, "mouthnose", 15, 250)
-	CreateArmorSlotButton(panelParentss, "ears", 15, 350)
-	CreateArmorSlotButton(panelParentss, "leftshoulder", 15, 450)
-	CreateArmorSlotButton(panelParentss, "leftforearm", 15, 550)
-	CreateArmorSlotButton(panelParentss, "leftthigh", 15, 650)
-	CreateArmorSlotButton(panelParentss, "leftcalf", 15, 750)
-	---
-	CreateArmorSlotButton(panelParentss, "rightshoulder", 410, 50)
-	CreateArmorSlotButton(panelParentss, "rightforearm", 410, 150)
-	CreateArmorSlotButton(panelParentss, "chest", 410, 250)
-	CreateArmorSlotButton(panelParentss, "back", 410, 350)
-	CreateArmorSlotButton(panelParentss, "pelvis", 410, 450)
-	CreateArmorSlotButton(panelParentss, "rightthigh", 410, 550)
-	CreateArmorSlotButton(panelParentss, "rightcalf", 410, 650)
-    return panelParent, newPanel
+   
 end
 
 net.Receive("inventory", function()
     local lootEnt = net.ReadEntity()
     local items = net.ReadTable()
     local items_ammo = net.ReadTable()
+    -- Очищаем предыдущие состояния, но не фон
 
-    createInventoryPanel(lootEnt, items, items_ammo, false)
+	ToggleScoreboard(true, nil, lootEnt, items, items_ammo)
 end)
 -- Определение глобальных переменных для проверки открытого инвентаря
 local isInventoryOpen = false
 local isCKeyHeld = false  -- Новая переменная для отслеживания состояния клавиши C
 
 -- Функция для открытия инвентаря
-local function OpenInventory(lootEnt, items, items_ammo, isPlayerInventory)
+local function OpenInventory(panel, lootEnt, items, items_ammo, isPlayerInventory)
     if not isInventoryOpen then  -- Проверяем, открыт ли инвентарь
         isInventoryOpen = true
-        createInventoryPanel(lootEnt, items, items_ammo, isPlayerInventory)  -- Ваш вызов функции инвентаря
+        createInventoryPanel(panel, lootEnt, items, items_ammo, isPlayerInventory)  -- Ваш вызов функции инвентаря
     end
 end
-
--- Функция для закрытия инвентаря
-local function CloseInventory()
-    if isInventoryOpen then  -- Проверяем, открыт ли инвентарь
-        isInventoryOpen = false
-        if panelParent then 
-            panelParent:Remove()  -- Удаляем окно инвентаря
-            panelParent = nil  -- Сбрасываем переменную панели
-        end
-    end
-end
-
--- Привязываем инвентарь к кнопке C
-hook.Add("Think", "OpenInventoryOnC", function()
-    if input.IsKeyDown(KEY_CAPSLOCK) and LocalPlayer():Alive() then  -- Проверяем нажатие клавиши C и что игрок жив
-        if not isCKeyHeld then  -- Проверяем, что клавиша C была только что нажата
-            isCKeyHeld = true
-            if not isInventoryOpen then
-                -- Открываем инвентарь
-                OpenInventory()
-            else
-                -- Закрываем инвентарь, если он уже открыт
-                CloseInventory()
-            end
-        end
-    else
-        isCKeyHeld = false  -- Сбрасываем состояние, если клавиша C отпущена
-    end
-end)
-
--- Закрытие инвентаря при нажатии клавиш передвижения или клавиши G
-hook.Add("Think", "CloseInventoryOnMove", function()
-    if isInventoryOpen then
-        if input.IsKeyDown(KEY_W) or input.IsKeyDown(KEY_A) or input.IsKeyDown(KEY_S) or input.IsKeyDown(KEY_D) or input.IsKeyDown(KEY_G) then
-            CloseInventory()  -- Закрываем инвентарь при нажатии передвижения или G
-        end
-    end
-end)
-
--- Событие для получения инвентаря с сервера и открытия панели инвентаря
-net.Receive("inventory", function()
-    local lootEnt = net.ReadEntity()
-    local items = net.ReadTable()
-    local items_ammo = net.ReadTable()
-    
-    -- Открываем инвентарь при получении данных
-    OpenInventory(lootEnt, items, items_ammo, false)
-end)
-
-net.Receive("close_inv",function(len)
-	CloseInventory()
-end)
---

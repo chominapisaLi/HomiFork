@@ -51,7 +51,6 @@ function granny.StartRoundSV()
     local aviable2 = granny.SpawnsT()
 
     local players = PlayersInGame()
-    print(1)
     local count = 1
     for i = 1,count do
         local ply = table.Random(players)
@@ -65,8 +64,6 @@ function granny.StartRoundSV()
     tdm.SpawnCommand(players,aviable,function(ply)
         ply:SetMaxHealth(#player.GetAll() * 150)
     end)
-    print(2)
-
     tdm.SpawnCommand(granny.t,aviable2,function(ply)
         timer.Simple(1,function()
             ply.nopain = true
@@ -173,7 +170,7 @@ function granny.PlayerDeath(ply,inf,att) return false end
 
 local common = {"food_lays","weapon_pipe","weapon_bat","med_band_big","med_band_small","medkit","food_monster","food_fishcan","food_spongebob_home"}
 local uncommon = {"medkit","weapon_molotok","painkiller"}
-local rare = {"weapon_glock18","weapon_gurkha","weapon_t","weapon_per4ik","*ammo*"}
+local rare = {"weapon_gurkha","weapon_t","weapon_per4ik","*ammo*"}
 
 function granny.ShouldSpawnLoot()
     return false

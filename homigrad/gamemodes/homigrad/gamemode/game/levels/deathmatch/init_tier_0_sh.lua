@@ -1,12 +1,13 @@
 table.insert(LevelList,"dm")
 dm = {}
 dm.Name = "DeathMatch"
-dm.LoadScreenTime = 5.5
+dm.LoadScreenTime = 20
 dm.CantFight = dm.LoadScreenTime
 
 dm.RoundRandomDefalut = 1
 dm.NoSelectRandom = true
-
+dm.HUDPaint_RoundFelt = true 
+dm.HUDPaint_RoundText = "До начала стрельбы: " 
 local red = Color(155,155,255)
 
 function dm.GetTeamName(ply)
@@ -49,7 +50,7 @@ local playsound = false
 function dm.StartRoundCL()
     playsound = true
 end
-
+local spisok_dm = {"shotgun", "m4a4", "mp5"}
 function dm.HUDPaint_RoundLeft(white)
     local lply = LocalPlayer()
 
@@ -59,14 +60,18 @@ function dm.HUDPaint_RoundLeft(white)
             playsound = false
             surface.PlaySound("snd_jack_hmcd_deathmatch.mp3")
         end
-        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,131),0.5,0.5)
-
-
-        --[[surface.SetFont("HomigradFontBig")
-        surface.SetTextColor(color.r,color.g,color.b,math.Clamp(startRound - 0.5,0,1) * 255)
-        surface.SetTextPos(ScrW() / 2 - 40,ScrH() / 2)
-
-        surface.DrawText("Вы " .. name)]]--
+        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,175),0.5,0.5)
+        local name = lply.DmCLASS
+        local name = lply:GetNW2String('DmCLASS')
+        local textt = ''
+        if name == "shotgun" then
+            textt = 'Штурмовик'
+        elseif name == "m4a4" then
+            textt = 'Стрелок'
+        else
+            textt = 'Разведчик'
+        end
+        draw.DrawText( "Вы " .. textt, "HomigradFontBig", ScrW() / 2, ScrH() / 2 +50, Color( 155,155,255,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         draw.DrawText( "Ты боец", "HomigradFontBig", ScrW() / 2, ScrH() / 2, Color( 155,155,255,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         draw.DrawText( "Бой Насмерть", "HomigradFontBig", ScrW() / 2, ScrH() / 8, Color( 155,155,255,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         --draw.DrawText( roundTypes[roundType], "HomigradFontBig", ScrW() / 2, ScrH() / 5, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )

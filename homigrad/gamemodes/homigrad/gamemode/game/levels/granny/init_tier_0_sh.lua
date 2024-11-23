@@ -87,7 +87,7 @@ function granny.HUDPaint_RoundLeft(white2)
             playsound = false
             surface.PlaySound(roundSound)
         end
-        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,255),3,0.5)
+        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,175),0.5,0.5)
 
         draw.DrawText( "Вы " .. name, "HomigradFontBig", ScrW() / 2, ScrH() / 2, Color( color.r,color.g,color.b,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         draw.DrawText( "Granny", "HomigradFontBig", ScrW() / 2, ScrH() / 8, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )

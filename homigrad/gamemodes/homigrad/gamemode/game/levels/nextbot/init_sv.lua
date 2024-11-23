@@ -42,11 +42,11 @@ function nextbot.StartRoundSV()
 
         if #spawnPoints == 0 then spawnPoints = ents.FindByClass("info_player_deathmatch") end  -- Альтернативные точки спавна
 
-        if #spawnPoints > 0 then
-            for i = 1, math.min(math.random(3), #spawnPoints) do
+        if true then
+            for i = 1, 3 do
                 local bot = table.Random(nextbots)
                 bot = ents.Create(bot)
-                local spawnPos = spawnPoints[math.random(#spawnPoints)]:GetPos()  -- Случайная точка спавна
+                local spawnPos = homicide.Spawns()[math.random(1,#homicide.Spawns())]-- Случайная точка спавна
                 bot:SetPos(spawnPos)  -- Спавним некстбота на этой точке
                 bot:Spawn()
             end

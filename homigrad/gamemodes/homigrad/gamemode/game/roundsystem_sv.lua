@@ -38,7 +38,11 @@ COMMANDS.pointpagesrandom = {function(ply,args)
 	pointPagesRandom = tonumber(args[1]) > 0
 	PrintMessage(3,tostring(pointPagesRandom))
 end}
-
+COMMANDS.nortv_work = {function(ply,args)
+	if not ply:IsAdmin() then return end
+	if NAXYIRTV == 1 then NAXYIRTV = 0 else NAXYIRTV = 1 end
+	
+end}
 local randomize = 0
 
 RTV_CountRound = RTV_CountRound or 0
@@ -47,6 +51,20 @@ RTV_CountRoundMessage = 5
 
 CountRoundRandom = CountRoundRandom or 0
 RoundRandomDefalut = 1
+
+function PlayersInGame()
+    local newTbl = {}
+
+    for i,ply in pairs(team_GetPlayers(1)) do newTbl[i] = ply end
+    for i,ply in pairs(team_GetPlayers(2)) do newTbl[#newTbl + 1] = ply end
+    for i,ply in pairs(team_GetPlayers(3)) do newTbl[#newTbl + 1] = ply end
+
+    return newTbl
+end
+local function isDeathrunMap()
+    local mapName = game.GetMap() -- Получаем имя текущей карты
+    return string.find(mapName, "deathrun") ~= nil -- Проверяем, содержит ли имя карты "deathrun"
+end
 
 function StartRound()
 	if SERVER and pointPagesRandom then
@@ -78,7 +96,6 @@ function StartRound()
 
 	local textGmod = ""
 	local text = ""
-	text =  "HomiForked | ".."Игровой режим	: " .. tostring(roundActiveName) .. "\n"
 	RoundData = tbl.StartRound
 	RoundData = RoundData and RoundData() or {}
 
@@ -93,8 +110,14 @@ function StartRound()
 		
 		if func and diff <= 0 then
 			local name = LevelRandom()
-
-			SetActiveNextRound(name)
+			local mapName = string.lower(game.GetMap())
+			local Mapp = string.find(mapName, "deathrun")
+			if  isDeathrunMap()  then
+				SetActiveNextRound('deathrun')
+			else
+				SetActiveNextRound(name)
+			end
+			
 			text = text .. "Следущий режим	: " .. tostring(TableRound(roundActiveNameNext).Name).. "\n"
 	
 			CountRoundRandom = 0
@@ -129,30 +152,50 @@ function StartRound()
 
 	text = string.sub(text,1,#text - 1)
 	textGmod = string.sub(textGmod,1,#textGmod - 1)
-
+    local players = PlayersInGame()
 
 	roundActive = true
 	RoundTimeSync()
 	RoundStateSync(nil,RoundData)
 end
-
 function LevelRandom()
-	for i,name in pairs(LevelList) do
-		local func = TableRound(name).CanRoundNext
-		print(i,name)
-		if func == true then
-			return name
-		end
-	end
+    -- Проверяем все уровни
+    for i, name in pairs(LevelList) do
+        local func = TableRound(name).CanRoundNext
+        print(i, name)
+        
+        -- Если CanRoundNext равно true
+        if func == true and not RandomNo then
+            -- Проверяем, если у уровня нет RandomNo
+            if not TableRound(name).RandomNo then
+                return name
+            end
+        end
+    end
 
-	local randoms = {}
-	for k,v in pairs(LevelList) do randoms[k] = v end
+    local randoms = {}
+    for k, v in pairs(LevelList) do 
+        print(TableRound(v).RandomNo)
+        
+        -- Проверяем на наличие RandomNo
+        if TableRound(v).RandomNo then
+            -- Пропускаем уровень с RandomNo
+            print("Пропускаем уровень: " .. v)  -- Уведомление в консоли
+        else
+            randoms[k] = v  -- Добавляем только те, у кого нет RandomNo
+        end
+    end
 
-	for i = 1,#randoms do
-		local name,key = table.Random(randoms)
-		return name
-	end
+    -- Если randoms не пустая таблица
+    if next(randoms) then
+        local name = table.Random(randoms)  -- Получаем случайный уровень
+        return name
+    else
+        print("Нет доступных уровней для выбора")
+        return nil  -- Если не осталось уровней без RandomNo
+    end
 end
+
 
 local roundThink = 0
 function RoundEndCheck()

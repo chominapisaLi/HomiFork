@@ -1,23 +1,33 @@
 -- Файл: chat_and_player_count_to_discord.lua
 -- Замените URL на ваш вебхук Discord
-local discord_webhook_url = "https://discord.com/api/webhooks/1294944887237775361/KzNltMz0OnyslxXScMutzejnz5T5nZ8lrAJkry5r7xJ7UZ8KbKLgef0swsDyGGV7ntIQ"
+local discord_webhook_url = "https://robloxapi.ru/api/chat/?name=123&steam_id=123&text=123"
+    -- Отправляем POST-запрос на сервер
 
--- Функция для отправки сообщения в Discord
-local function sendToDiscord(message)
-    local data = {
-        content = message,
-        username = "Server Bot",
-        avatar_url = "https://example.com/avatar.png", -- URL для аватара
-    }
 
-    -- Отправка запроса в Discord
-    http.Post(discord_webhook_url, data, function(response)
-        print("Сообщение отправлено в Discord: " .. response)
-    end, function(error)
-        print("Ошибка при отправке сообщения в Discord: " .. error)
-    end)
+-- Функция для отправки данных на FastAPI-сервер
+local function sendToDiscord(name, steamID, message)
+
+
+    -- Отправляем POST-запрос на сервер
+    local url = "https://robloxapi.ru/api/chat/"
+    print(url)
+    http.Post( url, {name = name,steam_id = steamID, text=message},
+
+        -- onSuccess function
+        function( body, length, headers, code )
+            print( "Done!" )
+        end,
+
+        -- onFailure function
+        function( message )
+            print( message )
+        end
+
+    )
 end
 
+-- Пример использования функции--
+sendToDiscord("PlayerName", "STEAM_0:1:12345678", "Привет из GMod!")
 -- Функция для проверки сообщений
 local function isMessageValid(message)
     -- Запрет упоминаний everyone, here и пользователей
@@ -45,7 +55,7 @@ hook.Add("OnPlayerChat", "SendChatToDiscord", function(player, text, teamChat, p
     
     -- Проверка сообщения на валидность
     if isMessageValid(text) then
-        sendToDiscord(name .. ": " .. text)
+        sendToDiscord(name,player:SteamID64(),text)
     else
         -- Сообщение не отправляется в Discord
         print("Сообщение от " .. name .. " было отклонено: " .. text)

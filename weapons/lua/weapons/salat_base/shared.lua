@@ -8,6 +8,13 @@ skins = {
 	headadmin = true,
 	admin = true
 }
+
+-- Коментарий для будующего
+/*
+Я НИКОГДА НЕ БУДУ ИСПОЛЬЗОВАТЬ МОДЕЛИ: ZCITY, HOMIGRADCOM, HOMIGRAD REWORK
+Спасибо салату за то что он слил сборку давным давно
+
+*/
 local vecZero = Vector(0,0,0)
 local angZero = Angle(0,0,0)
 SWEP.Base = 'weapon_base' -- base
@@ -173,18 +180,52 @@ function SWEP:DrawHUD()
 	end
 end
 
-function SWEP:DrawWorldModel()
-    self:DrawModel()
-	
-	if not hg_skins:GetBool() then return end
+-- Я БОЛЬШЕ СЮДА НЕ НОГОЙ НАХУЙ
 
-    if (IsValid(self:GetOwner()) and self:GetOwner():IsPlayer() and skins[self:GetOwner():GetUserGroup()]) then
-        --self:SetSubMaterial( 0, self:GetNWString( "skin" ) )
-		--для лохов
+function SWEP:DrawWorldModel()
+    local owner = self:GetOwner()
+    if not IsValid(owner) then
+        self:SetModelScale(1, 0) -- Возвращаем нормальный масштаб
+        self:SetRenderOrigin(nil) -- Очищаем позицию
+        self:SetRenderAngles(nil) -- Очищаем углы
+        self:DrawModel()
+        return
+    end
+    
+    if self.BadWorldModel and owner:IsPlayer() then
+        local bone = owner:LookupBone("ValveBiped.Bip01_R_Hand")
+        if not bone then return end
+        
+        local matrix = owner:GetBoneMatrix(bone)
+        if not matrix then return end
+        
+        local pos = matrix:GetTranslation()
+        local ang = matrix:GetAngles()
+        
+        pos = pos + ang:Forward() * self.WorldModelPos.Forward
+        pos = pos + ang:Right() * self.WorldModelPos.Right
+        pos = pos + ang:Up() * self.WorldModelPos.Up
+        
+        ang:RotateAroundAxis(ang:Up(), self.WorldModelAng.Up)
+        ang:RotateAroundAxis(ang:Right(), self.WorldModelAng.Right)
+        ang:RotateAroundAxis(ang:Forward(), self.WorldModelAng.Forward)
+        self:SetModelScale(1, 0)
+        if self.flipmodel or true then
+            ang:RotateAroundAxis(ang:Up(), 180) 
+        end
+
+        self:SetRenderOrigin(pos)
+        self:SetRenderAngles(ang)
+        self:DrawModel()
+    else
+        self:DrawModel()
+    end
+    
+    if not hg_skins:GetBool() then return end
+    if (IsValid(owner) and owner:IsPlayer() and skins[owner:GetUserGroup()]) then
         self:DrawModel()
     end
 end
-
 HMCD_SurfaceHardness={
     [MAT_METAL]=.95,[MAT_COMPUTER]=.95,[MAT_VENT]=.95,[MAT_GRATE]=.95,[MAT_FLESH]=.5,[MAT_ALIENFLESH]=.3,
     [MAT_SAND]=.1,[MAT_DIRT]=.3,[74]=.1,[85]=.2,[MAT_WOOD]=.5,[MAT_FOLIAGE]=.5,
@@ -475,160 +516,151 @@ function PrintTable(t, indent)
         PrintTable(value, indent + 1)
     end
 end
-
-function SWEP:FireBullet(dmg, numbul, spread)
-	if self:Clip1() <= 0 then return end
-	if timer.Exists("reload"..self:EntIndex()) then return nil end
-	
-	local ply = self:GetOwner()
-
-	ply:LagCompensation(true)
-
-	local obj = self:LookupAttachment("muzzle")
-	local muzzleflash = self:LookupAttachment("muzzleflash")
-	local muzzle_flash = self:LookupAttachment("muzzle_flash")
-	local one_just_fucking_one = self:LookupAttachment("1")
-	local Attachment
-	print(PrintTable(self:GetAttachments()))
-	if obj and obj ~= 0 then
-		Attachment = self:GetAttachment(obj)
-	elseif muzzleflash and muzzleflash ~= 0 then
-		Attachment = self:GetAttachment(muzzleflash)
-	elseif muzzle_flash and muzzle_flash ~= 0 then
-		Attachment = self:GetAttachment(muzzle_flash)
-	elseif one_just_fucking_one and one_just_fucking_one ~= 0 then
-		Attachment = self:GetAttachment(one_just_fucking_one)
-	end
-	if not Attachment then
-		local Pos,Ang = self:GetPosAng()
-		
-		Attachment = {Pos = Pos,Ang = Ang}
-	end
-	
-	local cone = self.Primary.Cone
-
-	local shootOrigin = Attachment.Pos
-	local vec = vecZero
-	vec:Set(self.addPos)
-	vec:Rotate(Attachment.Ang)
-	shootOrigin:Add(vec)
-
-	local shootAngles = Attachment.Ang
-	local ang = angZero
-	ang:Set(self.addAng)
-	shootAngles:Add(ang)
-
-	local shootDir = shootAngles:Forward()
-
-	local npc = ply:IsNPC() and ply:GetShootPos() or shootOrigin
-	local npcdir = ply:IsNPC() and ply:GetAimVector() or shootDir
-	local bullet = {}
-	bullet.Num 			= self.NumBullet or 1
-	bullet.Src 			= npc
-	bullet.Dir 			= npcdir
-	bullet.Spread 		= Vector(cone,cone,0)
-	bullet.Force		= self.Primary.Force / 40
-	bullet.Damage		= self.Primary.Damage * 4
-	bullet.AmmoType     = self.Primary.Ammo
-	bullet.Attacker 	= self:GetOwner()
-	bullet.Tracer       = 1
-	bullet.TracerName   = self.Tracer or "Tracer"
-	bullet.IgnoreEntity = not self:GetOwner():IsNPC() and self:GetOwner():GetVehicle() or self:GetOwner()
-
-	bullet.Callback = function(ply,tr,dmgInfo)
-		ply:GetActiveWeapon():BulletCallbackFunc(self.Primary.Damage,ply,tr,self.Primary.Damage,false,true,false)
-
-		--dmgInfo:SetDamageForce(dmgInfo:GetDamageForce())
-
-		if self.Primary.Ammo == "buckshot" then
-			local k = math.max(1 - tr.StartPos:Distance(tr.HitPos) / 750,0)
-
-			dmgInfo:ScaleDamage(k)
-		end
-		
-		local effectdata = EffectData()
-		effectdata:SetEntity(tr.Entity)
-		effectdata:SetOrigin(tr.HitPos)
-		effectdata:SetStart(tr.StartPos)
-
-		effectdata:SetSurfaceProp(tr.SurfaceProps)
-		effectdata:SetDamageType(DMG_BULLET)
-		effectdata:SetHitBox(tr.HitBox)
-
-		util.Effect("Impact",effectdata,true,true)
-		
-		--[[local effectdata = EffectData()
-		effectdata:SetEntity(tr.Entity)
-		effectdata:SetOrigin(tr.HitPos)
-		effectdata:SetStart(tr.StartPos)
-		effectdata:SetHitBox(tr.HitBox)
-		effectdata:SetFlags(0x0001)
-		util.Effect("Tracer",effectdata,true,true)
-		for i, ply in pairs(player.GetAll()) do
-			net.Start("shoot_tracer")
-			net.WriteTable(tr)
-			net.WriteEntity(self)
-			net.Send(ply)
-		end
-		local effectdata = EffectData()
-		effectdata:SetEntity(tr.Entity)
-		effectdata:SetOrigin(tr.HitPos)
-		effectdata:SetStart(tr.StartPos)
-		effectdata:SetHitBox(tr.HitBox)
-		effectdata:SetFlags(0x0001)]]--
-		--util.Effect("Tracer",effectdata,true,true)
-		--util.ParticleTracerEx("Tracer",tr.StartPos,tr.HitPos,true,self:EntIndex(),self:LookupAttachment("muzzle"))
-		net.Start("shoot_huy")
-		net.WriteTable(tr)
-		net.Broadcast()
-	end
-
-	if SERVER then self:TakePrimaryAmmo(1) end
-
-	if ply:GetNWBool("Suiciding") then
-		if SERVER then
-			ply.KillReason = "killyourself"
-
-			--self:GetOwner():FireBullets(bullet)
-			local dmgInfo = DamageInfo()
-			dmgInfo:SetAttacker(ply)
-			dmgInfo:SetInflictor(self)
-			dmgInfo:SetDamage(bullet.Damage * 4 * (self.NumBullet or 1))
-			dmgInfo:SetDamageType(DMG_BULLET)
-			dmgInfo:SetDamageForce(shootDir * 1024)
-			dmgInfo:SetDamagePosition(ply:GetBonePosition(ply:LookupBone("ValveBiped.Bip01_Head1")))
-			ply:TakeDamageInfo(dmgInfo)
-
-			ply.LastDMGInfo = dmgInfo
-			ply.LastHitBoneName = "ValveBiped.Bip01_Head1"
-			
-			--if ply:Alive() then ply:Kill() end
-		end
-	elseif not self:GetOwner():IsNPC() then
-		if SERVER then
-			self:GetOwner():FireBullets(bullet)
-		end
-		self:SetLastShootTime()
-	else
-		--if SERVER then
-			self:FireBullets(bullet)
-		--end
-	end
-
-	ply:LagCompensation(false)
-
-	local effectdata = EffectData()
-	effectdata:SetOrigin(shootOrigin)
-	effectdata:SetAngles(shootAngles)
-	effectdata:SetScale(self:IsScope() and 0.1 or 1)
-	effectdata:SetNormal(shootDir)
-	util.Effect(self.Efect or "MuzzleEffect",effectdata)
-
-	if self:GetOwner():IsNPC() then
-		self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
-	end
+function SWEP:GetProperMuzzlePos()
+    local owner = self:GetOwner()
+    if not IsValid(owner) or not self.BadWorldModel then
+        local obj = self:LookupAttachment("muzzle")
+        local attachment = self:GetAttachment(obj)
+        
+        if not attachment then
+            local pos, ang = self:GetPosAng()
+            return {Pos = pos, Ang = ang}
+        end
+        
+        return attachment
+    end
+    
+    local bone = owner:LookupBone("ValveBiped.Bip01_R_Hand")
+    if not bone then 
+        local obj = self:LookupAttachment("muzzle")
+        return self:GetAttachment(obj) or {Pos = self:GetPos(), Ang = self:GetAngles()}
+    end
+    
+    local matrix = owner:GetBoneMatrix(bone)
+    if not matrix then return {Pos = self:GetPos(), Ang = self:GetAngles()} end
+    
+    local pos = matrix:GetTranslation()
+    local ang = matrix:GetAngles()
+    
+    pos = pos + ang:Forward() * (self.WorldModelPos.Forward or 0)
+    pos = pos + ang:Right() * (self.WorldModelPos.Right or 0)
+    pos = pos + ang:Up() * (self.WorldModelPos.Up or 0)
+    
+    ang:RotateAroundAxis(ang:Up(), self.WorldModelAng.Up or 0)
+    ang:RotateAroundAxis(ang:Right(), self.WorldModelAng.Right or 0)
+    ang:RotateAroundAxis(ang:Forward(), self.WorldModelAng.Forward or 0)
+    
+    if self.FlipModel then
+        ang:RotateAroundAxis(ang:Up(), 180)
+    end
+    
+    local muzzleOffset = Vector(0, 0, 0)
+    pos = pos + ang:Forward() * muzzleOffset.x
+    pos = pos + ang:Right() * muzzleOffset.y
+    pos = pos + ang:Up() * muzzleOffset.z
+    
+    return {Pos = pos, Ang = ang}
 end
 
+function SWEP:FireBullet(dmg, numbul, spread)
+    if self:Clip1() <= 0 then return end
+    if timer.Exists("reload"..self:EntIndex()) then return nil end
+    
+    local ply = self:GetOwner()
+    ply:LagCompensation(true)
+    
+    local Attachment = self:GetProperMuzzlePos()
+    local cone = self.Primary.Cone
+
+    local shootOrigin = Attachment.Pos
+    local vec = Vector(0, 0, 0)
+    vec:Set(self.addPos or Vector(0,0,0))
+    vec:Rotate(Attachment.Ang)
+    shootOrigin:Add(vec)
+
+    local shootAngles = Attachment.Ang
+    local ang = Angle(0, 0, 0)
+    ang:Set(self.addAng or Angle(0,0,0))
+    shootAngles:Add(ang)
+
+    local shootDir = shootAngles:Forward()
+
+    local bullet = {
+        Num = self.NumBullet or 1,
+        Src = ply:IsNPC() and ply:GetShootPos() or shootOrigin,
+        Dir = ply:IsNPC() and ply:GetAimVector() or shootDir,
+        Spread = Vector(cone, cone, 0),
+        Force = self.Primary.Force / 40,
+        Damage = self.Primary.Damage * 4,
+        AmmoType = self.Primary.Ammo,
+        Attacker = self:GetOwner(),
+        Tracer = 1,
+        TracerName = self.Tracer or "Tracer",
+        IgnoreEntity = not self:GetOwner():IsNPC() and self:GetOwner():GetVehicle() or self:GetOwner(),
+        Callback = function(ply, tr, dmgInfo)
+            self:BulletCallbackFunc(self.Primary.Damage, ply, tr, self.Primary.Damage, false, true, false)
+
+            if self.Primary.Ammo == "buckshot" then
+                local k = math.max(1 - tr.StartPos:Distance(tr.HitPos) / 750, 0)
+                dmgInfo:ScaleDamage(k)
+            end
+            
+            local effectdata = EffectData()
+            effectdata:SetEntity(tr.Entity)
+            effectdata:SetOrigin(tr.HitPos)
+            effectdata:SetStart(tr.StartPos)
+            effectdata:SetSurfaceProp(tr.SurfaceProps)
+            effectdata:SetDamageType(DMG_BULLET)
+            effectdata:SetHitBox(tr.HitBox)
+            util.Effect("Impact", effectdata, true, true)
+            
+            net.Start("shoot_huy")
+            net.WriteTable(tr)
+            net.Broadcast()
+        end
+    }
+
+    if SERVER then self:TakePrimaryAmmo(1) end
+
+    if ply:GetNWBool("Suiciding") then
+        if SERVER then
+            ply.KillReason = "killyourself"
+            local dmgInfo = DamageInfo()
+            dmgInfo:SetAttacker(ply)
+            dmgInfo:SetInflictor(self)
+            dmgInfo:SetDamage(bullet.Damage * 4 * (self.NumBullet or 1))
+            dmgInfo:SetDamageType(DMG_BULLET)
+            dmgInfo:SetDamageForce(shootDir * 1024)
+            dmgInfo:SetDamagePosition(ply:GetBonePosition(ply:LookupBone("ValveBiped.Bip01_Head1")))
+            ply:TakeDamageInfo(dmgInfo)
+
+            ply.LastDMGInfo = dmgInfo
+            ply.LastHitBoneName = "ValveBiped.Bip01_Head1"
+        end
+    elseif not self:GetOwner():IsNPC() then
+        if SERVER then
+            self:GetOwner():FireBullets(bullet)
+        end
+        self:SetLastShootTime()
+    else
+        self:FireBullets(bullet)
+    end
+
+    ply:LagCompensation(false)
+	if !(self.BadWorldModel) then
+		local effectdata = EffectData()
+		effectdata:SetOrigin(Attachment.Pos)
+		effectdata:SetAngles(Attachment.Ang)
+		effectdata:SetScale(self:IsScope() and 0.1 or 1)
+		effectdata:SetNormal(shootDir)
+		util.Effect(self.Efect or "MuzzleEffect", effectdata)
+	end
+
+
+    if self:GetOwner():IsNPC() then
+        self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
+    end
+end
 local mul = 1
 local FrameTime,TickInterval = FrameTime,engine.TickInterval
 

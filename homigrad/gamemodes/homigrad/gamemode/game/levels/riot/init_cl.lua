@@ -20,8 +20,7 @@ function riot.HUDPaint_RoundLeft(white)
     if startRound > 0 and lply:Alive() then
         if playsound then
         end
-        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,131),0.5,0.5)
-
+        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,175),0.5,0.5)
 
         --[[surface.SetFont("HomigradFontBig")
         surface.SetTextColor(color.r,color.g,color.b,math.Clamp(startRound - 0.5,0,1) * 255)

@@ -20,8 +20,7 @@ local PISTOLS = {
     "weapon_glock",
     "weapon_hk_usp",
     "weapon_fiveseven",
-    "weapon_deagle",
-    "weapon_glock18"
+    "weapon_deagle"
 }
 
 local GRENADES = {

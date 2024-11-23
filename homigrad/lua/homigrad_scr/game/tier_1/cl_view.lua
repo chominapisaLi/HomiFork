@@ -158,7 +158,57 @@ local hg_disable_stoprenderunfocus = CreateClientConVar("hg_disable_stoprenderun
 local prekols = {
 	""
 }
+local weaponData = {
+    ["weapon_glock18"] = {vec = {3.75, -7, 0.35}, ang = {15, 0, 0}},
+    ["weapon_glock"] = {vec = {3, -10.5, -0.25}, ang = {15, 5, 10}},
+    ["weapon_ak74"] = {vec = {5.2, -2, 1.1}, ang = {-25, 20, -25}},
+    ["weapon_xm1014"] = {vec = {3.55, -4, 0.95}, ang = {-8, 0, 0}},
+    ["weapon_remington870"] = {vec = {4.4, -4, 1.2}, ang = {-1, 0, 0}},
+    ["weapon_double_barrel"] = {vec = {4.5, -4, 0.5}, ang = {0, 0, 0}},
+    ["weapon_ar15"] = {vec = {5.01, -7, 0.725}, ang = {-5, 0, 0}},
+    ["weapon_mp7"] = {vec = {2.9, -9, 0.79}, ang = {-10, 0, 0}},
+    ["weapon_beretta"] = {vec = {2.5, -10, 0.05}, ang = {-10, 2, 0}},
+    ["weapon_craft_gun"] = {vec = {2.8, -7, 1}, ang = {-10, 2, 0}},
+    ["weapon_deagle"] = {vec = {2.5, -10, 1.1}, ang = {-10, 0, 0}},
+    ["weapon_deagle_csgo"] = {vec = {3, -10.25, 0.25}, ang = {-10, -5, 0}},
+    ["weapon_fiveseven"] = {vec = {2.5, -10, 0.05}, ang = {-10, 3, 0}},
+    ["weapon_fiveseven_example"] = {vec = {4.55, -15, -0.075}, ang = {10, 0, 0}},
+    ["weapon_mp5"] = {vec = {6.5, -4.1, 0.7}, ang = {1, 0, 10}},
+    ["weapon_m3super"] = {vec = {3.66, -5, 0.65}, ang = {-5, 0, 0}},
+    ["weapon_p220"] = {vec = {2.7, -10, 0.12}, ang = {-15, 2, 0}},
+    ["weapon_hk_usp"] = {vec = {2.43, -10, 0.3}, ang = {-15, 5, 0}},
+    ["weapon_hk_usps"] = {vec = {4.25, -10, 0.05}, ang = {0, 0, 0}},
+    ["weapon_akm"] = {vec = {5.0, -5, 0.76}, ang = {-8, 5, 0}},
+    ["weapon_ak74u"] = {vec = {5.2, -4, 0.78}, ang = {-8, 0, 0}},
+    ["weapon_l1a1"] = {vec = {5.7, -4, 1.1}, ang = {25, 35, 15}},
+    ["weapon_fal"] = {vec = {5.45, -10, 0.69}, ang = {-8, 0, 0}},
+    ["weapon_galil"] = {vec = {5.7, -4, 0.75}, ang = {-5, 0, 0}},
+    ["weapon_galilsar"] = {vec = {3.75, -7, 0.58}, ang = {-8, 0, 0}},
+    ["weapon_m14"] = {vec = {3.25, -2.5, 1.5}, ang = {0, 0, 0}},
+    ["weapon_m1a1"] = {vec = {5.25, -4, 1.15}, ang = {25, 35, 15}},
+    ["weapon_mk18"] = {vec = {6.15, -6, 0.88}, ang = {-7, 0, 0}},
+    ["weapon_m249"] = {vec = {5.8, -8, 0.88}, ang = {-6, 0, 0}},
+    ["weapon_m4a1"] = {vec = {5.05, -7, 0.725}, ang = {-5, 0, 0}},
+    ["weapon_minu14"] = {vec = {5, -4, 0.95}, ang = {15, 35, 15}},
+    ["weapon_mp40"] = {vec = {6.5, -4, 0.67}, ang = {-5, 0, 0}},
+    ["weapon_rpk"] = {vec = {4.75, -4, 0.8}, ang = {-7, 0, 0}},
+    ["weapon_ump"] = {vec = {6.6, -7, 1.35}, ang = {25, 35, 15}},
+    ["weapon_sar2"] = {vec = {6.0, -5, 0.93}, ang = {-10, 0, 0}},
+    ["weapon_rpgg"] = {vec = {8, -2.5, 0.3}, ang = {0, 15, 0}},
+    ["weapon_beanbag"] = {vec = {4.41, -4, 0.41}, ang = {-5, 0, 0}},
+    ["weapon_civil_famas"] = {vec = {6, -6, 0.69}, ang = {-5, 0, 0}},
+    ["weapon_spas12"] = {vec = {3.1, -6, 0.85}, ang = {-7, 0, 0}},
+}
 
+-- Функция получения параметров для заданного оружия
+local function getWeaponPosition(weaponClass, hand)
+    local data = weaponData[weaponClass]
+    if data then
+        -- Настройка позиции и угла на основе данных из таблицы
+        vecWep = hand.Pos + hand.Ang:Up() * data.vec[1] - hand.Ang:Forward() * data.vec[2] + hand.Ang:Right() * data.vec[3]
+        angWep = hand.Ang + Angle(data.ang[1], data.ang[2], data.ang[3])
+    end
+end
 local developer = GetConVar("developer")
 local CalcView--fuck
 local vel = 0
@@ -340,6 +390,7 @@ local weps = {
 ["weapon_xm1014"] = true,
 ["weapon_remington870"] = true,
 ["weapon_double_barrel"] = true,
+["weapon_fiveseven_example"] = true,
 ["weapon_taser"] = true,
 ["weapon_sar2"] = true,
 ["weapon_rpgg"] = true,
@@ -619,6 +670,11 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 			vecWep = hand.Pos + hand.Ang:Up() * 2.5 - hand.Ang:Forward() * 10 + hand.Ang:Right() * 0.05
 			angWep = hand.Ang + Angle(-10,3,0)
 		end
+		if weaponClass == "weapon_fiveseven_example" then
+			--Vector(2.5,10,0.1)
+			vecWep = hand.Pos + hand.Ang:Up() *4.50 - hand.Ang:Forward() * 15 + hand.Ang:Right() * -0.075
+			angWep = hand.Ang + Angle(10,0,0)
+		end
 		if weaponClass == "weapon_mp5" then
 			--Vector(4.22,7,0.8)
 			vecWep = hand.Pos + hand.Ang:Up() * 6.5 - hand.Ang:Forward() * 4.1 + hand.Ang:Right() * 0.7
@@ -846,7 +902,7 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 
 	if RENDERSCENE then
 		if hg_cool_camera:GetBool() then
-			output_ang[3] = output_ang[3] + math.min(diffang:Dot(output_ang:Right()) * 3 * val,10)
+			output_ang[3] = output_ang[3] + math.min(diffang:Dot(output_ang:Right()) * 5 * val,10)
 		end
 		
 		if hg_cool_camera:GetBool() then

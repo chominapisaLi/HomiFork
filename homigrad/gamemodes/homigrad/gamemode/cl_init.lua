@@ -6,7 +6,13 @@ surface.CreateFont("HomigradFont",{
 	weight = 1100,
 	outline = false
 })
-
+surface.CreateFont("HomigradScoreBoardFont",{
+	font = "Roboto",
+	size = 15,
+	weight = 1100,
+	outline = true,
+	shadow = false
+})
 surface.CreateFont("HomigradFontBig",{
 	font = "Roboto",
 	size = 25,
@@ -118,8 +124,15 @@ hook.Add("HUDPaint","spectate",function()
 			--chat.AddText("Ники игроков: " .. tostring(not SpectateHideNick))
 		end
 		keyOld = key
+		draw.SimpleText("Включение или отключение отображение ников на ALT","HomigradFont",ScrW()/2,ScrH()/2+500,Color(255,255,255),TEXT_ALIGN_CENTER,TEXT_ALIGN_BOTTOM)
 
-		draw.SimpleText("Отключение / Включение отображение ников на ALT","HomigradFont",15,ScrH() - 15,showRoundInfoColor,TEXT_ALIGN_LEFT,TEXT_ALIGN_BOTTOM)
+		if not LocalPlayer():Alive() and not LocalPlayer():Team() == 1002 then
+			draw.SimpleText("ВЫ УМЕРЛИ.","HomigradFont",ScrW()/2,ScrH()/2+480,Color(255,0,0,220),TEXT_ALIGN_CENTER,TEXT_ALIGN_BOTTOM)
+		elseif LocalPlayer():Team() == 1002 then
+			draw.SimpleText("ВЫ В СПЕКТАТОРАХ ЧТО БЫ ПОМЕНЯТЬ КОМАНДУ НАЖМИТЕ F2","HomigradFont",ScrW()/2,ScrH()/2+480,Color(255,0,0,220),TEXT_ALIGN_CENTER,TEXT_ALIGN_BOTTOM)
+		elseif not LocalPlayer():Alive() and LocalPlayer():Team() ~= 1002 then
+			draw.SimpleText("ВЫ УМЕРЛИ.","HomigradFont",ScrW()/2,ScrH()/2+480,Color(255,0,0,220),TEXT_ALIGN_CENTER,TEXT_ALIGN_BOTTOM)
+		end
 
 		local key = input.IsButtonDown(KEY_F)
 		if not lply:Alive() and keyOld2 ~= key and key then
@@ -311,12 +324,6 @@ local function ToggleMenu(toggle)
         plyMenu:MakePopup()
         plyMenu:SetKeyboardInputEnabled(false)
 
-		plyMenu:AddOption("Меню Брони",function()
-            LocalPlayer():ConCommand("jmod_ez_inv")
-        end)
-		plyMenu:AddOption("Меню Патрон",function()
-			LocalPlayer():ConCommand("hg_ammomenu")
-		end)
 		local EZarmor = LocalPlayer().EZarmor
 		if JMod.GetItemInSlot(EZarmor, "eyes") then
 			plyMenu:AddOption("Активировать Маску/Забрало",function()

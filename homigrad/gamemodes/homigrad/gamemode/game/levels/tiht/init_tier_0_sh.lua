@@ -11,7 +11,8 @@ tiht.teamEncoder = {
 }
 
 tiht.RoundRandomDefalut = 1
-
+tiht.HUDPaint_RoundFelt = true 
+tiht.HUDPaint_RoundText = 'До приезда полиции: ' 
 local playsound = false
 if SERVER then
     util.AddNetworkString("roundType")
@@ -130,8 +131,7 @@ function tiht.HUDPaint_RoundLeft(white2)
             playsound = false
             surface.PlaySound(roundSound[tiht.roundType])
         end
-        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,131),3,0.5)
-
+        lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,175),0.5,0.5)
 
         --[[surface.SetFont("HomigradFontBig")
         surface.SetTextColor(color.r,color.g,color.b,math.Clamp(startRound - 0.5,0,1) * 255)

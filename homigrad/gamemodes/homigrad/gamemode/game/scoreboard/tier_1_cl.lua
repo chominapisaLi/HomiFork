@@ -46,32 +46,167 @@ local function timeSort(a,b)
 	return time1 > time2
 end
 
-local function ToggleScoreboard(toggle)
-	if toggle then
-        if IsValid(HomigradScoreboard) then return end--shut the fuck up
+local isScoreboardOpen = false
+local isInventoryOpen = false
+local white = Color(255,255,255)
+local black = Color(0,0,0,128)
+local black2 = Color(64,64,64,128)
+local blurMat = Material("pp/blurscreen")
+local panel1_inv, panel2_inv, panel3_inv
+local fullscreenBackground = nil
 
-		showRoundInfo = CurTime() + 2.5
 
-		local scrw,scrh = ScrW(),ScrH()
+local function CreateBackground()
+    if IsValid(fullscreenBackground) then return fullscreenBackground end
+    
+    local scrw, scrh = ScrW(), ScrH()
+    fullscreenBackground = vgui.Create("Panel")
+    fullscreenBackground:SetPos(0, 0)
+    fullscreenBackground:SetSize(scrw, scrh)
+    fullscreenBackground:SetZPos(-100)
+    fullscreenBackground.Paint = function(self, w, h)
+        surface.SetDrawColor(0, 0, 0, 200)
+        surface.DrawRect(0, 0, w, h)
+        draw.SimpleText("HOMIFORKED", "HomigradFontLarge", w/2, h/2, Color(155,155,165,5), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
+    
+    function fullscreenBackground:OnMousePressed() return true end
+    function fullscreenBackground:OnMouseReleased() return true end
+    
+    ScoreboardList = ScoreboardList or {}
+    ScoreboardList[fullscreenBackground] = true
+    
+    return fullscreenBackground
+end
+-- Функция очистки инвентаря
+function CleanupInventory()
+    if panel1_inv and IsValid(panel1_inv) then panel1_inv:Remove() end
+    if panel2_inv and IsValid(panel2_inv) then panel2_inv:Remove() end
+    if panel3_inv and IsValid(panel3_inv) then panel3_inv:Remove() end
+    isInventoryOpen = false
+end
 
-		HomigradScoreboard = vgui.Create("DFrame")
-		HomigradScoreboard:SetTitle("")
-		HomigradScoreboard:SetSize(scrw*.7,scrh*.9)
-		HomigradScoreboard:Center()
-		HomigradScoreboard:ShowCloseButton(false)
-		HomigradScoreboard:SetDraggable(false)
+-- Функция очистки скорборда
+function CleanupScoreboard()
+    if IsValid(HomigradScoreboard) then HomigradScoreboard:Remove() end
+    isScoreboardOpen = false
+end
+
+-- Функция полной очистки UI
+local function CleanupAll()
+    CleanupInventory()
+    CleanupScoreboard()
+    if IsValid(fullscreenBackground) then fullscreenBackground:Remove() end
+    if IsValid(topButtonsPanel) then topButtonsPanel:Remove() end
+end
+
+local function CreateTopButtons(bg)
+    if IsValid(topButtonsPanel) then topButtonsPanel:Remove() end
+    
+    local scrw, scrh = ScrW(), ScrH()
+    topButtonsPanel = vgui.Create("DPanel", bg)
+    topButtonsPanel:SetPos(scrw*0.35, 0)
+    topButtonsPanel:SetSize(scrw*0.3, 50)
+    topButtonsPanel.Paint = function(self, w, h)
+        draw.RoundedBox(0,0,0,w,h,black)
+        surface.SetDrawColor(255,255,255,128)
+        surface.DrawOutlinedRect(1,1,w-2,h-2)
+    end
+	local posbutton = {10,5}
+
+	if (LocalPlayer():Alive()) and LocalPlayer():Team() ~= 1002 then
+		local inventoryButton = vgui.Create("DButton", topButtonsPanel)
+		inventoryButton:SetSize(100, 40)
+		inventoryButton:SetPos(10, 5)
+		inventoryButton:SetText("Инвентарь")
+		inventoryButton:SetFont('HomigradScoreBoardFont')
+		inventoryButton.DoClick = function()
+			CleanupScoreboard()
+			if isInventoryOpen == false then
+				panel1_inv, panel2_inv, panel3_inv = createInventoryPanel(fullscreenBackground,nil,nil,nil,false)
+				isInventoryOpen = true
+			end
+
+
+		end
+		inventoryButton.Paint = function(self, w,h)
+			draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
+			surface.SetDrawColor(255,255,255,128)
+			surface.DrawOutlinedRect(1,1,w-2,h-2)
+		end
+		posbutton = {120,5}
+	end
+
+    -- Tab button
+    local tabButton = vgui.Create("DButton", topButtonsPanel)
+    tabButton:SetSize(100, 40)
+    tabButton:SetPos(posbutton[1], posbutton[2])
+    tabButton:SetText("Список игроков")
+    tabButton:SetFont('HomigradScoreBoardFont')
+    tabButton.Paint = function(self, w,h)
+		
+        draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
+        surface.SetDrawColor(255,255,255,128)
+        surface.DrawOutlinedRect(1,1,w-2,h-2)
+    end
+
+
+    -- Close button
+    local closeButton = vgui.Create("DButton", topButtonsPanel)
+    closeButton:SetSize(100, 40)
+    closeButton:SetPos(scrw*.3-110, 5)
+    closeButton:SetText("Закрыть")
+    closeButton:SetFont('HomigradScoreBoardFont')
+    closeButton.Paint = function(self, w,h)
+        draw.RoundedBox(0, 0, 0, w, h, self:IsHovered() and black2 or black)
+        surface.SetDrawColor(255,255,255,128)
+        surface.DrawOutlinedRect(1,1,w-2,h-2)
+    end
+    closeButton.DoClick = function()
+        CleanupAll()
+    end
+
+    return topButtonsPanel, tabButton
+end
+
+function ToggleScoreboard(toggle, button, lootent, items, items_ammo)
+    if toggle and not isScoreboardOpen or not toggle and isScoreboardOpen then
+
+        -- Очищаем предыдущие состояния, но не фон
+        CleanupInventory()
+        CleanupScoreboard()
+        
+        isScoreboardOpen = toggle
+        if not toggle then return end
+        
+        local scrw, scrh = ScrW(), ScrH()
+        
+        -- Создаем или используем существующий фон
+        local bg = CreateBackground()
+
+        HomigradScoreboard = vgui.Create("DFrame", bg)
+        HomigradScoreboard:SetTitle("")
+        HomigradScoreboard:SetSize(scrw*.7, scrh*.9)
+        HomigradScoreboard:Center()
+        HomigradScoreboard:ShowCloseButton(false)
+        HomigradScoreboard:SetDraggable(false)
         HomigradScoreboard:MakePopup()
         HomigradScoreboard:SetKeyboardInputEnabled(false)
-		ScoreboardList[HomigradScoreboard] = true
-        -- Create the overlay panel
-        overlayPanel = vgui.Create("DPanel")
-        overlayPanel:SetParent(HomigradScoreboard)
-        overlayPanel:SetPos(0, 0)
-        overlayPanel:SetSize(scrw * 0.7, scrh * 0.9)
-        overlayPanel.Paint = function(self, w, h)
-            surface.SetDrawColor(0, 0, 0, 128)  -- Black with 0.5 transparency
-            surface.DrawRect(0, 0, w, h)
+        ScoreboardList[HomigradScoreboard] = true
+        
+        function HomigradScoreboard:OnKeyCodePressed(key)
+            if key == KEY_TAB then
+                ToggleScoreboard(false, nil)
+            end
         end
+        -- Create top buttons
+        local topButtonsPanel, tabButton = CreateTopButtons(bg)
+		tabButton.DoClick = function()
+			CleanupScoreboard()
+			CleanupInventory()
+			ToggleScoreboard(false, true)
+			ToggleScoreboard(true, true)
+		end
 		local wheelY = 0
 		local animWheelUp,animWheelDown = 0,0
 
@@ -138,11 +273,8 @@ local function ToggleScoreboard(toggle)
 
 			draw.SimpleText("Статус","HomigradFont",100,15,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 			draw.SimpleText("Имя","HomigradFont",w / 2,15,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
-
-			draw.SimpleText("HOMIFORKED","HomigradFontLarge",w / 2,h / 2,Color(155,155,165,5),TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
-			
 			draw.SimpleText("Наиграно","HomigradFont",w - 300,15,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
-			--draw.SimpleText("Дни Часы Минуты","HomigradFont",w - 300,20,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+			--draw.SimpleText("Дни Часы Минуты","HomigradFont",w - 300,15,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 			--draw.SimpleText("M","HomigradFont",w - 300 + 15,15,white,TEXT_ALIGN_LEFT,TEXT_ALIGN_CENTER)
 			
 
@@ -337,40 +469,17 @@ local function ToggleScoreboard(toggle)
 				end
 			end
 		end
-
-		local button = SB_CreateButton(HomigradScoreboard)
-		button:SetSize(30,30)
-		button:SetPos(HomigradScoreboard:GetWide() / 2 - button:GetWide() / 2,HomigradScoreboard:GetTall() - 15 - button:GetTall())
-		button.text = "M"
-		function button:DoClick()
-			OpenHomigradMenu()
-            HomigradScoreboard:Remove()
+		if (LocalPlayer():Alive()) and button == nil  then
+			if lootent ~= nil then
+				CleanupScoreboard()
+				panel1_inv, panel2_inv, panel3_inv = createInventoryPanel(fullscreenBackground,lootent,items,items_ammo,false)
+				isInventoryOpen = true
+			else
+				CleanupScoreboard()
+				panel1_inv, panel2_inv, panel3_inv = createInventoryPanel(fullscreenBackground,nil,nil,nil,false)
+				isInventoryOpen = true
+			end
 		end
-
-		local muteAll = SB_CreateButton(HomigradScoreboard)
-		muteAll:SetSize(175,30)
-		muteAll:SetPos(-muteAll:GetWide() - 35 + HomigradScoreboard:GetWide() / 2,HomigradScoreboard:GetTall() - 45)
-		muteAll.text = "Замутить всех"
-
-		function muteAll:Paint(w,h)
-			self.textColor = not muteall and green or red
-			SB_PaintButton(self,w,h)
-		end
-
-		function muteAll:DoClick() muteall = not muteall end
-
-		local muteAllDead = SB_CreateButton(HomigradScoreboard)
-		muteAllDead:SetSize(175,30)
-		muteAllDead:SetPos(35 + HomigradScoreboard:GetWide() / 2,HomigradScoreboard:GetTall() - 45)
-		muteAllDead.text = "Замутить мертвых"
-
-		function muteAllDead:Paint(w,h)
-			self.textColor = not muteAlldead and green or red
-			SB_PaintButton(self,w,h)
-		end
-
-		function muteAllDead:DoClick() muteAlldead = not muteAlldead end
-
 		local func = TableRound().ScoreboardBuild
 
 		if func then
@@ -388,23 +497,55 @@ local function ToggleScoreboard(toggle)
 
 			if panel.Close then panel:Close() else panel:Remove() end
 		end 
+		for panel in pairs(ScoreboardList) do
+			if IsValid(panel) then
+				if panel.Close then panel:Close() else panel:Remove() end
+			end
+		end
+		
 	end
 end
 
-hook.Add("ScoreboardShow","HomigradOpenScoreboard",function()
-	ToggleScoreboard(true)
 
-	return false
+-- Переменная для отслеживания состояния клавиши
+local tabPressed = false
+
+-- Хук для обработки нажатия клавиш
+hook.Add("Think", "HomigradScoreboardToggle", function()
+    local isTabDown = input.IsKeyDown(KEY_TAB)
+    
+    if isTabDown and not tabPressed then
+        tabPressed = true
+        if not isScoreboardOpen then
+            ToggleScoreboard(true, nil)
+        else
+            ToggleScoreboard(false, nil)
+			CleanupInventory()
+			CleanupScoreboard()
+			HomigradScoreboard:Remove()
+			fullscreenBackground:Remove()
+			
+        end
+    elseif not isTabDown then
+        tabPressed = false
+    end
 end)
 
-hook.Add("ScoreboardHide","HomigradHideScoreboard",function()
-	if ToggleScoreboard_Override then return end
+-- Отключаем стандартные хуки скорборда
+hook.Add("ScoreboardShow", "HomigradScoreboardShow", function()
+    return true
+end)
 
-	ToggleScoreboard(false)
+hook.Add("ScoreboardHide", "HomigradScoreboardHide", function()
+    return true
 end)
 
 net.Receive("close_tab",function(len)
-	ToggleScoreboard(false)
+	ToggleScoreboard(false, nil)
+	CleanupInventory()
+	CleanupScoreboard()
+
+	fullscreenBackground:Remove()
 end)
 
-ToggleScoreboard(false)
+ToggleScoreboard(false, nil)

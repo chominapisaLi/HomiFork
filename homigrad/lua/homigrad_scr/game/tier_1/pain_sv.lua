@@ -98,7 +98,7 @@ hook.Add("Player Think","homigrad-pain",function(ply,time)
 		--ply.KillReason = "adrenaline"
 		--ply:Kill()
 	end
-	--PrintMessage(3,tostring(ply.Otrub)..ply:Name())
+	--print(tostring(ply.Otrub)..">"..ply:Name())
 	ply.pain = math.max(ply.pain - ply.painlosing * 1.5 + ply.adrenalineNeed * k,0)
 	ply.painlosing = math.max(ply.painlosing - 0.01,1)
 	
@@ -140,7 +140,7 @@ hook.Add("PostPlayerDeath","RefreshPain",function(ply)
 end)
 
 function IsUnconscious(ply)
-	if ply.painlosing > 15 and ply.Blood < 1000 or ply.pain > 350 + ply:GetNWInt("SharpenAMT") * 5  and not ply.Otrub then
+	if ply.Blood < 1000 or ply.pain > 350 + ply:GetNWInt("SharpenAMT") * 5  and not ply.Otrub then
 		ply.Otrub = true
 
 		ply:SetDSP(16)
@@ -158,9 +158,10 @@ function IsUnconscious(ply)
 	return ply.Otrub
 end
 
+
 function GetUnconscious(ply)
 	if ply:Alive() then
-		ply:ScreenFade(SCREENFADE.IN,Color(0,0,0,255),0.5,0.5)
+		ply:ScreenFade(SCREENFADE.IN,Color(0,0,0,255),1,1)
 		--ply:ConCommand( "soundfade 5 1" )
 		--ply:SetDSP(16)
 	else

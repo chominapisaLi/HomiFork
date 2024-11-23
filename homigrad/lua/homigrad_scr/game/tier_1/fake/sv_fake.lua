@@ -524,7 +524,6 @@ net.Receive("Unload",function(len,ply)
 	wep:SetClip1(0)
 	ply:GiveAmmo(oldclip,ammo)
 end)
-
 function Stun(Entity)
 	if Entity:IsPlayer() then
 		Faking(Entity)

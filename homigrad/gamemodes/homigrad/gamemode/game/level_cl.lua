@@ -50,15 +50,21 @@ local yellow = Color(255,255,0)
 hook.Add("HUDPaint","homigrad-roundstate",function()
 	if roundActive then
 		local func = TableRound().HUDPaint_RoundLeft
+		local ffunc = TableRound().HUDPaint_RoundFelt
 
 		if func then
 			func(showRoundInfoColor)
 		end
-		local time = math.Round(roundTimeStart + roundTime - CurTime())
-		local acurcetime = string.FormattedTime(time,"%02i:%02i")
-		if time < 0 then acurcetime = "" end
+		if ffunc then
+			local text = TableRound().HUDPaint_RoundText
+			local time = math.Round(roundTimeStart + roundTime - CurTime())
+			local acurcetime = string.FormattedTime(time,"%02i:%02i")
+			text = text..acurcetime
+			if time < 0 then text = "" end
+			
+			draw.SimpleText(text,"HomigradFont",ScrW()/2,ScrH()-25,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+		end
 
-		draw.SimpleText(acurcetime,"HomigradFont",ScrW()/2,ScrH()-25,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 	else
 		draw.SimpleText(#PlayersInGame() < 1 and "Нужно минимум 2 игрока." or "Раунд закончен.","HomigradFont",ScrW()/2,ScrH()-25,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 	end

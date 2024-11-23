@@ -38,20 +38,6 @@ local function GetFriends(play)
     return huy
 end
 
-COMMANDS.tiht_get = {function(ply,args)
-    if not ply:IsAdmin() then return end
-
-    local role = {{},{}}
-
-    for i,ply in pairs(team.GetPlayers(1)) do
-        if ply.roleT then table.insert(role[1],ply) end
-        if ply.roleCT then table.insert(role[2],ply) end
-    end
-
-    net.Start("tiht_roleget")
-    net.WriteTable(role)
-    net.Send(ply)
-end}
 
 local function makeT(ply)
 

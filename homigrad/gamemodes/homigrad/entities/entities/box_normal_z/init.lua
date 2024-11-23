@@ -21,7 +21,6 @@ local bita = {
     "weapon_hg_crowbar",
     "weapon_hg_metalbat",
     "weapon_t",
-    "weapon_pan",
     "weapon_fireaxe",
     "weapon_hatchet"
 }
