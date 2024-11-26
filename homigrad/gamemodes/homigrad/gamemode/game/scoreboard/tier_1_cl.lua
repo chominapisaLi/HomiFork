@@ -469,7 +469,7 @@ function ToggleScoreboard(toggle, button, lootent, items, items_ammo)
 				end
 			end
 		end
-		if (LocalPlayer():Alive()) and button == nil  then
+		if ((LocalPlayer():Alive()) and button == nil) or lootent ~= nil  then
 			if lootent ~= nil then
 				CleanupScoreboard()
 				panel1_inv, panel2_inv, panel3_inv = createInventoryPanel(fullscreenBackground,lootent,items,items_ammo,false)
