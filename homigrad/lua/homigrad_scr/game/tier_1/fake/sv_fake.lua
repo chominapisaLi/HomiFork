@@ -661,9 +661,9 @@ end
 local CustomWeight = {
 	["models/player/police_fem.mdl"] = 90,
 	["models/player/police.mdl"] = 90,
-	["models/player/combine_soldier.mdl"] = 90,
-	["models/player/combine_super_soldier.mdl"] = 90,
-	["models/player/combine_soldier_prisonguard.mdl"] = 90,
+	["models/player/combine_soldier.mdl"] = 100,
+	["models/player/combine_super_soldier.mdl"] = 100,
+	["models/player/combine_soldier_prisonguard.mdl"] = 100,
 	["models/player/azov.mdl"] = 90,
 	["models/player/Rusty/NatGuard/male_01.mdl"] = 90,
 	["models/player/Rusty/NatGuard/male_02.mdl"] = 90,
@@ -677,7 +677,8 @@ local CustomWeight = {
 	["models/LeymiRBA/Gyokami/Gyokami.mdl"] = 90,
 	["models/player/smoky/Smoky.mdl"] = 90,
 	["models/player/smoky/Smokycl.mdl"] = 90,
-	["models/knyaje pack/dibil/sso_politepeople.mdl"] = 90
+	["models/knyaje pack/dibil/sso_politepeople.mdl"] = 90,
+	["models/player/danila.mdl"] = 30
 }
 
 for i = 1,6 do
@@ -697,10 +698,6 @@ end
 CustomWeight["models/player/tnb/citizens/female_10.mdl"] = 90
 for i = 1,9 do
 	CustomWeight["models/player/tnb/citizens/male_0"..i..".mdl"] = 90
-end
-
-for i = 10,18 do
-	CustomWeight["models/player/tnb/citizens/male_"..i..".mdl"] = 90
 end
 
 util.AddNetworkString("custom name")
@@ -750,7 +747,7 @@ function PlayerMeta:CreateRagdoll(attacker,dmginfo,force) --изменение �
 	
 	rag:AddEFlags(EFL_NO_DAMAGE_FORCES)
 	if IsValid(rag:GetPhysicsObject()) then
-		rag:GetPhysicsObject():SetMass(CustomWeight[rag:GetModel()] or 20)
+		rag:GetPhysicsObject():SetMass(CustomWeight[rag:GetModel()] or 10)
 	end
 	rag:Activate()
 	rag:SetCollisionGroup(COLLISION_GROUP_WEAPON)
@@ -897,6 +894,7 @@ hook.Add("OnPlayerHitGround","GovnoJopa",function(ply,a,b,speed)
 		if traceResult.Entity:IsPlayer() and not traceResult.Entity.fake then
 			Faking(traceResult.Entity)
 		end
+		
 	end
 end)
 
@@ -1396,7 +1394,6 @@ hook.Add("Player Think","VelocityPlayerFallOnPlayerCheck",function(ply,time)
 	if ply:GetMoveType() ~= MOVETYPE_NOCLIP and not ply.fake and not ply:HasGodMode() and ply:Alive() then
 		if speed < 600 then return end
 		if hook.Run("Should Fake Velocity",ply,speed) ~= nil then return end
-
 		Faking(ply)
 	end
 end)

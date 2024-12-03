@@ -3,7 +3,7 @@ local specColor = Color(155,155,155)
 local whiteAdd = Color(255,255,255,5)
 local unmutedicon = Material( "icon32/unmuted.png", "noclamp smooth" )
 local mutedicon = Material( "icon32/muted.png", "noclamp smooth" )
-
+local currentTab = nil
 local function ReadMuteStatusPlayers()
 	return util.JSONToTable(file.Read("homigrad_mute.txt","DATA") or "") or {}
 end
@@ -64,6 +64,7 @@ local function CreateBackground()
     fullscreenBackground:SetPos(0, 0)
     fullscreenBackground:SetSize(scrw, scrh)
     fullscreenBackground:SetZPos(-100)
+	
     fullscreenBackground.Paint = function(self, w, h)
         surface.SetDrawColor(0, 0, 0, 200)
         surface.DrawRect(0, 0, w, h)
@@ -113,7 +114,6 @@ local function CreateTopButtons(bg)
         surface.DrawOutlinedRect(1,1,w-2,h-2)
     end
 	local posbutton = {10,5}
-
 	if (LocalPlayer():Alive()) and LocalPlayer():Team() ~= 1002 then
 		local inventoryButton = vgui.Create("DButton", topButtonsPanel)
 		inventoryButton:SetSize(100, 40)
@@ -274,6 +274,7 @@ function ToggleScoreboard(toggle, button, lootent, items, items_ammo)
 			draw.SimpleText("Статус","HomigradFont",100,15,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 			draw.SimpleText("Имя","HomigradFont",w / 2,15,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 			draw.SimpleText("Наиграно","HomigradFont",w - 300,15,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+
 			--draw.SimpleText("Дни Часы Минуты","HomigradFont",w - 300,15,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 			--draw.SimpleText("M","HomigradFont",w - 300 + 15,15,white,TEXT_ALIGN_LEFT,TEXT_ALIGN_CENTER)
 			
@@ -469,15 +470,17 @@ function ToggleScoreboard(toggle, button, lootent, items, items_ammo)
 				end
 			end
 		end
-		if (LocalPlayer():Alive()) and button == nil  then
-			if lootent ~= nil then
+		if (LocalPlayer():Alive()) and button == nil then
+			if not isScoreboardOpen or 
+			   not (IsValid(panel1_inv) and IsValid(panel2_inv) and IsValid(panel3_inv)) then
 				CleanupScoreboard()
-				panel1_inv, panel2_inv, panel3_inv = createInventoryPanel(fullscreenBackground,lootent,items,items_ammo,false)
-				isInventoryOpen = true
-			else
-				CleanupScoreboard()
-				panel1_inv, panel2_inv, panel3_inv = createInventoryPanel(fullscreenBackground,nil,nil,nil,false)
-				isInventoryOpen = true
+				panel1_inv, panel2_inv, panel3_inv = createInventoryPanel(fullscreenBackground, 
+					lootent ~= nil and lootent or nil, 
+					lootent ~= nil and items or nil, 
+					lootent ~= nil and items_ammo or nil, 
+					false
+				)
+				isScoreboardOpen = true
 			end
 		end
 		local func = TableRound().ScoreboardBuild
@@ -485,6 +488,7 @@ function ToggleScoreboard(toggle, button, lootent, items, items_ammo)
 		if func then
 			func(HomigradScoreboard,ScoreboardList)
 		end
+		
 	else
 		ToggleScoreboard_Override = nil
 		
@@ -502,29 +506,28 @@ function ToggleScoreboard(toggle, button, lootent, items, items_ammo)
 				if panel.Close then panel:Close() else panel:Remove() end
 			end
 		end
-		
+		isScoreboardOpen = false 
+		isInventoryOpen = false 
 	end
 end
 
 
 -- Переменная для отслеживания состояния клавиши
 local tabPressed = false
-
--- Хук для обработки нажатия клавиш
 hook.Add("Think", "HomigradScoreboardToggle", function()
     local isTabDown = input.IsKeyDown(KEY_TAB)
     
     if isTabDown and not tabPressed then
         tabPressed = true
         if not isScoreboardOpen then
+			print(isScoreboardOpen, isInventoryOpen)
             ToggleScoreboard(true, nil)
         else
-            ToggleScoreboard(false, nil)
+			isScoreboardOpen = false 
+            ToggleScoreboard(false, true)
 			CleanupInventory()
 			CleanupScoreboard()
-			HomigradScoreboard:Remove()
-			fullscreenBackground:Remove()
-			
+			CleanupAll()
         end
     elseif not isTabDown then
         tabPressed = false
@@ -544,8 +547,11 @@ net.Receive("close_tab",function(len)
 	ToggleScoreboard(false, nil)
 	CleanupInventory()
 	CleanupScoreboard()
-
-	fullscreenBackground:Remove()
+	if fullscreenBackground then
+		fullscreenBackground:Remove()
+	end
+	ResetBeerEffect()
+	ResetRumEffect()  
 end)
 
 ToggleScoreboard(false, nil)

@@ -38,7 +38,7 @@ function deathrun.StartRoundSV(data)
 	local spawnsT,spawnsCT = tdm.SpawnsTwoCommand()
 	
 	tdm.SpawnCommand(team.GetPlayers(1),wick.SpawnsT())
-	tdm.SpawnCommand(team.GetPlayers(2),homicide.Spawns())
+	tdm.SpawnCommand(team.GetPlayers(2),wick.SpawnsCT())
 
 	deathrun.police = false
 	deathrun.escape = true

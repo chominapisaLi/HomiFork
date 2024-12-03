@@ -9,3 +9,4 @@ hook.Add("PostCleanupMap","gm_fork",function()
 		ent:Remove()
 	end)
 end)
+

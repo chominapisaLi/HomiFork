@@ -8,8 +8,7 @@ function bahmut.SelectRandomPlayers(list,div,func)
 end
 
 function bahmut.GiveMimomet(ply)
-    ply:Give("weapon_gredmimomet")
-    ply:Give("weapon_gredammo")
+    -- Нет
 end
 
 function bahmut.GiveAidPhone(ply)
@@ -30,17 +29,10 @@ function bahmut.SpawnVehicle()
 
 	bahmut.SpawnSimfphys(ReadDataMap("sim_fphys_tank3"),"sim_fphys_tank3")
 	bahmut.SpawnSimfphys(ReadDataMap("sim_fphys_tank4"),"sim_fphys_tank4")
-	
-    --bahmut.SpawnSimfphys(ReadDataMap("car_red_btr"),"gred_simfphys_brdm2",function(ent) timer.Simple(1,function() ent:SetSkin(11) end) end)
-    --bahmut.SpawnSimfphys(ReadDataMap("car_blue_btr"),"gred_simfphys_brdm2",function(ent) timer.Simple(1,function() ent:SetSkin(10) end) end)
 	bahmut.SpawnEnt(ReadDataMap("wac_hc_ah1z_viper"),"wac_hc_ah1z_viper")
 	bahmut.SpawnEnt(ReadDataMap("wac_hc_littlebird_ah6"),"wac_hc_littlebird_ah6")
 	bahmut.SpawnEnt(ReadDataMap("wac_hc_mi28_havoc"),"wac_hc_mi28_havoc")
 	bahmut.SpawnEnt(ReadDataMap("wac_hc_blackhawk_uh60"),"wac_hc_blackhawk_uh60")
-	bahmut.SpawnEnt(ReadDataMap("gred_emp_breda35"),"gred_emp_breda35")
-
-    bahmut.SpawnSimfphys(ReadDataMap("car_red_tank"),"gred_simfphys_brdm2",function(ent) timer.Simple(1,function() ent:SetSkin(0) end) end)
-    bahmut.SpawnSimfphys(ReadDataMap("car_blue_tank"),"gred_simfphys_brdm2",function(ent) timer.Simple(1,function() ent:SetSkin(10) end) end)
 end
 
 function bahmut.SpawnEnt(list,name,func)
@@ -53,10 +45,7 @@ function bahmut.SpawnEnt(list,name,func)
 end
 
 function bahmut.SpawnGred()
-    bahmut.SpawnEnt(ReadDataMap("gred_emp_dshk"),"gred_emp_dshk")
-    bahmut.SpawnEnt(ReadDataMap("gred_ammobox"),"gred_ammobox")
-    bahmut.SpawnEnt(ReadDataMap("gred_emp_2a65"),"gred_emp_2a65")
-	bahmut.SpawnEnt(ReadDataMap("gred_emp_pak40"),"gred_emp_pak40")
+    --хуй вам а не gred
 end
 
 function bahmut.StartRoundSV()
@@ -75,7 +64,6 @@ function bahmut.StartRoundSV()
 	tdm.SpawnCommand(team.GetPlayers(2),spawnsCT)
 
 	bahmut.SpawnVehicle()
-	bahmut.SpawnGred()
 
 	bahmut.oi = false
 

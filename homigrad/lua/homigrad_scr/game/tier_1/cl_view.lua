@@ -512,7 +512,7 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 	if GetConVar("hg_bodycam"):GetInt() == 0 then
 		angEye = lply:EyeAngles()
 		--angEye[3] = 0
-		vecEye = (eye and eye.Pos + eye.Ang:Up() * 2 + eye.Ang:Forward() * 1) or lply:EyePos()
+		vecEye = (eye and eye.Pos + eye.Ang:Up() * 1 + eye.Ang:Forward() * 1) or lply:EyePos()
 	else
 		local matrix = ply:GetBoneMatrix(body)
 		local bodypos = matrix:GetTranslation()
@@ -538,7 +538,7 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 			local bodyang = matrix:GetAngles()
 			
 			eyeAngs = att.Ang
-			att.Pos = (eye and bodypos + bodyang:Up() * 0 + bodyang:Forward() * 10 + bodyang:Right() * -8) or lply:EyePos()
+			att.Pos = (eye and bodypos + bodyang:Up() * 0 + bodyang:Forward() * 1 + bodyang:Right() * -8) or lply:EyePos()
 		end
 		local anghook = GetConVar("hg_fakecam_mode"):GetFloat()
 		LerpEyeRagdoll = LerpAngleFT(0.08,LerpEyeRagdoll,LerpAngle(anghook,eyeAngs,att.Ang))
@@ -612,7 +612,7 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 		end
 		if weaponClass == "weapon_glock" then
 			--Vector(2.3,10,0)
-			vecWep = hand.Pos + hand.Ang:Up() * 3 - hand.Ang:Forward() * 10.5 + hand.Ang:Right() * -0.25
+			vecWep = hand.Pos + hand.Ang:Up() * 3 - hand.Ang:Forward() * 9.5 + hand.Ang:Right() * -0.32
 			angWep = hand.Ang + Angle(15,5,10)
 		end
 		if weaponClass == "weapon_ak74" then
@@ -816,6 +816,7 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 		angEye = LerpAngleFT(0.25,LerpEye,angEye)
 		
 		if GetConVar("hg_bodycam"):GetInt() == 1 and IsValid(wep) and wep:LookupAttachment("muzzle") and scope then
+			
 			vecWep = vecWep + hand.Ang:Up() * 2 - hand.Ang:Forward() * -15 + hand.Ang:Right() * -1.5
 			LerpEye = wep:GetAttachment(wep:LookupAttachment("muzzle")).Ang
 			--LerpEye[3] = 0
@@ -1097,26 +1098,29 @@ hook.Add("RenderScreenspaceEffects","BloomEffect-homigrad",function()
 		draw.Text( {
 			text = date.." "..time.." -0400",
 			font = "BodyCamFont",
-			pos = { ScrW() - 650, 50 }
+			pos = { ScrW()/2 - 200, 150 }
 		} )
 		draw.Text( {
-			text = "AXON BODY "..huy.." XG8A754GH",
+			text = "HOMIFORK BODY-CAMERA",
 			font = "BodyCamFont",
-			pos = { ScrW() - 650, 100 }
+			pos = { ScrW()/2 - 200, 125 }
 		} )
-
+		surface.SetDrawColor(0, 0, 0, 185)
+		surface.DrawRect(0, 0, ScrW(), ScrH())
+	
 		surface.SetDrawColor( 255, 255, 0, 255 )
 		draw.NoTexture()
 		surface.DrawPoly(triangle)
+		DrawMaterialOverlay("models/props_c17/fisheyelens", -0.05)
 
 		DrawBloom( 0.5, 1, 9, 9, 1, 1.2, 0.8, 0.8, 1.2 )
 		--DrawTexturize(1,mat)
 		DrawSharpen( 1, 1.2 )
 		DrawColorModify(tab)
-		BlurScreen(0.3,55)
+		BlurScreen(0.35,55)
 		LocalPlayer():SetDSP(55,true)
 		DrawMotionBlur(0.2,0.3,0.001)
-		--DrawToyTown(1,ScrH() / 2)
+		DrawToyTown(1,ScrH() / 2)
 		local k3 = 6
 		DrawCA(4 * k3, 2 * k3, 0, 2 * k3, 1 * k3, 0)
 	end

@@ -301,10 +301,17 @@ function homicide.PlayerSpawn(ply,teamID)
 	ply:SetModel(homicide.models[math.random(#homicide.models)])
     ply:SetPlayerColor(color:ToVector())
     local random_math_znach = math.random(1,11)
+    for i = 0, ply:GetNumBodyGroups() - 1 do
+        ply:SetBodygroup(i, 0)
+    end
+	for i, group in ipairs(ply:GetBodyGroups()) do
+		print(group.id.." => "..group.name.." ("..group.num.." subgroups)")
+	end
     if ply:GetBodygroupName(1) == 'torso' then
-        ply:SetBodygroup(1,math.random(1,16))
-        ply:SetBodygroup(2,math.random(1,6))
-        ply:SetBodygroup(4,math.random(0,1))
+        ply:SetBodygroup(1,math.random(0,38))
+        ply:SetBodygroup(2,math.random(0,20))
+        ply:SetBodygroup(3,math.random(0,5))
+        ply:SetBodygroup(6,math.random(0,6))
     else
         ply:SetBodygroup(2,math.random(1,16))    
         ply:SetBodygroup(3,math.random(1,6))

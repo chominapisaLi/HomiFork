@@ -21,8 +21,8 @@ local bita = {
     "weapon_hg_crowbar",
     "weapon_hg_metalbat",
     "weapon_t",
-    "weapon_fireaxe",
-    "weapon_hatchet"
+    "weapon_hg_fireaxe",
+    "weapon_hg_hatchet"
 }
 
 util.AddNetworkString("inventory")

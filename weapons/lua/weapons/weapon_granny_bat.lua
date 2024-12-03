@@ -31,13 +31,13 @@ SWEP.DrawAmmo = false
 SWEP.Base = "weapon_base"
 
 SWEP.Primary.Sound = Sound("Weapon_Crowbar.Single")
-SWEP.Primary.Damage = 35
+SWEP.Primary.Damage = 500
 SWEP.Primary.Ammo = "none"
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Recoil = 0.5
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Force = 150
+SWEP.Primary.Force = 500
 
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
@@ -157,13 +157,23 @@ function SWEP:DrawHUD()
         endpos = self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * self.MeleeReach,
         filter = self:GetOwner()
     })
-
-    if tr.Hit then
-        local size = math.Clamp(1 - ((tr.HitPos - self:GetOwner():GetShootPos()):Length() / self.MeleeReach) ^ 2, .1, .3)
-        surface.SetDrawColor(Color(255, 255, 255, 200))
-        surface.DrawCircle(tr.HitPos:ToScreen().x, tr.HitPos:ToScreen().y, 55 * size)
-        surface.SetDrawColor(Color(255, 0, 0, 200))
-        surface.DrawCircle(tr.HitPos:ToScreen().x, tr.HitPos:ToScreen().y, 40 * size)
+    local ply = LocalPlayer()
+    local t = {}
+    t.start = ply:GetAttachment(ply:LookupAttachment("eyes")).Pos
+    t.endpos = t.start + ply:GetAngles():Forward() * 90
+    t.filter = self:GetOwner()
+    local Tr = util.TraceLine(t)
+    
+    if Tr.Hit then
+    
+            local Size = math.Clamp(1 - ((Tr.HitPos - self:GetOwner():GetShootPos()):Length() / 90) ^ 2, .1, .3)
+            surface.SetDrawColor(Color(200, 200, 200, 200))
+            draw.NoTexture()
+            Circle(Tr.HitPos:ToScreen().x, Tr.HitPos:ToScreen().y, 55 * Size, 32)
+    
+            surface.SetDrawColor(Color(255, 255, 255, 200))
+            draw.NoTexture()
+            Circle(Tr.HitPos:ToScreen().x, Tr.HitPos:ToScreen().y, 40 * Size, 32)
     end
 end
 

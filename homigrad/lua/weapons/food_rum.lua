@@ -1,14 +1,14 @@
 SWEP.Base = 'weapon_base'
 AddCSLuaFile()
-SWEP.PrintName = "Водка"
-SWEP.Author = "Нннн"
-SWEP.Purpose = "Крепкий алкогольный напиток"
+SWEP.PrintName = "Ром"
+SWEP.Author = "thebogler"
+SWEP.Purpose = "Крепкий алкогольный напиток, изготовленный из сахарного тростника или мелассы. Повиду палёный."
 SWEP.Category = "Вкусности"
 SWEP.Slot = 3
 SWEP.SlotPos = 3
 SWEP.Spawnable = true
-SWEP.ViewModel = "models/vodka.mdl"
-SWEP.WorldModel = "models/vodka.mdl"
+SWEP.ViewModel = "models/props_junk/garbage_glassbottle002a.mdl"
+SWEP.WorldModel = "models/props_junk/garbage_glassbottle002a.mdl"
 SWEP.ViewModelFOV = 54
 SWEP.UseHands = true
 SWEP.Primary.ClipSize = -1
@@ -35,7 +35,7 @@ if CLIENT then
 
         if (IsValid(_Owner)) then
             -- Specify a good position
-            local offsetVec = Vector(5,-2,7)
+            local offsetVec = Vector(5,-2,4)
             local offsetAng = Angle(180, 360, 0)
             
             local boneid = _Owner:LookupBone("ValveBiped.Bip01_R_Hand") -- Right Hand
@@ -67,13 +67,13 @@ if CLIENT then
 
     hook.Add("RenderScreenspaceEffects", "BeerPostProcessing", ApplyBeerEffect)
     -- Обновленная функция для сброса эффекта
-    function ResetBeerEffect()
+    function ResetRumEffect()
         beerEffect = false
     end
     net.Receive("ActivateBeerEffect", function()
         beerEffect = true
         timer.Create('Akvapark',120,0,function()
-            ResetBeerEffect()          
+            ResetRumEffect()          
         end)
     end)
 

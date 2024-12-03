@@ -1,14 +1,12 @@
 riot.GetTeamName = tdm.GetTeamName
 
-local playsound = false
+local playsound = true 
 local bhop
 function riot.StartRoundCL()
-    sound.PlayURL("https://cdn.discordapp.com/attachments/1111941531562168360/1299054860016287786/aspose_video_133742627003124323_out.mp3?ex=671c775d&is=671b25dd&hm=2c6689eaa919553e8e0f591498e968c2d6a787403dc9e0035c86e962b5c01095&","mono noblock",function(snd)
-        bhop = snd
-        if snd ~= nil then
-            snd:SetVolume(1)
-        end
-    end) 
+    if playsound then
+        playsound = false
+        surface.PlaySound("snd_jack_hmcd_panic.mp3")
+    end
 end
 
 

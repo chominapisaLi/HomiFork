@@ -66,7 +66,7 @@ hook.Add("HUDPaint","homigrad-roundstate",function()
 		end
 
 	else
-		draw.SimpleText(#PlayersInGame() < 1 and "Нужно минимум 2 игрока." or "Раунд закончен.","HomigradFont",ScrW()/2,ScrH()-25,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+		draw.SimpleText(#PlayersInGame() <= 1 and "Нужно минимум 2 игрока." or "Раунд закончен.","HomigradFont",ScrW()/2,ScrH()-25,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
 	end
 
 	local k = showRoundInfo - CurTime()

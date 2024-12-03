@@ -3,12 +3,15 @@ homicide = homicide or {}
 homicide.Name = "Homicide"
 homicide.models = {}
 for i = 1,4 do
-	homicide.models[#homicide.models + 1] = "models/citizens/pavka/female_0"..i..".mdl"
+	homicide.models[#homicide.models + 1] = "models/player/pandafishizens/female_0"..i..".mdl"
+end
+for i = 6,7 do
+	homicide.models[#homicide.models + 1] = "models/player/pandafishizens/female_0"..i..".mdl"
 end
 for i = 1,9 do
-	homicide.models[#homicide.models + 1] = "models/citizens/pavka/male_0"..i..".mdl"
+	homicide.models[#homicide.models + 1] = "models/player/pandafishizens/male_0"..i..".mdl"
 end
-homicide.models[#homicide.models + 1] = "models/citizens/pavka/male_11.mdl"
+homicide.models[#homicide.models + 1] = "models/player/pandafishizens/male_10.mdl"
 
 
 homicide.red = {"Невиновный",Color(125,125,125),
@@ -19,7 +22,7 @@ homicide.teamEncoder = {
     [1] = "red"
 }
 
-homicide.RoundRandomDefalut = 1
+homicide.RoundRandomDefalut = 5
 homicide.HUDPaint_RoundFelt = true 
 homicide.HUDPaint_RoundText = 'До приезда полиции: ' 
 local playsound = false

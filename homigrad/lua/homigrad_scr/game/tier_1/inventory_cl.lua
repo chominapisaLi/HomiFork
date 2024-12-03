@@ -1180,12 +1180,15 @@ local function CreateRemoveButton(parent, x, y, armorID)
 end
 -- САСАТЬ!!
 local isInventoryOpen = false
-
 local panel, playerPanel, panelParent
 function createInventoryPanel(paneloffullscreen,lootEnt, items, items_ammo, isPlayerInventory)
 	if true  then
 		if not IsValid(paneloffullscreen) then return end -- Check if parent panel is valid
-			
+		if IsValid(panel) or IsValid(playerPanel) then
+			if IsValid(panel) then panel:Remove() end
+			if IsValid(playerPanel) then playerPanel:Remove() end
+		end
+	
 		isPlayerInventory = isPlayerInventory or false
 		local panelParent = paneloffullscreen
 		
@@ -1612,7 +1615,7 @@ function createInventoryPanel(paneloffullscreen,lootEnt, items, items_ammo, isPl
 		CreateArmorSlotButton(panelParentss, "pelvis", 410, 450)
 		CreateArmorSlotButton(panelParentss, "rightthigh", 410, 550)
 		CreateArmorSlotButton(panelParentss, "rightcalf", 410, 650)
-		return newPanel, inv_player
+		return newPanel, inv_player,playerPanel
 	else
 		
 	end

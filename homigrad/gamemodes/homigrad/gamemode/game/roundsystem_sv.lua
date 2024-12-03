@@ -114,6 +114,8 @@ function StartRound()
 			local Mapp = string.find(mapName, "deathrun")
 			if  isDeathrunMap()  then
 				SetActiveNextRound('deathrun')
+			elseif game.GetMap() == 'mg_piratewars_remake' then
+				SetActiveNextRound('tdm')
 			else
 				SetActiveNextRound(name)
 			end

@@ -141,11 +141,11 @@ local function ToggleScoreboard(toggle)
 end
 
 hook.Add("ScoreboardShow","HomigradOpenScoreboard",function()
-	ToggleScoreboard(true)
+	ToggleScoreboard(true, nil)
 
 	return false
 end)
 
 hook.Add("ScoreboardHide","HomigradHideScoreboard",function()
-	ToggleScoreboard(false)
+	ToggleScoreboard(false, true)
 end)

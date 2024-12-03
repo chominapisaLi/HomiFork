@@ -81,7 +81,7 @@ function wick.StartRoundSV()
         if ply.roleT ~= true then
             ply:SetModel(tdm.models[math.random(1,#tdm.models)])
         else
-            if math.random(1,100)==1 then -- Специальный раунд - Brat
+            if math.random(1,100)<=10 then -- Специальный раунд - Brat
                 ply:SetModel("models/cmbfdr/rashkinsk/bodrov.mdl")
                                             
                 ply:Give("weapon_hg_hatchet")
@@ -96,7 +96,7 @@ function wick.StartRoundSV()
                 ply.nopain = true
                 ply:SetMaxHealth(#player.GetAll() * 200)
                 ply:SetHealth(#player.GetAll() * 200)
-                ply:ChatPrint("Вы Лобанов.")
+                ply:ChatPrint("Вы Бодров.\nСпециальный раунд - BRAT")
             else
                 ply:SetModel("models/arachnit/fortnite/characters/male/medium/skin/jq/john_wick_fortnite_player.mdl")
                             

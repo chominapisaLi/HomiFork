@@ -1067,36 +1067,71 @@ end
 hook.Add("RenderScreenspaceEffects","BloomEffect-homigrad",function()
 	if GetConVar("hg_bodycam"):GetInt() == 1 and LocalPlayer():Alive() then
 		local splitTbl = string.Split(util.DateStamp()," ")
-		local date,time = splitTbl[1],splitTbl[2]
-		time = string.Replace(time,"-",":")
+		local date, time = splitTbl[1], splitTbl[2]
+		time = string.Replace(time, "-", ":")
+		
+		-- More realistic color grading
+		local colorModify = {
+			["$pp_colour_addr"] = 0.05,
+			["$pp_colour_addg"] = 0.05,
+			["$pp_colour_addb"] = 0.05,
+			["$pp_colour_brightness"] = -0.1,
+			["$pp_colour_contrast"] = 1.1,
+			["$pp_colour_colour"] = 0.8
+		}
+		
+		-- Overlay effects to simulate body camera recording
+		surface.SetDrawColor(0, 0, 0, 200)
+		surface.DrawRect(0, 0, ScrW(), ScrH())
+		
 
-		draw.Text( {
-			text = date.." "..time.." -0400",
-			font = "BodyCamFont",
-			pos = { ScrW() - 650, 50 }
-		} )
-		draw.Text( {
-			text = "AXON BODY "..huy.." XG8A754GH",
-			font = "BodyCamFont",
-			pos = { ScrW() - 650, 100 }
-		} )
-
-		surface.SetDrawColor( 255, 255, 0, 255 )
-		draw.NoTexture()
-		surface.DrawPoly(triangle)
-
-		DrawBloom( 0.5, 1, 9, 9, 1, 1.2, 0.8, 0.8, 1.2 )
-		--DrawTexturize(1,mat)
-		DrawSharpen( 1, 1.2 )
-		DrawColorModify(tab)
-		BlurScreen(0.3,55)
-		LocalPlayer():SetDSP(55,true)
-		DrawMotionBlur(0.2,0.3,0.001)
-		--DrawToyTown(1,ScrH() / 2)
-		local k3 = 6
-		DrawCA(4 * k3, 2 * k3, 0, 2 * k3, 1 * k3, 0)
+		-- Simulate camera lens effects
+		DrawMotionBlur(0.1, 0.2, 0.005) -- Subtle motion blur
+		DrawBloom(0.3, 0.6, 5, 5, 1, 1.1, 0.7, 0.7, 1.1) -- Softer bloom
+		DrawColorModify(colorModify)
+		
+		-- Slightly more subtle visual effects
+		DrawSharpen(0.7, 0.9)
+		BlurScreen(0.2, 40)
+		
+		-- Simulate slight camera shake
+		local shake = math.sin(CurTime() * 5) * 2
+		surface.DrawTexturedRectRotated(
+			ScrW()/2 + shake, 
+			ScrH()/2 + shake, 
+			ScrW(), 
+			ScrH(), 
+			shake
+		)
+		
+		-- Optional: Add subtle noise/grain effect
+		DrawTexturize(0.05, surface.GetTextureID("effects/grain"))
+		
+		-- Realistic audio DSP
+		LocalPlayer():SetDSP(40, true)
+				-- Realistic recording indicators
+				draw.Text({
+					text = "REC",
+					font = "BodyCamFont",
+					pos = { 50, 50 },
+					color = Color(255, 0, 0) -- Red recording indicator
+				})
+				
+				draw.Text({
+					text = date.." "..time.." -0400",
+					font = "BodyCamFont",
+					pos = { ScrW()/2 - 200, 150 },
+					color = Color(200, 200, 200) -- Softer text color
+				})
+				
+				draw.Text({
+					text = "BODYCAM - UNIT #" .. LocalPlayer():GetName(),
+					font = "BodyCamFont",
+					pos = { ScrW()/2 - 200, 125 },
+					color = Color(200, 200, 200)
+				})
+				
 	end
-
 	if not LocalPlayer():Alive() then
 		LocalPlayer():SetDSP(1)
 	end

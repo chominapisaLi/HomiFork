@@ -103,7 +103,7 @@ SolidMapVote[ 'Config' ][ 'Map Pool' ] = {
     'gm_bbicotka_hmcd',
     'ttt_overwatch',
     "deathrun_undertale",
-    "ttt_67way_2022"
+    "ttt_67thway_2022"
 }
 
 -- Allow players to use their mics while in the mapvote
@@ -186,7 +186,7 @@ SolidMapVote[ 'Config' ][ 'Specific Maps' ] = {
     { filename = 'ph_halloweenhouse_v3', displayname = 'HalloweenHouse', image = 'https://i.imgur.com/F2ilVkc.jpeg', width = 1920, height = 1080 },
     { filename = 'gm_bbicotka_hmcd', displayname = 'Bbicotka', image = 'https://i.imgur.com/NKXR7q4.png', width = 1920, height = 1080 },
     { filename = 'ttt_overwatch', displayname = 'Overwatch', image = 'https://i.imgur.com/b3VHJ6k.png', width = 1920, height = 1080 },
-    { filename = 'ttt_67way_2022', displayname = '67 Way', image = 'https://i.imgur.com/UitF726.png', width = 1920, height = 1080 },
-    { filename = 'deathrun_undertale', displayname = 'Deathrun - UNDERTALE', image = 'https://i.imgur.com/uQbz03E.png', width = 1920, height = 1080 },
+    { filename = 'ttt_67thway_2022', displayname = '67 Way', image = 'https://i.imgur.com/uQbz03E.png', width = 1920, height = 1080 },
+    { filename = 'deathrun_undertale', displayname = 'Deathrun - UNDERTALE', image = 'https://i.imgur.com/UitF726.png', width = 1920, height = 1080 },
 
 }

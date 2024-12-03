@@ -1,7 +1,8 @@
 table.insert(LevelList,"granny")
 granny = granny or {}
 granny.Name = "бабка Грени"
-
+granny.HUDPaint_RoundFelt = true 
+granny.HUDPaint_RoundText = "До приезда полиции: " 
 granny.red = {"Школьник",Color(125,125,125),
     models = tdm.models
 }

@@ -13,7 +13,7 @@ local secondAll = {
     "medkit",
     "weapon_handcuffs",
     "weapon_per4ik",
-    "weapon_teaser",
+    "weapon_taser",
     "weapon_gurkha",
     "weapon_knife",
     "weapon_kabar",
