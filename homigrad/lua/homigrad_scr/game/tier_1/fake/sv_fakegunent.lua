@@ -3,15 +3,20 @@ bullets = {
 	["weapon_remington870"] = 12,
 	["weapon_double_barrel"] = 12,
 	["weapon_xm1014"] = 8,
+	["weapon_musket"]=1,
+	["weapon_sawnoff_shotgun"] = 1
 }
 cir = {
 	["weapon_m3super"] = 0.02,
 	["weapon_ak74"] = 0.1,
 	["weapon_remington870"] = 0.1,
 	["weapon_xm1014"] = 0.02,
+	["weapon_musket"]=0.02,
+	["weapon_sawnoff_shotgun"] = 0.02
 }
 
 Vectors = {
+["weapon_sawnoff_shotgun"] = Vector(13,-2,2),
 ["weapon_glock18"]=Vector(10,5,5),
 ["weapon_p220"]=Vector(13.5,-0.5,4),
 ["weapon_mp5"]=Vector(16,0,5),
@@ -44,6 +49,7 @@ Vectors = {
 ["weapon_remington870"]=Vector(-2,-1,0),
 ["weapon_double_barrel"]=Vector(2,0,5),
 ["weapon_xm1014"]=Vector(12,-1,4),
+["weapon_musket"]=Vector(0,0,0),
 ["bandage"]=Vector(0,0,0),
 ["weapon_taser"]=Vector(2,1.5,0),
 ["weapon_sar2"]=Vector(16,-2,2),
@@ -52,6 +58,7 @@ Vectors = {
 }
 
 Vectors2 = {
+["weapon_sawnoff_shotgun"] = Vector(13,-2,2),
 ["weapon_mp5"]=Vector(11,-2	,-2.5),
 ["weapon_ar15"]=Vector(9,-2,-3),
 ["weapon_act3_m249"]=Vector(10,-1,-6),
@@ -76,6 +83,7 @@ Vectors2 = {
 ["weapon_remington870"]=Vector(0,-2,-2),
 ["weapon_double_barrel"]=Vector(0,-2,-2),
 ["weapon_xm1014"]=Vector(14,-2,-2),
+["weapon_musket"]=Vector(0,0,0),
 ["weapon_sar2"]=Vector(12,-2,2),
 ["weapon_civil_famas"]=Vector(9,-2,-3),
 ["weapon_spas12"]=Vector(15,-4,-3),

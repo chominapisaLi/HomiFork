@@ -82,7 +82,7 @@ function wick.StartRoundSV()
             ply:SetModel(tdm.models[math.random(1,#tdm.models)])
         else
             if math.random(1,100)<=10 then -- Специальный раунд - Brat
-                ply:SetModel("models/cmbfdr/rashkinsk/bodrov.mdl")
+                ply:SetModel("models/player/danila.mdl")
                                             
                 ply:Give("weapon_hg_hatchet")
                 local wep = ply:Give("weapon_craft_gun")

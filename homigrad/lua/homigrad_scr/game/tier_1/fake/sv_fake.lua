@@ -154,13 +154,13 @@ function Faking(ply,force) -- функция падения
 		end
 
 		local rag = ply:CreateRagdoll(nil,nil,force)
-
 		if IsValid(veh) then
 			rag:GetPhysicsObject():SetVelocity(veh:GetPhysicsObject():GetVelocity() * 5)
 		end
 
 		if IsValid(ply:GetNWEntity("Ragdoll")) then
 			ply.fakeragdoll=ply:GetNWEntity("Ragdoll")
+			ply:SetNWEntity('Ragdoll', rag)
 			ply.fake = true
 			local wep = ply:GetActiveWeapon()
 
@@ -525,18 +525,19 @@ net.Receive("Unload",function(len,ply)
 	ply:GiveAmmo(oldclip,ammo)
 end)
 function Stun(Entity)
-	if Entity:IsPlayer() then
-		Faking(Entity)
+	if Entity:IsPlayer() and Entity.fakeragdoll ~= NULL then
 		timer.Create("StunTime"..Entity:EntIndex(), 8, 1, function() end)
 		local fake = Entity:GetNWEntity("Ragdoll")
+		print(Entity.fakeragdoll)
 		timer.Create( "StunEffect"..Entity:EntIndex(), 0.1, 80, function()
 			local rand = math.random(1,50)
 			if rand == 50 then
 			RagdollOwner(fake):Say("*drop")
 			end
-			fake:GetPhysicsObjectNum(1):SetVelocity(fake:GetPhysicsObjectNum(1):GetVelocity()+Vector(math.random(-55,55),math.random(-55,55),0))
-			fake:EmitSound("ambient/energy/spark2.wav")
+			Entity.fakeragdoll:GetPhysicsObjectNum(1):SetVelocity(Entity.fakeragdoll:GetPhysicsObjectNum(1):GetVelocity()+Vector(math.random(-55,55),math.random(-55,55),0))
+			Entity.fakeragdoll:EmitSound("ambient/energy/spark2.wav")
 		end)
+
 	elseif Entity:IsRagdoll() then
 		if RagdollOwner(Entity) then
 			RagdollOwner(Entity):Say("*drop")
@@ -678,7 +679,10 @@ local CustomWeight = {
 	["models/player/smoky/Smoky.mdl"] = 90,
 	["models/player/smoky/Smokycl.mdl"] = 90,
 	["models/knyaje pack/dibil/sso_politepeople.mdl"] = 90,
-	["models/player/danila.mdl"] = 30
+	["models/player/danila.mdl"] = 30,
+	["models/centris/granny/grannypm.mdl"] = 90,
+	['models/models/konnie/jasonpart6/jasonpart6.mdl'] = 20,
+	['models/arachnit/fortnite/characters/male/medium/skin/jq/john_wick_fortnite_player.mdl'] = 30
 }
 
 for i = 1,6 do
@@ -825,12 +829,22 @@ function PlayerMeta:CreateRagdoll(attacker,dmginfo,force) --изменение �
 		self.fakeragdoll = nil
 		net.Start("ebal_chellele")
 		net.WriteEntity(rag)
-		net.WriteString(rag.curweapon)
+		print(self.curweapon)
+		if rag.curweapon ~= nil and self.curweapon ~= "weapon_physgun"  then
+			net.WriteString(rag.curweapon)
+		else
+			net.WriteString('weapon_hands')
+		end
 		net.Broadcast()
     else
 		net.Start("ebal_chellele")
 		net.WriteEntity(self)
-		net.WriteString(self.curweapon)
+		print(self.curweapon)
+		if self.curweapon ~= nil and self.curweapon ~= "weapon_physgun" then
+			net.WriteString(self.curweapon)
+		else
+			net.WriteString('weapon_hands')
+		end
 		net.Broadcast()
 	end
 
@@ -1104,8 +1118,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 					phys:ComputeShadowControl(shadowparams)
 				end
 			end
-
-			if ply.curweapon ~= nil and ply.curweapon and weapons.Get(ply.curweapon).Primary.Automatic then
+			if ply.curweapon ~= nil and ply.curweapon and weapons.Get(ply.curweapon).Primary.Automatic and not ply.curweapon == "weapon_physgun" then
 				if ply:KeyDown(IN_ATTACK) then
 					if ply.FakeShooting then FireShot(ply.wep) end
 				end
@@ -1253,7 +1266,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				rag.ZacConsLH=nil
 			end
 		end
-		if(ply:KeyDown(IN_WALK)) and !RagdollOwner(rag).Otrub and !timer.Exists("StunTime"..ply:EntIndex()) then
+		if(ply:KeyDown(IN_WALK)) and !timer.Exists("StunTime"..ply:EntIndex()) then
 			local bone = rag:TranslateBoneToPhysBone(rag:LookupBone( "ValveBiped.Bip01_R_Hand" ))
 			local phys = rag:GetPhysicsObjectNum( rag:TranslateBoneToPhysBone(rag:LookupBone( "ValveBiped.Bip01_R_Hand" )) )
 			if(!IsValid(rag.ZacConsRH) and (!rag.ZacNextGrRH || rag.ZacNextGrRH<=CurTime()))then

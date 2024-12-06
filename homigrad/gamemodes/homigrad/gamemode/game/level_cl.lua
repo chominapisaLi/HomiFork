@@ -46,11 +46,12 @@ end)
 local white = Color(255,255,255)
 showRoundInfoColor = Color(255,255,255)
 local yellow = Color(255,255,0)
-
+local icon = Material( "icons/police-car.png" )
 hook.Add("HUDPaint","homigrad-roundstate",function()
 	if roundActive then
 		local func = TableRound().HUDPaint_RoundLeft
 		local ffunc = TableRound().HUDPaint_RoundFelt
+		local blood_shed_func = TableRound().HUDPaint_BloodShed
 
 		if func then
 			func(showRoundInfoColor)
@@ -63,6 +64,36 @@ hook.Add("HUDPaint","homigrad-roundstate",function()
 			if time < 0 then text = "" end
 			
 			draw.SimpleText(text,"HomigradFont",ScrW()/2,ScrH()-25,white,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+		elseif blood_shed_func then
+			local text = TableRound().HUDPaint_RoundText
+			local time = math.Round(roundTimeStart + roundTime - CurTime())
+			local acurcetime = string.FormattedTime(time, "%02i:%02i")
+			text = text
+			if time < 0 then text = "" end
+		
+			if time > 0 then
+				-- Получаем позицию камеры
+				local player = LocalPlayer()
+				local viewPos = player:GetViewEntity():GetPos()
+				
+				-- Рассчитываем смещение на основе позиции камеры
+				local offsetX = 1
+				local offsetY = 1
+				local offsetZ = 1
+		
+				-- Мигающий эффект
+				local flashAlpha = math.abs(math.sin(CurTime() * 5)) * 255 -- Быстрое мигание
+				local flashColor = Color(255, 255, 255, flashAlpha) -- Красный цвет мигалки
+		
+				-- Рисуем иконку с мигающим эффектом
+				surface.SetMaterial(icon)
+				surface.SetDrawColor(flashColor)
+				surface.DrawTexturedRect(ScrW() * 0.00001 + 30 + offsetX, ScrH() * 0.001, ScrW() * 0.075, ScrH() * 0.15)
+		
+				-- Рисуем текст
+				draw.SimpleText(text, "BloodShedLikeBig", ScrW() * 0.06 + 180 + offsetX, ScrH() * 0.075, white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+				draw.SimpleText(acurcetime, "BloodShedLikeSmall", ScrW() * 0.06 + 105 + offsetX, ScrH() * 0.1, white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+			end
 		end
 
 	else

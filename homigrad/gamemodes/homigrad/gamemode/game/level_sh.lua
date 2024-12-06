@@ -11,11 +11,13 @@ timer.Simple(0,function()
             RunConsoleCommand("hostname","HOMIFORK | PirateWars")
             roundActiveName = "pirate_wars"
             roundActiveNameNext = "pirate_wars"
+            RTV_CountRoundDefault = 10
             StartRound()
         elseif isDeathrunMap() then
             RunConsoleCommand("hostname","HOMIFORK | DEATHRUN")
             roundActiveName = "deathrun"
             roundActiveNameNext = "deathrun"
+            RTV_CountRoundDefault = 5
             StartRound()
         else
             RunConsoleCommand("hostname","HOMIFORK | HOMICIDE")

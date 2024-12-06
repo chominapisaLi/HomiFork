@@ -3,6 +3,8 @@ util.AddNetworkString("round_next")
 
 local spisok = {
     ['homicide'] = 'Хомисайд',
+    ['event'] = 'Ивент',
+    ['homicide_extended'] = 'Хомисайд EXTENDED',
     ['bahmut'] = 'Конфликт Хомиграда',
     ['nextbot'] = 'НекстБоты',
     ['tdm'] = 'Team DeathMatch', 

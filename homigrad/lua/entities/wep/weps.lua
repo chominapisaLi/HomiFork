@@ -1,6 +1,7 @@
 
 Guns = {
 "weapon_glock18",
+"weapon_kustarnik",
 "weapon_p220",
 "weapon_mp5",
 "weapon_ar15",
@@ -31,6 +32,8 @@ Guns = {
 "weapon_mp7",
 "weapon_remington870",
 "weapon_xm1014",
+"weapon_musket",
+"weapon_sawnoff_shotgun",
 "bandage",
 "morphine",
 "medkit",
@@ -111,6 +114,7 @@ GunsModel = {
 
 ShootWait = {
 ["weapon_glock18"]=0.08,
+["weapon_kustarnik"]=0.08,
 ["weapon_p220"]=0.08,
 ["weapon_mp5"]=0.06,
 ["weapon_ar15"]=0.08,
@@ -142,6 +146,8 @@ ShootWait = {
 ["weapon_remington870"]=0.5,
 ["weapon_double_barrel"]=0.5,
 ["weapon_xm1014"]=0.2,
+["weapon_musket"]=0.2,
+["weapon_sawnoff_shotgun"]=0.2,
 ["bandage"]=0,
 ["weapon_sar2"]=0.1,
 ["weapon_civil_famas"]=0.01,
@@ -149,7 +155,8 @@ ShootWait = {
 }
 
 ReloadTime = {
-["weapon_glock18"]=2,
+["weapon_glock18"]=2,--weapon_kustarnik
+["weapon_kustarnik"]=2,
 ["weapon_p220"]=2,
 ["weapon_mp5"]=2,
 ["weapon_ar15"]=2,
@@ -181,6 +188,8 @@ ReloadTime = {
 ["weapon_remington870"]=2,
 ["weapon_double_barrel"]=2,
 ["weapon_xm1014"]=2,
+["weapon_musket"]=5,
+["weapon_sawnoff_shotgun"]=2,
 ["bandage"]=0,
 ["weapon_sar2"]=2,
 ["weapon_civil_famas"]=2,
@@ -190,6 +199,7 @@ ReloadTime = {
 
 TwoHandedOrNo = {
 ["weapon_glock18"]=false,
+["weapon_kustarnik"]=false,
 ["weapon_p220"]=false,
 ["weapon_mp5"]=true,
 ["weapon_ar15"]=true,
@@ -221,6 +231,8 @@ TwoHandedOrNo = {
 ["weapon_remington870"]=true,
 ["weapon_double_barrel"]=true,
 ["weapon_xm1014"]=true,
+["weapon_musket"]=true,
+['weapon_sawnoff_shotgun']=true,
 ["bandage"]=false,
 ["weapon_sar2"]=true,
 ["weapon_civil_famas"]=true,
@@ -229,6 +241,7 @@ TwoHandedOrNo = {
 
 Automatic = {
 ["weapon_glock18"]=false,
+["weapon_kustarnik"]=false,
 ["weapon_p220"]=true,
 ["weapon_mp5"]=true,
 ["weapon_ar15"]=false,
@@ -260,6 +273,8 @@ Automatic = {
 ["weapon_double_barrel"]=false ,
 ["weapon_remington870"]=false,
 ["weapon_xm1014"]=false,
+["weapon_musket"]=false,
+['weapon_sawnoff_shotgun']=true,
 ["bandage"]=false,
 ["weapon_sar2"]=true,
 ["weapon_civil_famas"]=false,

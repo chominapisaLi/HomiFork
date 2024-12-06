@@ -387,6 +387,8 @@ local weps = {
 ["weapon_mp40"] = true,
 ["weapon_rpk"] = true,
 ["weapon_ump"] = true,
+["weapon_musket"]=true,
+["weapon_sawnoff_shotgun"]=true,
 ["weapon_xm1014"] = true,
 ["weapon_remington870"] = true,
 ["weapon_double_barrel"] = true,
@@ -615,15 +617,30 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 			vecWep = hand.Pos + hand.Ang:Up() * 3 - hand.Ang:Forward() * 9.5 + hand.Ang:Right() * -0.32
 			angWep = hand.Ang + Angle(15,5,10)
 		end
+		if weaponClass == "weapon_kustarnik" then
+			--Vector(2.3,10,0)
+			vecWep = hand.Pos + hand.Ang:Up() * 100 - hand.Ang:Forward() * 9.5 + hand.Ang:Right() * -0.32
+			angWep = hand.Ang + Angle(15,5,10)
+		end
 		if weaponClass == "weapon_ak74" then
 			--Vector(5.2,-2,1.1)
 			vecWep = hand.Pos + hand.Ang:Up() * 5.2 - hand.Ang:Forward() * -2 + hand.Ang:Right() * 1.1
 			angWep = hand.Ang + Angle(-25,20,-25)
 		end
-		if weaponClass == "weapon_xm1014" then
+		if weaponClass == "weapon_xm1014" then -- ["weapon_musket"]=5,
 			--Vector(3.55,4,0.95)
 			vecWep = hand.Pos + hand.Ang:Up() * 3.55 - hand.Ang:Forward() * 4 + hand.Ang:Right() * 0.95
 			angWep = hand.Ang + Angle(-8,0,0)
+		end
+		if weaponClass == "weapon_musket" then -- weapon_sawnoff_shotgun
+			--Vector(3.55,4,0.95)
+			vecWep = hand.Pos + hand.Ang:Up() * 5.5 - hand.Ang:Forward() * 5 + hand.Ang:Right() * 1.27
+			angWep = hand.Ang + Angle(10,0,0)
+		end
+		if weaponClass == "weapon_sawnoff_shotgun" then -- weapon_sawnoff_shotgun
+			--Vector(3.55,4,0.95)
+			vecWep = hand.Pos + hand.Ang:Up() * 5.5 - hand.Ang:Forward() * 5 + hand.Ang:Right() * 1.7
+			angWep = hand.Ang + Angle(0,0,0)
 		end
 		if weaponClass == "weapon_remington870" then
 			--Vector(3.8,4,0.65)
@@ -814,24 +831,7 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 		LerpEye = LerpAngleFT(smooth_cam:GetBool() and 0.25 or 1,LerpEye,angEye)
 	else
 		angEye = LerpAngleFT(0.25,LerpEye,angEye)
-		
-		if GetConVar("hg_bodycam"):GetInt() == 1 and IsValid(wep) and wep:LookupAttachment("muzzle") and scope then
-			
-			vecWep = vecWep + hand.Ang:Up() * 2 - hand.Ang:Forward() * -15 + hand.Ang:Right() * -1.5
-			LerpEye = wep:GetAttachment(wep:LookupAttachment("muzzle")).Ang
-			--LerpEye[3] = 0
-			
-			if wep.HoldType == "revolver" then
-				angEye[1] = angEye[1] - 10
-				angEye[2] = angEye[2] + 5
-				--angEye[3] = 0
-			end
-			if wep.HoldType == "smg" or wep.HoldType == "ar2" then
-				angEye[1] = angEye[1] - 10
-				angEye[2] = angEye[2] + 10
-				--angEye[3] = 0
-			end
-		end
+
 
 	end
 
@@ -1105,7 +1105,7 @@ hook.Add("RenderScreenspaceEffects","BloomEffect-homigrad",function()
 			font = "BodyCamFont",
 			pos = { ScrW()/2 - 200, 125 }
 		} )
-		surface.SetDrawColor(0, 0, 0, 185)
+		surface.SetDrawColor(0, 0, 0, 40)
 		surface.DrawRect(0, 0, ScrW(), ScrH())
 	
 		surface.SetDrawColor( 255, 255, 0, 255 )

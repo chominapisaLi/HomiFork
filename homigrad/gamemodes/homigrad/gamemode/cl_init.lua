@@ -28,6 +28,20 @@ surface.CreateFont("HomigradFontLarge",{
 	outline = false
 })
 
+surface.CreateFont("BloodShedLikeBig",{
+	font = "Trebuchet24",
+	size = ScreenScale(10),
+	weight = 1100,
+	outline = false
+})
+surface.CreateFont("BloodShedLikeSmall",{
+	font = "Trebuchet24",
+	size = ScreenScale(7),
+	weight = 1100,
+	outline = false
+})
+
+
 surface.CreateFont("HomigradFontSmall",{
 	font = "Roboto",
 	size = ScreenScale(10),
