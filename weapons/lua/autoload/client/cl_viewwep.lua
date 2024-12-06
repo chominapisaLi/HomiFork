@@ -375,6 +375,7 @@ local weps = {
 ["weapon_rpk"] = true,
 ["weapon_ump"] = true,
 ["weapon_xm1014"] = true,
+["weapon_musket"] = true,
 ["weapon_remington870"] = true,
 ["weapon_double_barrel"] = true,
 ["weapon_fiveseven_example"] = true,
@@ -592,6 +593,11 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 			vecWep = hand.Pos + hand.Ang:Up() * 3 - hand.Ang:Forward() * 10.5 + hand.Ang:Right() * -0.25
 			angWep = hand.Ang + Angle(15,5,10)
 		end
+		if weaponClass == "weapon_kustarnik" then
+			--Vector(2.3,10,0)
+			vecWep = hand.Pos + hand.Ang:Up() * 3 - hand.Ang:Forward() * 10.5 + hand.Ang:Right() * -0.25
+			angWep = hand.Ang + Angle(15,5,10)
+		end
 		if weaponClass == "weapon_ak74" then
 			--Vector(5.2,-2,1.1)
 			vecWep = hand.Pos + hand.Ang:Up() * 5.2 - hand.Ang:Forward() * -2 + hand.Ang:Right() * 1.1
@@ -600,6 +606,16 @@ CalcView = function(ply,vec,ang,fov,znear,zfar)
 		if weaponClass == "weapon_xm1014" then
 			--Vector(3.55,4,0.95)
 			vecWep = hand.Pos + hand.Ang:Up() * 3.55 - hand.Ang:Forward() * 4 + hand.Ang:Right() * 0.95
+			angWep = hand.Ang + Angle(-8,0,0)
+		end
+		if weaponClass == "weapon_musket" then
+			--Vector(3.55,4,0.95)
+			vecWep = hand.Pos + hand.Ang:Up() * 0 - hand.Ang:Forward() * 4 + hand.Ang:Right() * 0.95
+			angWep = hand.Ang + Angle(-8,0,0)
+		end
+		if weaponClass == "weapon_sawnoff_shotgun" then -- weapon_sawnoff_shotgun
+			--Vector(3.55,4,0.95)
+			vecWep = hand.Pos + hand.Ang:Up() * 0 - hand.Ang:Forward() * 4 + hand.Ang:Right() * 0.95
 			angWep = hand.Ang + Angle(-8,0,0)
 		end
 		if weaponClass == "weapon_remington870" then
@@ -1080,8 +1096,7 @@ hook.Add("RenderScreenspaceEffects","BloomEffect-homigrad",function()
 			["$pp_colour_colour"] = 0.8
 		}
 		
-		-- Overlay effects to simulate body camera recording
-		surface.SetDrawColor(0, 0, 0, 200)
+
 		surface.DrawRect(0, 0, ScrW(), ScrH())
 		
 
@@ -1091,7 +1106,7 @@ hook.Add("RenderScreenspaceEffects","BloomEffect-homigrad",function()
 		DrawColorModify(colorModify)
 		
 		-- Slightly more subtle visual effects
-		DrawSharpen(0.7, 0.9)
+		DrawSharpen(0.100, 0.9)
 		BlurScreen(0.2, 40)
 		
 		-- Simulate slight camera shake
@@ -1124,12 +1139,6 @@ hook.Add("RenderScreenspaceEffects","BloomEffect-homigrad",function()
 					color = Color(200, 200, 200) -- Softer text color
 				})
 				
-				draw.Text({
-					text = "BODYCAM - UNIT #" .. LocalPlayer():GetName(),
-					font = "BodyCamFont",
-					pos = { ScrW()/2 - 200, 125 },
-					color = Color(200, 200, 200)
-				})
 				
 	end
 	if not LocalPlayer():Alive() then

@@ -46,14 +46,14 @@ SWEP.SlotPos				= 1
 SWEP.DrawAmmo				= true
 SWEP.DrawCrosshair			= false
 
-SWEP.ViewModel				= "models/weapons/arccw_go/v_pist_fiveseven.mdl"
-SWEP.WorldModel				= "models/weapons/arccw_go/v_pist_fiveseven.mdl"
+SWEP.ViewModel				= "models/weapons/zcity/w_mr96.mdl"
+SWEP.WorldModel				= "models/weapons/zcity/w_mr96.mdl"
 SWEP.BadWorldModel = true 
 SWEP.FlipModel = true   
 SWEP.WorldModelPos = {
-    Forward = -12,    -- Сдвиг вперед/назад
-    Right = 4.5,      -- Сдвиг вправо/влево
-    Up = -5       -- Сдвиг вверх/вниз
+    Forward = 0,    -- Сдвиг вперед/назад
+    Right = 0,      -- Сдвиг вправо/влево
+    Up = 0       -- Сдвиг вверх/вниз
 }
 
 SWEP.WorldModelAng = {
@@ -62,13 +62,10 @@ SWEP.WorldModelAng = {
     Up = 0         -- Поворот вокруг оси up
 }
 
-SWEP.MuzzlePos = {
-    Forward = -0.75,
-    Right = 0.39,
-    Up = 3
-}
-SWEP.vbwPos = Vector(6.5,3.4,-4)
+SWEP.attPos = Vector(0, 0, 10)  -- Adjust these values
+SWEP.attAng = Angle(0, 0, 0)
+SWEP.vbwPos = Vector(0,0,0)
 
 
-SWEP.addPos = Vector(0,-5,-9)
+SWEP.addPos = Vector(0,0,0)
 SWEP.addAng = Angle(0,0,0)
