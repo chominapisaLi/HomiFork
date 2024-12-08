@@ -19,7 +19,12 @@
 ```
 
 Приятной игры
+
 # Как установить?
+
 Сборка вот тут: https://steamcommunity.com/sharedfiles/filedetails/?id=3339352581
+
 Надо скачать сборку которая есть тут 
+
 И закинуть ее в garrysmod/addons
+
