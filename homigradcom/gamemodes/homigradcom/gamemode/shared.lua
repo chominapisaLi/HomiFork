@@ -13,7 +13,7 @@ include("loader.lua")
 local start = SysTime()
 print("	start homigrad gamemode.")
 
-GM.includeDir("homigrad/gamemode/game/")--все файлы запускает, когда обновляем один.. можно из этого даже чо-то сделать.нахуй
+GM.includeDir("homigradcom/gamemode/game/")--все файлы запускает, когда обновляем один.. можно из этого даже чо-то сделать.нахуй
 
 print("	end homigrad gamemode for " .. math.Round(SysTime() - start,4) .. "s")
 

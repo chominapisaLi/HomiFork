@@ -25,6 +25,10 @@ function RoundStateSync(ply,data)
 	if ply then net.Send(ply) else net.Broadcast() end
 end
 
+function getActiveRound()
+	return roundActiveName
+end
+
 if levelrandom == nil then levelrandom = true end
 if pointPagesRandom == nil then pointPagesRandom = true end
 

@@ -22,7 +22,7 @@ homicide_extended.teamEncoder = {
     [1] = "red"
 }
 
-homicide_extended.RoundRandomDefalut = 999
+homicide_extended.RoundRandomDefalut = 5
 homicide_extended.HUDPaint_RoundFelt = false
 homicide_extended.HUDPaint_RoundText = 'Полиция в пути' 
 homicide_extended.BloodShed_Text = '' 

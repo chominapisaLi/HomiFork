@@ -110,7 +110,7 @@ local constructManual = {
 local materials = {}
 
 for i,name in pairs(constructManual) do
-	materials[name] = Material("homigrad/vgui/bg/" .. name .. ".png",pngParametrs)
+	materials[name] = Material("homigradcom/vgui/bg/" .. name .. ".png",pngParametrs)
 end
 
 function surface.SetBG(name)

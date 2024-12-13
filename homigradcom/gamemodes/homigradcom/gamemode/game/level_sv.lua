@@ -18,7 +18,8 @@ local spisok = {
     ['hl2dm'] = 'HL2 DM',
     ['hell_yeah'] = 'HELL YEAH!!!',
     ['deathrun'] = 'DeathRun',
-    ['pirate_wars'] = 'Пиратские войны'
+    ['pirate_wars'] = 'Пиратские войны',
+    ['jmod_survival'] = 'Выживание',
 }
 
 function RoundActiveSync(ply)

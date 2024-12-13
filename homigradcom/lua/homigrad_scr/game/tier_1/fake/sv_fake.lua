@@ -525,17 +525,17 @@ net.Receive("Unload",function(len,ply)
 	ply:GiveAmmo(oldclip,ammo)
 end)
 function Stun(Entity)
-	if Entity:IsPlayer() and Entity.fakeragdoll ~= NULL then
+	if Entity:IsPlayer() and Entity.fakeragdoll ~= NULL and Entity.fakeragdoll == nil then
 		timer.Create("StunTime"..Entity:EntIndex(), 8, 1, function() end)
+		Faking(Entity)
 		local fake = Entity:GetNWEntity("Ragdoll")
-		print(Entity.fakeragdoll)
 		timer.Create( "StunEffect"..Entity:EntIndex(), 0.1, 80, function()
 			local rand = math.random(1,50)
 			if rand == 50 then
 			RagdollOwner(fake):Say("*drop")
 			end
-			Entity.fakeragdoll:GetPhysicsObjectNum(1):SetVelocity(Entity.fakeragdoll:GetPhysicsObjectNum(1):GetVelocity()+Vector(math.random(-55,55),math.random(-55,55),0))
-			Entity.fakeragdoll:EmitSound("ambient/energy/spark2.wav")
+			fake:GetPhysicsObjectNum(1):SetVelocity(fake:GetPhysicsObjectNum(1):GetVelocity()+Vector(math.random(-55,55),math.random(-55,55),0))
+			fake:EmitSound("ambient/energy/spark2.wav")
 		end)
 
 	elseif Entity:IsRagdoll() then

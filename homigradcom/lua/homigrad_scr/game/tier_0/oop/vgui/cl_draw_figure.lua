@@ -10,7 +10,7 @@ local constructManual = {
 local materials = {}
 
 for i,name in pairs(constructManual) do
-	materials[name] = Material("homigrad/vgui/models/" .. name .. ".png",pngParametrs)
+	materials[name] = Material("homigradcom/vgui/models/" .. name .. ".png",pngParametrs)
 end
 
 function surface.SetFigure(name)

@@ -1,7 +1,7 @@
 --
 
 local function add(path)
-    local files,dirs = file.Find("addons/homigrad/materials/" .. path .. "*","GAME")
+    local files,dirs = file.Find("addons/homigradcom/materials/" .. path .. "*","GAME")
 
     for i,file in pairs(files) do
         if string.sub(file,#file - 2,#file) == "png" then
