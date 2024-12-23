@@ -2,6 +2,7 @@
 
 function EFFECT:Init(data)
 	self.Position = data:GetOrigin()
+	self.Scale = data:GetScale()
 	self.LifeTime = .2
 	self.DieTime = CurTime() + self.LifeTime
 end
@@ -36,8 +37,9 @@ function EFFECT:Render()
 				start = Pos,
 				endpos = self.Position,
 				filter = {self, ply}
-			}).Hit then
-				LocalPlayer().EZflashbanged = 100 * (1 - Pos:Distance(self.Position) / 1000)
+			}).Hit and not(JMod.PlyHasArmorEff(ply, "flashresistant")) then
+				ply.EZflashbanged = (ply.EZflashbanged or 0) + (10 * (self.Scale and self.Scale or 1) * (1 - Pos:Distance(self.Position) / 1000))
+				--print((1 - Pos:Distance(self.Position) / 1000))
 			end
 		end
 	end

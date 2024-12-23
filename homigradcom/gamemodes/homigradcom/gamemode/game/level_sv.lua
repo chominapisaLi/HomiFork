@@ -20,6 +20,7 @@ local spisok = {
     ['deathrun'] = 'DeathRun',
     ['pirate_wars'] = 'Пиратские войны',
     ['jmod_survival'] = 'Выживание',
+    ['rat'] = 'Крыса на плантациях.'
 }
 
 function RoundActiveSync(ply)

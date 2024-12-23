@@ -21,6 +21,11 @@ ENT.ImpactNoise2 = "Weapon.ImpactSoft"
 ENT.DamageThreshold = 120
 ENT.BreakNoise = "Plastic_Box.Break"
 ENT.Hint = nil
+ENT.Flammable = .5
+ENT.PhysBox = {
+	Mins = Vector(-11, -16, -9.3),
+	Maxs = Vector(11, 16, 9.2)
+}
 
 ---
 if SERVER then
@@ -45,7 +50,7 @@ elseif CLIENT then
 	function ENT:Initialize()
 		self.Stuff = JMod.MakeModel(self, "models/props_junk/cardboard_box003a.mdl", table.Random(Mats), .97)
 	end
-
+    local drawvec, drawang = Vector(-1, 11, 0), Angle(-90, 0, 90)
 	function ENT:Draw()
 		local Ang, Pos = self:GetAngles(), self:GetPos()
 		local Up, Right, Forward = Ang:Up(), Ang:Right(), Ang:Forward()
@@ -54,10 +59,10 @@ elseif CLIENT then
 		local JugAng = Ang:GetCopy()
 		JMod.RenderModel(self.Stuff, BasePos - Forward * 5 + Right * 1.5, Ang)
 
-		JMod.HoloGraphicDisplay(self, Vector(-1, 11, 0), Angle(-90, 0, 90), .04, 300, function()
+		JMod.HoloGraphicDisplay(self, drawvec, drawang, .04, 300, function()
 			JMod.StandardResourceDisplay(JMod.EZ_RESOURCE_TYPES.ORGANICS, self:GetResource(), nil, 0, 0, 200, false, nil, 220)
 		end)
 	end
 
-	language.Add(ENT.ClassName, ENT.PrintName)
+	--language.Add(ENT.ClassName, ENT.PrintName)
 end

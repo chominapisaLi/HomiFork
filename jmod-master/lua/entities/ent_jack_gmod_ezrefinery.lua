@@ -3,14 +3,15 @@ ENT.Type = "anim"
 ENT.Author = "Jackarunda"
 ENT.PrintName = "EZ Oil Refinery"
 ENT.Category = "JMod - EZ Machines"
-ENT.Spawnable = true -- Temporary, until the next phase of Econ2
+ENT.Spawnable = true
 ENT.AdminOnly = false
 ENT.Base = "ent_jack_gmod_ezmachine_base"
 ---
 ENT.Model = "models/jmod/machines/oil_refinery.mdl"
-ENT.Mass = 2000
+ENT.Mass = 4000
 ENT.SpawnHeight = 10
 ENT.JModPreferredCarryAngles = Angle(0, 0, 0)
+ENT.EZcolorable = true
 ---
 ENT.EZconsumes = {
 	JMod.EZ_RESOURCE_TYPES.OIL,
@@ -22,13 +23,13 @@ ENT.EZconsumes = {
 ---
 ENT.EZupgradable = true
 ENT.StaticPerfSpecs = {
-	MaxDurability = 100,
+	MaxDurability = 300,
 	MaxElectricity = 500,
 	MaxOil = 500
 }
 ENT.DynamicPerfSpecs = {
 	ProductionSpeed = 1,
-	Armor = 1
+	Armor = 2
 }
 ENT.FlexFuels = {JMod.EZ_RESOURCE_TYPES.COAL, JMod.EZ_RESOURCE_TYPES.FUEL}
 ---
@@ -42,7 +43,6 @@ if(SERVER)then
 	function ENT:CustomInit()
 		self:SetAngles(Angle(0, 0, 0))
 		self:SetProgress(0)
-		self:SetOil(0)
 		self.LastOilTime = 0
 		self.NextEffThink = 0
 		self.NextRefineThink = 0
@@ -52,6 +52,8 @@ if(SERVER)then
 	end
 
 	function ENT:TurnOn(activator)
+		if (self:WaterLevel() > 0) then return end
+		if self:GetState() > STATE_OFF then return end
 		if (self:GetElectricity() <= 0) then
 			JMod.Hint(activator, "nopower_trifuel")
 			return
@@ -60,8 +62,9 @@ if(SERVER)then
 			JMod.Hint(activator, "need oil")
 			return
 		end
+		if IsValid(activator) then self.EZstayOn = true end
 		self:SetState(STATE_REFINING)
-		self:EmitSound("snd_jack_littleignite.wav")
+		self:EmitSound("snd_jack_littleignite.ogg")
 		timer.Simple(0.1, function()
 			if(self.SoundLoop)then self.SoundLoop:Stop() end
 			self.SoundLoop = CreateSound(self, "snds_jack_gmod/intense_fire_loop.wav")
@@ -71,21 +74,23 @@ if(SERVER)then
 		end)
 	end
 
-	function ENT:TurnOff()
+	function ENT:TurnOff(activator)
+		if (self:GetState() <= 0) then return end
+		if IsValid(activator) then self.EZstayOn = nil end
 		self:SetState(STATE_OFF)
 		self:ProduceResource()
 		if(self.SoundLoop)then self.SoundLoop:Stop() end
 
-		self:EmitSound("snd_jack_littleignite.wav")
+		self:EmitSound("snd_jack_littleignite.ogg")
 	end
 
 	function ENT:Use(activator)
 		local State = self:GetState()
-		local OldOwner = self:GetOwner()
-		local Alt = activator:KeyDown(JMod.Config.AltFunctionKey)
-		JMod.SetOwner(self, activator)
-		if(IsValid(self:GetOwner()))then
-			if(OldOwner ~= self:GetOwner())then -- if owner changed then reset team color
+		local OldOwner = JMod.GetEZowner(self)
+		local Alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
+		JMod.SetEZowner(self, activator)
+		if(IsValid(self.EZowner))then
+			if(OldOwner ~= self.EZowner)then -- if owner changed then reset team color
 				JMod.Colorify(self)
 			end
 		end
@@ -99,10 +104,9 @@ if(SERVER)then
 		elseif State == STATE_REFINING then
 			if Alt then 
 				self:ProduceResource()
-
-				return
+			else
+				self:TurnOff(activator)
 			end
-			self:TurnOff()
 		end
 	end
 
@@ -110,46 +114,55 @@ if(SERVER)then
 		if(self.SoundLoop)then self.SoundLoop:Stop() end
 	end
 
-	function ENT:SpawnEffect(pos)
-		self:EmitSound("snds_jack_gmod/ding.wav", 80, 120)
-	end
-
 	function ENT:ProduceResource()
 		local SelfPos, Forward, Up, Right = self:GetPos(), self:GetForward(), self:GetUp(), self:GetRight()
 		local amt = math.Clamp(math.floor(self:GetProgress()), 0, 100)
 
 		if amt <= 0 then return end
+		self:SetProgress(0)
 
 		local RefinedTable = JMod.RefiningTable[JMod.EZ_RESOURCE_TYPES.OIL]
 
-		local i = 0
+		local i = 1
 		for typ, modifier in pairs(RefinedTable) do
 			local spawnVec = self:WorldToLocal(SelfPos + Forward * 65 + Right * 40 + Up * 65 * i)
 			local spawnAng = Angle(0, 0, 0)
 			local ejectVec = Forward
-			timer.Simple(i / 2, function()
+			timer.Simple(i * .2, function()
 				if IsValid(self) then
-					JMod.MachineSpawnResource(self, typ, amt*modifier, spawnVec, spawnAng, ejectVec, true, 200)
+					JMod.MachineSpawnResource(self, typ, amt*modifier, spawnVec, spawnAng, ejectVec, 400)
 				end
 			end)
 			i = i + 1
 		end
-		self:SetProgress(0)
-		self:EmitSound("snds_jack_gmod/ding.wav", 80, 120)
+		self:EmitSound("snds_jack_gmod/ding.ogg", 80, 120)
 	end
 
-	function ENT:ResourceLoaded(typ, accepted)
+	--[[function ENT:ResourceLoaded(typ, accepted)
 		if typ == JMod.EZ_RESOURCE_TYPES.OIL and accepted >= 1 then
-			self:TurnOn(self:GetOwner())
+			self:TurnOn(self.EZowner)
 		end
-	end
+	end--]]
 
 	function ENT:Think()
 		local State, Time = self:GetState(), CurTime()
+
+		self:UpdateWireOutputs()
+
 		if (self.NextRefineThink < Time) then
 			self.NextRefineThink = Time + 1
 			if State == STATE_REFINING then
-
+				if (self:WaterLevel() > 0) then 
+					self:TurnOff() 
+					local Foof = EffectData()
+					Foof:SetOrigin(self:GetPos())
+					Foof:SetNormal(Vector(0, 0, 1))
+					Foof:SetScale(10)
+					Foof:SetStart(self:GetPhysicsObject():GetVelocity())
+					util.Effect("eff_jack_gmod_ezsteam", Foof, true, true)
+					self:EmitSound("snds_jack_gmod/hiss.ogg", 100, 100)
+					return 
+				end
 				local Grade = self:GetGrade()
 				local GradeBuff = JMod.EZ_GRADE_BUFFS[Grade]
 
@@ -169,11 +182,12 @@ if(SERVER)then
 				end
 			end
 		end
+		local GasPos = self:GetPos() + self:GetUp() * 270 + self:GetRight() * 40
 		if (self.NextEffThink < Time) then
 			self.NextEffThink = Time + .1
 			if (State == STATE_REFINING) then
 				local Eff = EffectData()
-				Eff:SetOrigin(self:GetPos() + self:GetUp() * 270 + self:GetRight() * 40)
+				Eff:SetOrigin(GasPos)
 				Eff:SetNormal(self:GetUp())
 				Eff:SetScale(.2)
 				util.Effect("eff_jack_gmod_ezoilfiresmoke", Eff, true)
@@ -182,16 +196,16 @@ if(SERVER)then
 		if (self.NextEnvThink < Time) then
 			self.NextEnvThink = Time + 5
 			if (State == STATE_REFINING) then
-				local Tr=util.QuickTrace(self:GetPos(), Vector(0, 0, 9e9), self)
+				local Tr=util.QuickTrace(GasPos, Vector(0, 0, 9e9), self)
 				if not (Tr.HitSky) then
 					for i = 1, 1 do
-						local Gas = ents.Create("ent_jack_gmod_ezgasparticle")
-						Gas:SetPos(self:GetPos() + Vector(0, 0, 100))
-						JMod.SetOwner(Gas, self:GetOwner())
+						local Gas = ents.Create("ent_jack_gmod_ezcoparticle")
+						Gas:SetPos(GasPos)
+						JMod.SetEZowner(Gas, self.EZowner)
 						Gas:SetDTBool(0, true)
 						Gas:Spawn()
 						Gas:Activate()
-						Gas:GetPhysicsObject():SetVelocity(VectorRand() * math.random(1, 100))
+						Gas.CurVel = (VectorRand() * math.random(1, 100))
 					end
 				end
 			end
@@ -201,14 +215,38 @@ if(SERVER)then
 		return true
 	end
 
-	function ENT:PostEntityPaste(ply, ent, createdEntities)
+	function ENT:OnDestroy()
+		local Oil = self:GetOil()
+		if Oil > 10 then
+			if vFireInstalled then
+				CreateVFireBall(math.random(5, 15), math.random(5, 15), self:GetUp()*20, VectorRand() * math.random(100, 200))
+			else
+				for i = 1, math.Round((Oil / self.MaxOil) * 10) do
+					local Tr = util.QuickTrace(self:GetPos() + self:GetUp()*20, Vector(math.random(-200, 200), math.random(-200, 200), math.random(0, -200)), {self})
+
+					if Tr.Hit then
+						local Fiah = ents.Create("env_fire")
+						Fiah:SetPos(Tr.HitPos + Tr.HitNormal)
+						Fiah:SetKeyValue("health", 30)
+						Fiah:SetKeyValue("fireattack", 1)
+						Fiah:SetKeyValue("firesize", math.random(20, 200))
+						Fiah:SetOwner(JMod.GetEZowner(self))
+						Fiah:Spawn()
+						Fiah:Activate()
+						Fiah:Fire("StartFire", "", 0)
+						Fiah:Fire("kill", "", math.random(1, 5))
+					end
+				end
+			end
+		end
+	end
+
+	function ENT:OnPostEntityPaste(ply, ent, createdEntities)
 		local Time = CurTime()
-		JMod.SetOwner(self, ply)
-		ent.NextRefillTime = Time + math.random(0.1, 0.5)
-		self.LastOilTime = Time + math.random(0.1, 0.5)
-		self.NextEffThink = Time + math.random(0.1, 0.5)
-		self.NextRefineThink = Time + math.random(0.1, 0.5)
-		self.NextEnvThink = Time + math.random(0.1, 0.5)
+		self.LastOilTime = Time + math.Rand(0, 3)
+		self.NextEffThink = Time + math.Rand(0, 3)
+		self.NextRefineThink = Time + math.Rand(0, 3)
+		self.NextEnvThink = Time + math.Rand(0, 3)
 	end
 
 elseif(CLIENT)then
@@ -228,12 +266,12 @@ elseif(CLIENT)then
 		---
 		local BasePos = SelfPos
 
-		local Obscured = util.TraceLine({
+		local Obscured = false--[[util.TraceLine({
 			start = EyePos(), 
 			endpos = BasePos, 
 			filter = {LocalPlayer(), self}, 
 			mask = MASK_OPAQUE
-		}).Hit
+		}).Hit--]]
 
 		local Closeness = LocalPlayer():GetFOV()*(EyePos():Distance(SelfPos))
 		local DetailDraw = Closeness < 400000 -- cutoff point is 4000 units when the fov is 90 degrees

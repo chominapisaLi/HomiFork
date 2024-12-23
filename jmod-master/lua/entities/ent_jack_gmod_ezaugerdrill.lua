@@ -13,17 +13,19 @@ ENT.Model = "models/jmodels/props/machines/drill_support.mdl"
 ENT.Mass = 2000
 ENT.SpawnHeight = 115
 ENT.JModPreferredCarryAngles = Angle(0, 0, 0)
+ENT.EZcolorable = true
 ENT.EZupgradable = true
+ENT.EZanchorage = 500
 ENT.StaticPerfSpecs = {
-	MaxDurability = 100,
+	MaxDurability = 400,
 	MaxElectricity = 400
 }
 ENT.DynamicPerfSpecs = {
-	Armor = 2
+	Armor = 3
 }
 --
 --ENT.WhitelistedResources = {}
-ENT.BlacklistedResources = {"water", "oil", "geothermal"}
+ENT.BlacklistedResources = {JMod.EZ_RESOURCE_TYPES.WATER, JMod.EZ_RESOURCE_TYPES.OIL, "geothermal"}
 
 local STATE_BROKEN, STATE_OFF, STATE_RUNNING = -1, 0, 1
 ---
@@ -38,102 +40,81 @@ if(SERVER)then
 		self.NextResourceThinkTime = 0
 		self.NextEffectThinkTime = 0
 		self.NextOSHAthinkTime = 0
+		self.NextHoleThinkTime = 0
 		timer.Simple(0.1, function()
 			self:TryPlace()
 		end)
         timer.Simple(5, function()
             if IsValid(self) then
-            JMod.Hint(self:GetOwner(), "ore scan")
+            JMod.Hint(JMod.GetEZowner(self), "ore scan")
             end
         end)
 	end
 
-	function ENT:UpdateDepositKey()
-		local SelfPos = self:GetPos() + Vector(0, 0, -100)
-		-- first, figure out which deposits we are inside of, if any
-		local DepositsInRange = {}
-
-		for k, v in pairs(JMod.NaturalResourceTable)do
-			-- Make sure the resource is on the whitelist
-			local Dist = SelfPos:Distance(v.pos)
-
-			-- store they desposit's key if we're inside of it
-			if (Dist <= v.siz) and (not(table.HasValue(self.BlacklistedResources, v.typ))) then 
-				if v.rate or (v.amt < 0) then break end
-				table.insert(DepositsInRange, k)
-			end
-		end
-
-		-- now, among all the deposits we are inside of, let's find the closest one
-		local ClosestDeposit, ClosestRange = nil, 9e9
-
-		if #DepositsInRange > 0 then
-			for k, v in pairs(DepositsInRange)do
-				local DepositInfo = JMod.NaturalResourceTable[v]
-				local Dist = SelfPos:Distance(DepositInfo.pos)
-
-				if(Dist < ClosestRange)then
-					ClosestDeposit = v
-					ClosestRange = Dist
-				end
-			end
-		end
-		if(ClosestDeposit)then 
-			self.DepositKey = ClosestDeposit 
-			self:SetResourceType(JMod.NaturalResourceTable[self.DepositKey].typ)
-			--print("Our deposit is "..self.DepositKey) --DEBUG
-		else 
-			self.DepositKey = nil
-			--print("No valid deposit") --DEBUG
-		end
-	end
-
 	function ENT:TryPlace()
 		local Tr = util.QuickTrace(self:GetPos() + Vector(0, 0, 10), Vector(0, 0, -500), self)
+		local SelfAng = self:GetAngles()
 		if (Tr.Hit) and (Tr.HitWorld) then
-			local Roll = Tr.HitNormal:Angle().z
-			local Yaw = Tr.HitNormal:Angle().y
-			--Yaw = self:GetAngles().y
-			self:SetAngles(Angle(Tr.HitNormal:Angle().x + 90, Yaw, Roll))
-			self:SetPos(Tr.HitPos + Tr.HitNormal * self.SpawnHeight - Tr.HitNormal * 10)
-			--
+			
 			local GroundIsSolid = true
 			for i = 1, 50 do
 				local Contents = util.PointContents(Tr.HitPos - Vector(0, 0, 10 * i))
 				if(bit.band(util.PointContents(self:GetPos()), CONTENTS_SOLID) == CONTENTS_SOLID)then GroundIsSolid=false break end
 			end
+
 			self:UpdateDepositKey()
+			
 			if not self.DepositKey then
-				JMod.Hint(self:GetOwner(), "ground drill")
+				JMod.Hint(JMod.GetEZowner(self), "ground drill")
+				self.EZstayOn = nil
 			elseif(GroundIsSolid)then
-				if not(IsValid(self.Weld))then self.Weld = constraint.Weld(self, Tr.Entity, 0, 0, 50000, false, false) end
-				if(IsValid(self.Weld) and self.DepositKey)then
-					self:TurnOn(self:GetOwner())
+				--
+				local HitAngle = Tr.HitNormal:Angle()
+				HitAngle:RotateAroundAxis(HitAngle:Right(), 270)
+				HitAngle:RotateAroundAxis(HitAngle:Up(), SelfAng.y - HitAngle.y)
+				self:SetAngles(HitAngle)
+				self:SetPos(Tr.HitPos + Tr.HitNormal * self.SpawnHeight - Tr.HitNormal * 5)
+				--
+				JMod.EZinstallMachine(self)
+				if self.DepositKey then
+					self:TurnOn(self.EZowner)
 				else
 					if self:GetState() > STATE_OFF then
 						self:TurnOff()
 					end
-					JMod.Hint(self:GetOwner(), "machine mounting problem")
+					JMod.Hint(JMod.GetEZowner(self), "machine mounting problem")
 				end
 			end
 		end
 	end
 
+	function ENT:StartSoundLoop()
+		self.SoundLoop = CreateSound(self, "snd_jack_betterdrill.wav")
+		self.SoundLoop:SetSoundLevel(60)
+		self.SoundLoop:Play()
+	end
+
 	function ENT:TurnOn(activator)
-		if (self:GetElectricity() > 0 and IsValid(self.Weld) and self.DepositKey) then
-			self:SetState(STATE_RUNNING)
-			self.SoundLoop = CreateSound(self, "snd_jack_betterdrill1.wav")
-			self.SoundLoop:SetSoundLevel(60)
-			self.SoundLoop:Play()
-			self:SetProgress(0)
+		if self:GetState() ~= STATE_OFF then return end
+		if self.EZinstalled and JMod.NaturalResourceTable[self.DepositKey] then
+			if (self:GetElectricity() > 0) then
+				if IsValid(activator) then self.EZstayOn = true end
+				self:SetState(STATE_RUNNING)
+				self:StartSoundLoop()
+				self:SetProgress(0)
+			else
+				JMod.Hint(activator, "nopower")
+			end
 		else
-			JMod.Hint(activator,"nopower")
+			self:TryPlace()
 		end
 	end
 	
-	function ENT:TurnOff()
+	function ENT:TurnOff(activator)
+		if (self:GetState() <= STATE_OFF) then return end
+		if IsValid(activator) then self.EZstayOn = nil end
 		self:SetState(STATE_OFF)
-		self:ProduceResource(self:GetProgress())
+		self:ProduceResource()
 
 		if self.SoundLoop then
 			self.SoundLoop:Stop()
@@ -142,37 +123,36 @@ if(SERVER)then
 
 	function ENT:Use(activator)
 		local State = self:GetState()
-		local OldOwner = self:GetOwner()
-		local alt = activator:KeyDown(JMod.Config.AltFunctionKey)
-		JMod.SetOwner(self,activator)
-		if(IsValid(self:GetOwner()))then
-			if(OldOwner ~= self:GetOwner())then -- if owner changed then reset team color
-				JMod.Colorify(self)
-			end
-		end
+		local OldOwner = JMod.GetEZowner(self)
+		local alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
+		JMod.SetEZowner(self, activator, true)
 
 		if State == STATE_BROKEN then
 			JMod.Hint(activator, "destroyed", self)
 
 			return
 		elseif State == STATE_OFF then
-			if (self:GetElectricity() <= 0) then JMod.Hint(activator, "nopower") return end
-			self:TryPlace()
+			if alt and self.EZinstalled then
+				JMod.EZinstallMachine(self, false)
+				
+				return
+			end
+			self:TurnOn(activator)
 		elseif State == STATE_RUNNING then
 			if alt then
-				self:ProduceResource(self:GetProgress())
+				self:ProduceResource()
 
 				return
 			end
-			self:TurnOff()
+			self:TurnOff(activator)
 		end
 	end
 
-	function ENT:ResourceLoaded(typ, accepted)
+	--[[function ENT:ResourceLoaded(typ, accepted)
 		if typ == JMod.EZ_RESOURCE_TYPES.POWER and accepted >= 1 then
-			self:TurnOn(self:GetOwner())
+			self:TurnOn(self.EZowner)
 		end
-	end
+	end--]]
 	
 	function ENT:OnRemove()
 		if(self.SoundLoop)then self.SoundLoop:Stop() end
@@ -181,6 +161,18 @@ if(SERVER)then
 	function ENT:Think()
 		local State, Time, Prog = self:GetState(), CurTime(), self:GetProgress()
 		local SelfPos, Up, Right, Forward = self:GetPos(), self:GetUp(), self:GetRight(), self:GetForward()
+		local Phys = self:GetPhysicsObject()
+
+		self:UpdateWireOutputs()
+
+		if self.EZinstalled then
+			if Phys:IsMotionEnabled() or self:IsPlayerHolding() then
+				self.EZinstalled = false
+				self:TurnOff()
+
+				return
+			end
+		end
 
 		if (self.NextResourceThinkTime < Time) then
 			self.NextResourceThinkTime = Time + 1
@@ -193,14 +185,7 @@ if(SERVER)then
 
 				return
 			elseif State == STATE_RUNNING then
-				if not IsValid(self.Weld) then
-					self.DepositKey = nil
-					--self.WellPos = nil
-					--self.Weld = nil
-					self:TurnOff()
-
-					return
-				end
+				if not self.EZinstalled then self:TurnOff() return end
 
 				if not JMod.NaturalResourceTable[self.DepositKey] then 
 					self:TurnOff()
@@ -208,10 +193,13 @@ if(SERVER)then
 					return
 				end
 
-				-- This is just the rate at which we drill
-				local drillRate = 0.8 * (JMod.EZ_GRADE_BUFFS[self:GetGrade()] ^ 2)
+				if not self.SoundLoop then self:StartSoundLoop() end
 
-				self:ConsumeElectricity(JMod.EZ_GRADE_BUFFS[self:GetGrade()] ^ 1.5)
+				-- This is just the rate at which we drill
+				local GradeModifier = JMod.EZ_GRADE_BUFFS[self:GetGrade()]
+				local drillRate = 1 * (GradeModifier ^ 2) * JMod.Config.ResourceEconomy.ExtractionSpeed
+
+				self:ConsumeElectricity(0.75 * (GradeModifier ^ 2) * JMod.Config.ResourceEconomy.ExtractionSpeed)
 				
 				-- Get the amount of resouces left in the ground
 				local amtLeft = JMod.NaturalResourceTable[self.DepositKey].amt
@@ -223,8 +211,7 @@ if(SERVER)then
 
 				if self:GetProgress() >= 100 then
 					local amtToDrill = math.min(JMod.NaturalResourceTable[self.DepositKey].amt, 100)
-					self:ProduceResource(amtToDrill)
-					JMod.DepleteNaturalResource(self.DepositKey, amtToDrill)
+					self:ProduceResource()
 				end
 
 				JMod.EmitAIsound(self:GetPos(), 300, .5, 256)
@@ -238,28 +225,78 @@ if(SERVER)then
 				Dert:SetOrigin(SelfPos - Up * 100 - Right * 0 - Forward * 9)
 				Dert:SetNormal(Up)
 				util.Effect("eff_jack_gmod_augerdig", Dert, true, true)
+				if (self.NextHoleThinkTime < Time) then
+					self.NextHoleThinkTime = Time + 5
+					util.Decal("EZgroundHole", SelfPos, SelfPos - Up * 120 - Right * 0 - Forward * 9)
+				end
 			end
 		end
 
 		if (self.NextOSHAthinkTime < Time) and (State == STATE_RUNNING) then
 			self.NextOSHAthinkTime = Time + .1
+			local HitEnts = {self}
 			local BasePos = SelfPos + Up * (-10 - Prog)
-			local FoundEnts = ents.FindInBox(SelfPos + Up * (-100 - Prog) + Vector(-6, -6, -6), BasePos + Vector(6, 6, 6))
-			for _, v in ipairs(FoundEnts) do
-				if IsValid(v) and IsValid(v:GetPhysicsObject()) and (v ~= self) then
-					local Dmg = DamageInfo()
-					Dmg:SetDamagePosition(BasePos)
-					Dmg:SetDamageForce(Vector(0, 0, 10000))
-					Dmg:SetDamage(20)
-					Dmg:SetDamageType(DMG_CRUSH)
-					Dmg:SetInflictor(self)
-					Dmg:SetAttacker(JMod.GetOwner(self))
-					v:TakeDamageInfo(Dmg)
-					--print(tostring(v))
-					self:EmitSound("Boulder.ImpactHard")
+			local HullTr = util.TraceHull({
+				start = SelfPos + Up * (-100 - Prog),
+				endpos = BasePos,
+				maxs = Vector(6, 6, 6),
+				mins = Vector(-6, -6, -6),
+				filter = self,
+				mask = MASK_SOLID,
+				ignoreworld = true
+			})
+			if HullTr.Hit then
+				local pierce = 0
+				while HullTr.Fraction < 1 and pierce < 100 do
+					pierce = pierce + 1
+					local ent = HullTr.Entity
+					if IsValid(ent) and IsValid(ent:GetPhysicsObject()) then
+						local Dmg = DamageInfo()
+						Dmg:SetDamagePosition(BasePos)
+						Dmg:SetDamageForce(Vector(math.random(-1000, 1000), math.random(-1000, 1000), 0))
+						Dmg:SetDamage(10)
+						Dmg:SetDamageType(DMG_GENERIC)
+						Dmg:SetInflictor(ent)
+						Dmg:SetAttacker(JMod.GetEZowner(self))
+						ent:TakeDamageInfo(Dmg)
+						--print(tostring(ent))
+						table.insert(HitEnts, ent)
+					end
+					util.TraceHull({
+						start = SelfPos + Up * (-100 - Prog) * HullTr.Fraction,
+						endpos = BasePos,
+						maxs = Vector(6, 6, 6),
+						mins = Vector(-6, -6, -6),
+						filter = HitEnts,
+						mask = MASK_SOLID,
+						ignoreworld = true,
+						output = HullTr
+					})
 				end
+				self:EmitSound("Boulder.ImpactHard")
+			end
+			if math.random(0, 500) == 1 then
+				local Rock = ents.Create("prop_physics")
+				Rock:SetModel("models/props_junk/rock001a.mdl")
+				Rock:SetPos(SelfPos + Up * -90 * HullTr.Fraction)
+				Rock:Spawn()
+				Rock:Activate()
+
+				timer.Simple(0, function()
+					if IsValid(Rock) and IsValid(Rock:GetPhysicsObject()) then 
+						Rock:GetPhysicsObject():ApplyForceCenter(Vector(0, 0, 1200) + VectorRand() * 10000)-- Yeet
+					end
+				end)
+				timer.Simple(5, function() 
+					if IsValid(Rock) then
+						SafeRemoveEntity(Rock)
+					end
+				end)
 			end
 		end
+
+		self:NextThink(CurTime() + .1)
+		return true
 	end
 	
 	function ENT:ProduceResource()
@@ -270,54 +307,47 @@ if(SERVER)then
 
 		local pos = SelfPos
 		local spawnVec = self:WorldToLocal(SelfPos + Up * 50 - Right * 50)
-		JMod.MachineSpawnResource(self, self:GetResourceType(), amt, spawnVec, Angle(0, 0, -90), Right * 100, true, 200)
 		self:SetProgress(self:GetProgress() - amt)
+		JMod.MachineSpawnResource(self, self:GetResourceType(), amt, spawnVec, Angle(0, 0, -90), Right * 100, 300)
+		JMod.DepleteNaturalResource(self.DepositKey, amt)
 	end
 
-	function ENT:PostEntityPaste(ply, ent, createdEntities)
+	function ENT:OnPostEntityPaste(ply, ent, createdEntities)
 		local Time = CurTime()
-		JMod.SetOwner(self, ply)
-		ent.NextRefillTime = Time + math.random(0.1, 0.5)
-		ent.NextResourceThinkTime = 0
-		ent.NextEffectThinkTime = 0
-		ent.NextOSHAthinkTime = 0
+		self.DepositKey = 0
+		self.NextResourceThinkTime = 0
+		self.NextEffectThinkTime = 0
+		self.NextOSHAthinkTime = 0
+		self.NextHoleThinkTime = 0
+		if self:GetState(STATE_RUNNING) then
+			timer.Simple(0.1, function()
+				if IsValid(self) then self:TryPlace() end
+			end)
+		end
 	end
 
 elseif(CLIENT)then
 
-	function ENT:Initialize()
+	function ENT:CustomInit()
 		self.Auger = JMod.MakeModel(self, "models/jmodels/props/machines/drill_auger.mdl")
 		self.DrillPipe = JMod.MakeModel(self, "models/props_pipes/pipe03_straight01_long.mdl")
 		self.DrillPipeEnd = JMod.MakeModel(self, "models/props_pipes/pipe03_connector01.mdl")
 		self.DrillMotor = JMod.MakeModel(self, "models/props_wasteland/laundry_basket001.mdl")
 		self.PowerBox = JMod.MakeModel(self, "models/props_lab/powerbox01a.mdl")
 		self.DrillMat = Material("mechanics/metal2")
+		self.LaserMat = Material("trails/laser")
 		self.DrillSpin = 0
 		self.CurDepth = 0
 	end
 
-	function ENT:Draw()
-		self:DrawModel()
-		local Up, Right, Forward, Grade, Typ, State, FT = self:GetUp(), self:GetRight(), self:GetForward(), self:GetGrade(), self:GetResourceType(), self:GetState(), FrameTime()
-		local SelfPos, SelfAng = self:GetPos(), self:GetAngles()
-		local BoxPos = SelfPos + Up * 52 + Right * 3 + Forward * -8
-		local MotorPos = BoxPos + Up * -45 + Right * -3
-		local DrillPos = MotorPos + Up * -(120 + self.CurDepth)
-		local PipePos = DrillPos + Up * 150.5 + Right * -8.5
-		--
+	function ENT:Think()
+		local State, Grade, Typ, Prog = self:GetState(), self:GetGrade(), self:GetResourceType(), self:GetProgress()
+		local FT = FrameTime()
 		if self.CurDepth - self:GetProgress() > 1 then
 			self.CurDepth = Lerp(math.ease.InOutExpo(FT * 15), self.CurDepth, self:GetProgress())
 		else
 			self.CurDepth = Lerp(math.ease.InOutExpo(FT * 5), self.CurDepth, self:GetProgress())
 		end
-		--
-		local PowerBoxAng = SelfAng:GetCopy()
-		PowerBoxAng:RotateAroundAxis(Up, -90)
-		JMod.RenderModel(self.PowerBox, BoxPos, PowerBoxAng, Vector(2, 1.8, 1.2), nil, JMod.EZ_GRADE_MATS[Grade])
-		local MotorAng = SelfAng:GetCopy()
-		MotorAng:RotateAroundAxis(Up, 90)
-		JMod.RenderModel(self.DrillMotor, MotorPos, MotorAng, Vector(0.8, 0.8, 0.8), nil, JMod.EZ_GRADE_MATS[Grade])
-		--
 		if State == STATE_RUNNING then
 			self.DrillSpin = self.DrillSpin - FT * 600
 			if self.DrillSpin > 360 then
@@ -326,9 +356,29 @@ elseif(CLIENT)then
 				self.DrillSpin = 360
 			end
 		end
-		--
+	end
 
-		local Obscured = util.TraceLine({start = EyePos(), endpos = MotorPos, filter = {LocalPlayer(), self}, mask = MASK_OPAQUE}).Hit
+	local MiningLazCol = Color(255, 0, 0)
+
+	function ENT:Draw()
+		--
+		self:DrawModel()
+		--
+		local Up, Right, Forward, Grade, Typ, State, FT = self:GetUp(), self:GetRight(), self:GetForward(), self:GetGrade(), self:GetResourceType(), self:GetState(), FrameTime()
+		local SelfPos, SelfAng = self:GetPos(), self:GetAngles()
+		local BoxPos = SelfPos + Up * 52 + Right * 3 + Forward * -8
+		local MotorPos = BoxPos + Up * -48 + Right * -3
+		local DrillPos = MotorPos + Up * -(120 + self.CurDepth)
+		local PipePos = DrillPos + Up * 149 + Right * -8.5
+		--
+		local PowerBoxAng = SelfAng:GetCopy()
+		PowerBoxAng:RotateAroundAxis(Up, -90)
+		JMod.RenderModel(self.PowerBox, BoxPos, PowerBoxAng, Vector(2, 1.8, 1.3), nil, JMod.EZ_GRADE_MATS[Grade])
+		local MotorAng = SelfAng:GetCopy()
+		MotorAng:RotateAroundAxis(Up, 90)
+		JMod.RenderModel(self.DrillMotor, MotorPos, MotorAng, Vector(0.8, 0.8, 0.8), nil, JMod.EZ_GRADE_MATS[Grade])
+		--
+		local Obscured = false--util.TraceLine({start = EyePos(), endpos = MotorPos, filter = {LocalPlayer(), self}, mask = MASK_OPAQUE}).Hit
 		local Closeness = LocalPlayer():GetFOV() * (EyePos():Distance(SelfPos))
 		local DetailDraw = Closeness < 36000 -- cutoff point is 400 units when the fov is 90 degrees
 		local DrillDraw = true
@@ -343,11 +393,21 @@ elseif(CLIENT)then
 			JMod.RenderModel(self.DrillPipe, PipePos, MotorAng, Vector(1, 1, 1), nil, JMod.EZ_GRADE_MATS[Grade])
 			local DrillAng = SelfAng:GetCopy()
 			DrillAng:RotateAroundAxis(Up, self.DrillSpin)
-			JMod.RenderModel(self.Auger, DrillPos, DrillAng, Vector(3, 3, 3.2), nil, self.DrillMat)
 			local PipeEndAng = SelfAng:GetCopy()
 			PipeEndAng:RotateAroundAxis(Right, 90)
 			PipeEndAng:RotateAroundAxis(Up, self.DrillSpin)
 			JMod.RenderModel(self.DrillPipeEnd, DrillPos + Up * 101, PipeEndAng, Vector(1, 1, 1), nil, JMod.EZ_GRADE_MATS[Grade])
+			--[[if (Grade == 5) then
+				local LazAng = SelfAng:GetCopy()
+				LazAng:RotateAroundAxis(Up, self.DrillSpin)
+				render.SetMaterial(self.LaserMat)
+				render.DrawQuadEasy(DrillPos + Up * 50, LazAng:Forward(), 60, 100, MiningLazCol, -LazAng.r)
+				render.DrawQuadEasy(DrillPos + Up * 50, -LazAng:Forward(), 40, 100, MiningLazCol, -LazAng.r)
+				render.DrawQuadEasy(DrillPos + Up * 50, LazAng:Right(), 60, 100, MiningLazCol, LazAng.p)
+				render.DrawQuadEasy(DrillPos + Up * 50, -LazAng:Right(), 40, 100, MiningLazCol, LazAng.p)
+			else]]--
+				JMod.RenderModel(self.Auger, DrillPos, DrillAng, Vector(3, 3, 3.2), nil, self.DrillMat)
+			--end
 		end
 
 		if (not(DetailDraw)) and (Obscured) then return end -- if player is far and sentry is obscured, draw nothing

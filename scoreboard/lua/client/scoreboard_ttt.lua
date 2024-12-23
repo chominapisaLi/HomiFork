@@ -137,16 +137,15 @@ local function ToggleScoreboard(toggle)
 				HomigradScoreboard.playerMenu:Remove()
 			end
 		end
-		
 	end
 end
 
 hook.Add("ScoreboardShow","HomigradOpenScoreboard",function()
-	ToggleScoreboard(true, true)
+	ToggleScoreboard(true)
 
 	return false
 end)
 
 hook.Add("ScoreboardHide","HomigradHideScoreboard",function()
-	ToggleScoreboard(false, true)
+	ToggleScoreboard(false)
 end)

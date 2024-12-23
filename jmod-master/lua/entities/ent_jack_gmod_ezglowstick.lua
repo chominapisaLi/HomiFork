@@ -11,6 +11,8 @@ ENT.AdminSpawnable = true
 ENT.JModGUIcolorable = true
 ---
 ENT.JModEZstorable = true
+ENT.EZstorageVolumeOverride = .5
+ENT.JModInvAllowedActive = true
 ENT.JModPreferredCarryAngles = Angle(0, 0, 0)
 ---
 local STATE_OFF, STATE_BURNIN, STATE_BURNT = 0, 1, 2
@@ -27,7 +29,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 
@@ -35,15 +37,15 @@ if SERVER then
 	end
 
 	function ENT:Initialize()
-		self.Entity:SetModel("models/jmod/props/glowstick.mdl")
-		self.Entity:SetMaterial("models/jmod/props/jlowstick_off")
-		--self.Entity:SetModelScale(1.5,0)
-		self.Entity:PhysicsInit(SOLID_VPHYSICS)
-		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-		self.Entity:SetSolid(SOLID_VPHYSICS)
-		self.Entity:DrawShadow(true)
+		self:SetModel("models/jmod/props/glowstick.mdl")
+		self:SetMaterial("models/jmod/props/jlowstick_off")
+		--self:SetModelScale(1.5,0)
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
 		self:SetUseType(ONOFF_USE)
-		self.Entity:SetColor(Color(130, 200, 120))
+		self:SetColor(Color(130, 200, 120))
 		self:GetPhysicsObject():SetMass(6)
 
 		---
@@ -72,23 +74,21 @@ if SERVER then
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.2 then
 			if data.Speed > 25 then
-				self.Entity:EmitSound("Drywall.ImpactHard")
+				self:EmitSound("Drywall.ImpactHard")
 			end
 		end
 	end
 
 	function ENT:OnTakeDamage(dmginfo)
-		self.Entity:TakePhysicsDamage(dmginfo)
+		self:TakePhysicsDamage(dmginfo)
 
-		if JMod.LinCh(dmginfo:GetDamage(), 1, 50) then
+		if JMod.LinCh(dmginfo:GetDamage(), 1, 30) then
 			local Pos, State = self:GetPos(), self:GetState()
 
-			if math.random(1, 2) == 1 then
-				self:Light()
-			else
-				sound.Play("Metal_Box.Break", Pos)
-				self:Remove()
-			end
+			sound.Play("Flesh.Break", Pos)
+			self:Remove()
+		else
+			self:Light()
 		end
 	end
 
@@ -96,14 +96,14 @@ if SERVER then
 		local State = self:GetState()
 		if State == STATE_BURNT then return end
 		local Dude = activator or activatorAgain
-		local Alt = Dude:KeyDown(JMod.Config.AltFunctionKey)
-		JMod.SetOwner(self, Dude)
+		local Alt = Dude:KeyDown(JMod.Config.General.AltFunctionKey)
+		JMod.SetEZowner(self, Dude)
 		local Time = CurTime()
 
 		if State == STATE_OFF then
 			if tobool(onOff) then
 				if Alt then
-					JMod.SetOwner(self, activator)
+					JMod.SetEZowner(self, activator)
 					net.Start("JMod_ColorAndArm")
 					net.WriteEntity(self)
 					net.Send(activator)
@@ -153,7 +153,7 @@ if SERVER then
 								self.StuckStick = Weld
 							end
 
-							self:EmitSound("snd_jack_claythunk.wav", 65, math.random(80, 120))
+							self:EmitSound("snd_jack_claythunk.ogg", 65, math.random(80, 120))
 							Dude:DropObject()
 							JMod.Hint(Dude, "stick to self")
 						end
@@ -170,7 +170,7 @@ if SERVER then
 		self:SetState(STATE_BURNIN)
 		self:SetMaterial("models/jmod/props/jlowstick_on")
 		self:DrawShadow(false)
-		self:EmitSound("snds_jack_gmod/glowstick_start.wav", 60, math.random(90, 110))
+		self:EmitSound("snds_jack_gmod/glowstick_start.ogg", 60, math.random(90, 110))
 	end
 
 	ENT.Arm = ENT.Light -- for compatibility with the ColorAndArm feature
@@ -204,22 +204,57 @@ if SERVER then
 
 	function ENT:OnRemove()
 	end
+
+	hook.Add("JMod_OnInventoryAdd", "JMod_GlowstickInventoryAdd", function(invEnt, target, jmodinv)
+		if not(IsValid(invEnt) and IsValid(target)) then return end
+		if (target:GetClass() == "ent_jack_gmod_ezglowstick") and (target:GetState() == STATE_BURNIN) then
+			target:SetNoDraw(false)
+		end
+	end)
 	--
 elseif CLIENT then
 	function ENT:Initialize()
+		self.AttachedToPlayer = false
 	end
 
+	local OffsetVec, OffsetAng = Vector(-12, -3, -10), Angle(-70, 0, 90)
 	--
 	function ENT:Think()
 		local State, Fuel, Pos, Ang = self:GetState(), self:GetFuel(), self:GetPos(), self:GetAngles()
 
 		if State == STATE_BURNIN then
-			local Up, Right, Forward, Mult, Col = Ang:Up(), Ang:Right(), Ang:Forward(), (Fuel > 30 and 1) or .5, self:GetColor()
+			local Up, Right, Forward = Ang:Up(), Ang:Right(), Ang:Forward()
+			local InventoryEnt = self:GetNW2Entity("EZInvOwner", NULL)
+
+			if IsValid(InventoryEnt) then
+				local BoneIndex = InventoryEnt:LookupBone("ValveBiped.Bip01_Spine4")
+				if BoneIndex then
+					Pos, Ang = InventoryEnt:GetBonePosition(BoneIndex)
+					local BoneUp, BoneRight, BoneForward = Ang:Up(), Ang:Right(), Ang:Forward()
+					Pos = Pos + BoneRight * OffsetVec.x + BoneUp * OffsetVec.y + BoneForward * OffsetVec.z
+					Ang:RotateAroundAxis(BoneRight, OffsetAng.p)
+					Ang:RotateAroundAxis(BoneUp, OffsetAng.y)
+					Ang:RotateAroundAxis(BoneForward, OffsetAng.r)
+
+					self:SetRenderOrigin(Pos)
+					self:SetRenderAngles(Ang)
+					self.AttachedToPlayer = true
+				else
+					self:SetRenderOrigin(nil)
+					self:SetRenderAngles(nil)
+					self.AttachedToPlayer = false
+				end
+			else
+				self:SetRenderOrigin(nil)
+				self:SetRenderAngles(nil)
+				self.AttachedToPlayer = false
+			end
+			local Mult, Col = (Fuel > 30 and 1) or .5, self:GetColor()
 			local R, G, B = math.Clamp(Col.r + 20, 0, 255), math.Clamp(Col.g + 20, 0, 255), math.Clamp(Col.b + 20, 0, 255)
 			local DLight = DynamicLight(self:EntIndex())
 
 			if DLight then
-				DLight.Pos = Pos + Up * 10 + Vector(0, 0, 10)
+				DLight.Pos = Pos + Up * 10
 				DLight.r = R
 				DLight.g = G
 				DLight.b = B
@@ -235,6 +270,13 @@ elseif CLIENT then
 	local GlowSprite = Material("sprites/mat_jack_basicglow")
 
 	function ENT:Draw()
+		local Client = LocalPlayer()
+		local InventoryEnt = self:GetNW2Entity("EZInvOwner", NULL)
+
+		if self.AttachedToPlayer and (Client == InventoryEnt) and not Client:ShouldDrawLocalPlayer() then
+			return
+		end
+
 		self:DrawModel()
 	end
 

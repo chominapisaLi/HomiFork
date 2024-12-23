@@ -9,11 +9,10 @@ function EFFECT:Init(data)
 	self.Normal = Vector(0, 0, 1)
 
 	local Tr = util.TraceLine({
-		start = self.Pos + Vector(0, 0, 500),
-		endpos = self.Pos - Vector(0, 0, -1000),
+		start = self.Pos + Vector(0, 0, 1000),
+		endpos = self.Pos,
 		filter = {self.Mine},
-		mask = -1 -- hit water
-		
+		mask = MASK_WATER
 	})
 
 	if Tr.Hit then
@@ -27,8 +26,8 @@ function EFFECT:Init(data)
 	Splach:SetScale(100)
 	util.Effect("WaterSplash", Splach)
 	---
-	sound.Play("snds_jack_gmod/watersplode_with_rain.wav", self.Pos + Vector(0, 0, 100), 80, math.random(95, 105), 1)
-	sound.Play("snds_jack_gmod/watersplode_with_rain.wav", self.Pos + Vector(0, 0, 110), 80, math.random(95, 105), 1)
+	sound.Play("snds_jack_gmod/watersplode_with_rain.ogg", self.Pos + Vector(0, 0, 100), 80, math.random(95, 105), 1)
+	sound.Play("snds_jack_gmod/watersplode_with_rain.ogg", self.Pos + Vector(0, 0, 110), 80, math.random(95, 105), 1)
 	---
 	local emitter = ParticleEmitter(self.Pos)
 

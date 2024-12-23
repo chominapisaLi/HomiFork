@@ -1,5 +1,5 @@
 ﻿-- EZ Radio Code --
-local NotifyAllMsgs = {
+JMod.NotifyAllMsgs = {
 	["normal"] = {
 		["good drop"] = "good drop, package away, returning to base",
 		["drop failed"] = "drop failed, pilot could not locate a good drop position for the reported coordinates. Aircraft is RTB",
@@ -26,34 +26,43 @@ local function CreateRadioStation(teamID)
 		notified = false,
 		restrictedPackageStock = {},
 		restrictedPackageDelivering = nil,
-		restrictedPackageDeliveryTime = 0
+		restrictedPackageDeliveryTime = 0,
+		outpostDirection = Vector(math.Rand(-1, 1), math.Rand(-1, 1), 0):GetNormalized(),
+		lastCaller = nil
 	}
 end
 
-local function NotifyAllRadios(stationID, msgID, direct)
-	local Station = JMod.EZ_RADIO_STATIONS[stationID]
-	local Radios = ents.FindByClass("ent_jack_gmod_ezaidradio")
+local function FindEZradios() 
+	local Radios = {}
+	for _, v in ents.Iterator() do
+		if v.EZradio and (v.EZradio == true) then
+			table.insert(Radios, v)
+		end
+	end
 
-	for k, v in pairs(Radios) do
-		if v:GetState() > 0 and v:GetOutpostID() == stationID then
+	return Radios
+end
+
+function JMod.NotifyAllRadios(stationID, msgID, direct)
+	local Station = JMod.EZ_RADIO_STATIONS[stationID]
+
+	for _, radio in ipairs(FindEZradios()) do
+		if (radio:GetState() > JMod.EZ_STATE_OFF) and (radio:GetOutpostID() == stationID) then
 			if msgID then
 				if direct then
-					v:Speak(msgID)
+					radio:Speak(msgID)
 				else
-					if v.BFFd then
-						v:Speak(NotifyAllMsgs["bff"][msgID])
-					else
-						v:Speak(NotifyAllMsgs["normal"][msgID])
-					end
+					local Personality = radio:GetVoice() or "normal"
+					radio:Speak(JMod.NotifyAllMsgs[Personality][msgID])
 				end
 			end
 
-			v:SetState(Station.state)
+			radio:SetState(Station.state)
 		end
 	end
 end
 
-local function FindDropPosFromSignalOrigin(origin)
+function JMod.FindDropPosFromSignalOrigin(origin)
 	local Height, Attempts, Pos, AcceptTFVonly = 0, 0, origin + Vector(0, 0, 200), false
 
 	while (Attempts < 1000) and not (Height > 5000) do
@@ -100,58 +109,71 @@ hook.Add("Think", "JMod_RADIO_THINK", function()
 			if station.nextDeliveryTime < Time then
 				station.nextReadyTime = Time + math.ceil(JMod.Config.RadioSpecs.DeliveryTimeMult * math.Rand(30, 60) * 3)
 				station.state = JMod.EZ_STATION_STATE_BUSY
-				local DropPos = FindDropPosFromSignalOrigin(station.deliveryLocation)
+				local DropPos = JMod.FindDropPosFromSignalOrigin(station.deliveryLocation)
 
+				local AlternateDelivery, ReturnToBaseModifier = hook.Run("JMod_OnRadioDeliver", stationID, DropPos)
+
+				if AlternateDelivery ~= nil then
+					if AlternateDelivery == true then
+						JMod.NotifyAllRadios(stationID, "good drop")
+					else
+						JMod.NotifyAllRadios(stationID, "drop failed")
+					end
+					if ReturnToBaseModifier then
+						station.nextDeliveryTime = Time + math.ceil(math.min(JMod.Config.RadioSpecs.DeliveryTimeMult * math.Rand(30, 60), ReturnToBaseModifier))
+					end
+
+					return 
+				end
+				
 				if DropPos then
-					local DropVelocity = VectorRand()
-					DropVelocity.z = 0
-					DropVelocity:Normalize()
-					DropVelocity = DropVelocity * 5
+					local DropVelocity = station.outpostDirection
+					DropVelocity = DropVelocity * 400
 					local Eff = EffectData()
 					Eff:SetOrigin(DropPos)
 					Eff:SetStart(DropVelocity)
 					util.Effect("eff_jack_gmod_jetflyby", Eff, true, true)
 					local DeliveryItems = JMod.Config.RadioSpecs.AvailablePackages[station.deliveryType].results
+					local IsChrimsas = JMod.GetHoliday() == "Christmas"
 
 					timer.Simple(.9, function()
 						local Box = ents.Create("ent_jack_aidbox")
 						Box:SetPos(DropPos)
-						Box.InitialVel = -DropVelocity
+						Box.InitialVel = -DropVelocity * math.random(1, 3)
 						Box.Contents = DeliveryItems
 						Box.NoFadeIn = true
 						Box:SetDTBool(0, "true")
 						Box:Spawn()
-						Box:Initialize()
 						Box:SetPackageName(station.deliveryType)
 						---
-						sound.Play("snd_jack_flyby_drop.mp3", DropPos, 150, 100)
+						sound.Play((IsChrimsas and "snd_jack_flyby_drop_Christmas.ogg") or "snd_jack_flyby_drop.ogg", DropPos, 150, 100)
 
 						for k, playa in pairs(ents.FindInSphere(DropPos, 6000)) do
 							if playa:IsPlayer() then
-								sound.Play("snd_jack_flyby_drop.mp3", playa:GetShootPos(), 50, 100)
+								sound.Play((IsChrimsas and "snd_jack_flyby_drop_Christmas.ogg") or "snd_jack_flyby_drop.ogg", playa:GetShootPos(), 50, 100)
 							end
 						end
 
-						NotifyAllRadios(stationID, "good drop")
+						JMod.NotifyAllRadios(stationID, "good drop")
 					end)
 				else
-					NotifyAllRadios(stationID, "drop failed")
+					JMod.NotifyAllRadios(stationID, "drop failed")
 				end
 			elseif (station.nextNotifyTime < Time) and not station.notified then
 				station.notified = true
-				NotifyAllRadios(stationID, "drop soon")
+				JMod.NotifyAllRadios(stationID, "drop soon")
 			end
 		elseif station.state == JMod.EZ_STATION_STATE_BUSY then
 			if station.nextReadyTime < Time then
 				station.state = JMod.EZ_STATION_STATE_READY
-				NotifyAllRadios(stationID, "ready")
+				JMod.NotifyAllRadios(stationID, "ready")
 			end
 		end
 
 		if station.restrictedPackageDelivering then
 			if station.restrictedPackageDeliveryTime < Time then
 				table.insert(station.restrictedPackageStock, station.restrictedPackageDelivering)
-				NotifyAllRadios(stationID, "attention, this outpost has received a special shipment of " .. station.restrictedPackageDelivering .. " from regional HQ", true)
+				JMod.NotifyAllRadios(stationID, "attention, this outpost has received a special shipment of " .. station.restrictedPackageDelivering .. " from regional HQ", true)
 				station.restrictedPackageDelivering = nil
 				station.restrictedPackageDeliveryTime = 0
 			end
@@ -193,18 +215,24 @@ hook.Add("PlayerSay", "JMod_PLAYERSAY", function(ply, txt)
 		return ""
 	end
 
+	if (lowerTxt == "*scrounge*") or (lowerTxt == "*scavange*") then
+		JMod.EZ_ScroungeArea(ply)
+
+		return ""
+	end
+
 	for k, v in pairs(ents.FindInSphere(ply:GetPos(), 150)) do
-		if v.EZreceiveSpeech then
+		if v.EZreceiveSpeech and (v.GetState and v:GetState() == JMod.EZ_STATION_STATE_READY) then
 			if v:EZreceiveSpeech(ply, txt) then return "" end -- hide the player's radio chatter from the server
 		end
 	end
 
-	if ply.EZarmor and ply.EZarmor.effects.teamComms then
+	if JMod.PlyHasArmorEff(ply, "teamComms") then
 		for id, data in pairs(ply.EZarmor.items) do
 			local Info = JMod.ArmorTable[data.name]
 
 			if Info.eff and Info.eff.teamComms then
-				local SubtractAmt = JMod.Config.ArmorDegredationMult / 2
+				local SubtractAmt = JMod.Config.Armor.DegradationMult / 2
 				data.chrg.power = math.Clamp(data.chrg.power - SubtractAmt, 0, 9e9)
 
 				if data.chrg.power <= Info.chrg.power * .25 then
@@ -214,18 +242,27 @@ hook.Add("PlayerSay", "JMod_PLAYERSAY", function(ply, txt)
 		end
 
 		local bestradio = nil
-
-		for _, v in pairs(ents.FindByClass("ent_jack_gmod_ezaidradio")) do
-			if v:UserIsAuthorized(ply) and (not bestradio or bestradio:GetPos():Distance(ply:GetPos()) < v:GetPos():DistToSqr(ply:GetPos())) then
-				bestradio = v
+		
+		for _, v in ipairs(FindEZradios()) do
+			if v:UserIsAuthorized(ply) and (not(bestradio) or (bestradio:GetPos():DistToSqr(ply:GetPos()) > v:GetPos():DistToSqr(ply:GetPos()))) then
+				if (v.GetState and v:GetState() == JMod.EZ_STATION_STATE_READY) then
+					bestradio = v
+				end
 			end
 		end
 
-		if bestradio and bestradio:EZreceiveSpeech(ply, txt) then return "" end
+		local ExplodedString = string.Explode(" ", lowerTxt)
+		if bestradio and bestradio:EZreceiveSpeech(ply, txt) then 
+
+			return "" 
+		elseif not(bestradio) and ((ExplodedString[1] == "supply") or (ExplodedString[1] == "aid")) and (ExplodedString[2] == "radio:") then
+
+			ply:PrintMessage(HUD_PRINTCENTER, "No good radios in range")
+		end
 	end
 end)
 
-function JMod.EZradioEstablish(transceiver, teamID)
+function JMod.EZradioEstablish(transceiver, teamID, reassign)
 	local AlliedStations = {}
 
 	for k, v in pairs(JMod.EZ_RADIO_STATIONS) do
@@ -234,74 +271,80 @@ function JMod.EZradioEstablish(transceiver, teamID)
 		end
 	end
 
-	if #AlliedStations <= 0 then
-		table.insert(JMod.EZ_RADIO_STATIONS, CreateRadioStation(teamID))
-		table.insert(AlliedStations, #JMod.EZ_RADIO_STATIONS)
+	local MinimumOutposts = JMod.Config.RadioSpecs.StartingOutpostCount or 0
+	if (#AlliedStations < MinimumOutposts) then
+		for i = 1, MinimumOutposts - #AlliedStations do
+			table.insert(JMod.EZ_RADIO_STATIONS, CreateRadioStation(teamID))
+			table.insert(AlliedStations, #JMod.EZ_RADIO_STATIONS)
+		end
 	end
 
-	local ChosenStation = nil
+	local OriginalStation, ChosenStation = transceiver:GetOutpostID(), nil
 
-	for k, id in pairs(AlliedStations) do
-		local Taken = false
-
-		for key, radio in pairs(ents.FindByClass("ent_jack_gmod_ezaidradio")) do
-			if radio ~= transceiver and radio:GetState() > 0 and radio:GetOutpostID() == id then
-				Taken = true
-				break
-			end
-		end
-
-		--print(Taken)
-
-		if not Taken then
-			ChosenStation = id
-			break
-		end
+	if not(reassign) and (OriginalStation ~= 0) and (JMod.EZ_RADIO_STATIONS[OriginalStation] and (JMod.EZ_RADIO_STATIONS[OriginalStation].teamID == teamID)) and (JMod.EZ_RADIO_STATIONS[OriginalStation].state == JMod.EZ_STATION_STATE_READY) then
+		return
 	end
 
 	if not ChosenStation then
-		for k, v in pairs(AlliedStations) do
-			local station = JMod.EZ_RADIO_STATIONS[v]
+		for k, id in pairs(AlliedStations) do
+			local station = JMod.EZ_RADIO_STATIONS[id]
 
-			if station.state == JMod.EZ_STATION_STATE_READY then
-				ChosenStation = v
+			if (station.state == JMod.EZ_STATION_STATE_READY) then
+				ChosenStation = id
 				break
 			end
 		end
 	end
 
-	if not ChosenStation then
-		ChosenStation = table.Random(AlliedStations)
+	if ChosenStation then
+		transceiver:SetOutpostID(ChosenStation)
 	end
-
-	transceiver:SetOutpostID(ChosenStation)
 end
 
 -- this is on the global table for third-party use
 function JMod.AddNewRadioOutpost(teamID)
 	table.insert(JMod.EZ_RADIO_STATIONS, CreateRadioStation(teamID))
-	for k, ply in pairs(player.GetAll()) do
-		ply:PrintMessage(HUD_PRINTTALK, "Team " .. team.GetName(tonumber(teamID)) .. " has gained a radio outpost.")
+
+	local TeamName = team.GetName(tonumber(teamID))
+
+	if TeamName == "" then
+		TeamName = player.GetByAccountID(tonumber(teamID)):Name()
+	else
+		TeamName = "Team " .. TeamName
+	end
+
+	for k, ply in player.Iterator() do
+		ply:PrintMessage(HUD_PRINTTALK, TeamName .. " has gained a radio outpost.")
 	end
 end
 
 -- this is also on the global table for third-party use
 function JMod.RemoveRadioOutPost(teamID)
+	local RemovedOutpost = nil
 	for k, v in pairs(JMod.EZ_RADIO_STATIONS) do
 		if v.teamID == teamID then
 			table.remove(JMod.EZ_RADIO_STATIONS, k)
+			RemovedOutpost = k
 			break
 		end
 	end
 
-	for _, radio in pairs(ents.FindByClass("ent_jack_gmod_ezaidradio")) do
-		radio:TurnOff()
+	for _, radio in ipairs(FindEZradios()) do
+		if radio:GetOutpostID() == RemovedOutpost then
+			radio:StartConnecting()
+		end
 	end
 
-	for k, ply in pairs(player.GetAll()) do
-		for k, ply in pairs(player.GetAll()) do
-			ply:PrintMessage(HUD_PRINTTALK, "Team " .. team.GetName(tonumber(teamID)) .. " has lost a radio outpost.")
-		end
+	local TeamName = team.GetName(tonumber(teamID))
+
+	if TeamName == "" then
+		TeamName = player.GetByAccountID(tonumber(teamID)):Name()
+	else
+		TeamName = "Team " .. TeamName
+	end
+
+	for k, ply in player.Iterator() do
+		ply:PrintMessage(HUD_PRINTTALK, TeamName .. " has lost a radio outpost.")
 	end
 end
 
@@ -332,9 +375,9 @@ concommand.Add("jmod_debug_removeoutpost", function(ply, cmd, args)
 end, nil, "Removes a radio outpost for your team.")
 
 local function GetPlayerFromNick(nickname)
+	if not nickname then return nil end
 	nickname = string.lower(nickname)
-	local Entities = ents.GetAll()
-	for _, v in ipairs(Entities) do
+	for _, v in ents.Iterator() do
 		if not(IsValid(v)) and (v:IsPlayer()) and (string.lower(v:Nick())) == nickname then
 
 			return v
@@ -346,7 +389,7 @@ end
 
 concommand.Add("jmod_airdropplayer", function(ply, cmd, args) 
 	if not ply:IsUserGroup("superadmin") then return end
-
+	
 	local TargetPly, TargetPos, Punish = GetPlayerFromNick(args[1]), ply:GetPos(), false
 
 	if not(IsValid(TargetPly)) then 
@@ -359,10 +402,9 @@ concommand.Add("jmod_airdropplayer", function(ply, cmd, args)
 		Punish = tobool(args[2])
 	end
 
-	local DropPos = FindDropPosFromSignalOrigin(TargetPos)
+	local DropPos = JMod.FindDropPosFromSignalOrigin(TargetPos)
 
 	if DropPos then
-
 		TargetPly:ExitVehicle()
 		--TargetPly:SetPos(DropPos)
 		TargetPly:SetNoDraw(true)
@@ -383,7 +425,6 @@ concommand.Add("jmod_airdropplayer", function(ply, cmd, args)
 			Box.NoFadeIn = true
 			Box:SetDTBool(0, "true")
 			Box:Spawn()
-			Box:Initialize()
 			----- Create the chair
 			Box.Pod = ents.Create("prop_vehicle_prisoner_pod")
 			Box.Pod:SetModel("models/vehicles/prisoner_pod_inner.mdl")
@@ -401,11 +442,11 @@ concommand.Add("jmod_airdropplayer", function(ply, cmd, args)
 			Box:SetPackageName(ply:Nick())
 			TargetPly:EnterVehicle(Box.Pod)
 			---
-			sound.Play("snd_jack_flyby_drop.mp3", DropPos, 150, 100)
+			sound.Play("snd_jack_flyby_drop.ogg", DropPos, 150, 100)
 
 			for k, playa in pairs(ents.FindInSphere(DropPos, 6000)) do
 				if playa:IsPlayer() then
-					sound.Play("snd_jack_flyby_drop.mp3", playa:GetShootPos(), 50, 100)
+					sound.Play("snd_jack_flyby_drop.ogg", playa:GetShootPos(), 50, 100)
 				end
 			end
 		end)
@@ -413,7 +454,7 @@ concommand.Add("jmod_airdropplayer", function(ply, cmd, args)
 end, nil, "Airdrops specified player on specified location")
 
 hook.Add("PlayerLeaveVehicle", "JMod_PlayerPackageExit", function( ply, veh )
-	Box = veh:GetParent()
+	local Box = veh:GetParent()
 	if (IsValid(Box)) and (Box:GetClass() == "ent_jack_aidbox") then
 		ply:SetPos(Box:GetPos())
 		Box:Use(ply)
@@ -454,19 +495,20 @@ end)
 --]]
 local function StartDelivery(pkg, transceiver, id, bff, ply)
 	local Station = JMod.EZ_RADIO_STATIONS[id]
+	Station.lastCaller = transceiver
 	local Time = CurTime()
 	local DeliveryTime, Pos = math.ceil(JMod.Config.RadioSpecs.DeliveryTimeMult * math.Rand(30, 60)), ply:GetPos()
-	local newTime, newPos = hook.Run("JMod_RadioDelivery", transceiver.Owner, transceiver, pkg, DeliveryTime, Pos)
+	local newTime, newPos = hook.Run("JMod_RadioDelivery", ply, transceiver, pkg, DeliveryTime, Pos)
 	DeliveryTime = newTime or DeliveryTime
 	Pos = newPos or Pos
-	JMod.Hint(transceiver.Owner, "aid wait")
+	JMod.Hint(ply, "aid wait")
 	Station.state = JMod.EZ_STATION_STATE_DELIVERING
 	Station.nextDeliveryTime = Time + DeliveryTime
 	Station.deliveryLocation = Pos
 	Station.deliveryType = pkg
 	Station.notified = false
 	Station.nextNotifyTime = Time + (DeliveryTime - 5)
-	NotifyAllRadios(id) -- do a notify to update all radio states
+	JMod.NotifyAllRadios(id) -- do a notify to update all radio states
 	if bff then return "ayo GOOD COPY homie, we sendin " .. GetArticle(pkg) .. " " .. pkg .. " box right over to " .. math.Round(Pos.x) .. " " .. math.Round(Pos.y) .. " " .. math.Round(Pos.z) .. " in prolly like " .. DeliveryTime .. " seconds" end
 
 	return "roger wilco, sending " .. GetArticle(pkg) .. " " .. pkg .. " package to coordinates " .. math.Round(Pos.x) .. ", " .. math.Round(Pos.z) .. "; ETA " .. DeliveryTime .. " seconds"
@@ -474,8 +516,8 @@ end
 
 function JMod.EZradioRequest(transceiver, id, ply, pkg, bff)
 	local PackageInfo, Station, Time = JMod.Config.RadioSpecs.AvailablePackages[pkg], JMod.EZ_RADIO_STATIONS[id], CurTime()
-	if not Station then return end
-	NotifyAllRadios(id) -- do a notify to update all radio states
+	if not Station then return "No station with that ID" end
+	JMod.NotifyAllRadios(id) -- do a notify to update all radio states
 	transceiver.BFFd = bff
 	local override, msg = hook.Run("JMod_CanRadioRequest", ply, transceiver, pkg)
 	if override == false then return msg or "negative on that request." end
@@ -530,7 +572,7 @@ end
 function JMod.EZradioStatus(transceiver, id, ply, bff)
 	local Station, Time, Msg = JMod.EZ_RADIO_STATIONS[id], CurTime(), ""
 	if not Station then return end
-	NotifyAllRadios(id) -- do a notify to update all radio states
+	JMod.NotifyAllRadios(id) -- do a notify to update all radio states
 	transceiver.BFFd = bff
 
 	if Station.state == JMod.EZ_STATION_STATE_DELIVERING then

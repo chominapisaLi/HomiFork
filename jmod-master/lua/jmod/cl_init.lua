@@ -250,8 +250,9 @@ hook.Add("Think", "JMOD_CLIENT_THINK", function()
 	local ply, DrawNVGlamp = LocalPlayer(), false
 
 	if not ply:ShouldDrawLocalPlayer() then
-		if ply:Alive() and ply.EZarmor and ply.EZarmor.effects then
-			if ply.EZarmor.effects.nightVision or ply.EZarmor.effects.nightVisionWP then
+		if ply:Alive() and JMod.PlyHasArmorEff(ply) then
+			local ArmorEffects = ply.EZarmor.effects
+			if ArmorEffects.nightVision or ArmorEffects.nightVisionWP then
 				DrawNVGlamp = true
 
 				if not IsValid(ply.EZNVGlamp) then
@@ -281,17 +282,49 @@ hook.Add("Think", "JMOD_CLIENT_THINK", function()
 
 	if NextThink > Time then return end
 	NextThink = Time + 5
-	JMod.Wind = JMod.Wind + WindChange / 10
+	JMod.Wind = GetGlobal2Vector("JMod_Wind", JMod.Wind)
+end)
 
-	if JMod.Wind:Length() > 1 then
-		JMod.Wind:Normalize()
-		WindChange = -WindChange
+local WDir = VectorRand()
+
+hook.Add("CreateMove", "ParachuteShake", function(cmd)
+	local Ply = LocalPlayer()
+	if not Ply:Alive() then return end
+
+	if Ply:GetNW2Bool("EZparachuting", false) then
+		local Amt, Sporadicness, FT = 30, 20, FrameTime()
+
+		if Ply:KeyDown(IN_FORWARD) then
+			Sporadicness = Sporadicness * 1.5
+			Amt = Amt * 2
+		end
+
+		local S, EAng = .05, cmd:GetViewAngles()
+		--(JMod.Wind + EAng:Forward())
+		WDir = (WDir + FT * VectorRand() * Sporadicness):GetNormalized()
+		EAng.pitch = math.NormalizeAngle(EAng.pitch + math.sin(RealTime() * 2) * 0.02)
+		Ply.LerpedYaw = math.ApproachAngle(Ply.LerpedYaw, EAng.y, FT * 120)
+		EAng.yaw = Ply.LerpedYaw + math.NormalizeAngle(WDir.x * FT * Amt * S)
+		cmd:SetViewAngles(EAng)
+	else
+		Ply.LerpedYaw = cmd:GetViewAngles().y
 	end
+end)
 
-	WindChange = WindChange + Vector(math.Rand(-.5, .5), math.Rand(-.5, .5), 0)
+hook.Add("CreateMove", "RocketSpeen", function(cmd)
+	local Ply = LocalPlayer()
+	if not Ply:Alive() then return end
 
-	if WindChange:Length() > 1 then
-		WindChange:Normalize()
+	if Ply:GetNW2Bool("EZrocketSpin", false) then
+		local FT = FrameTime()
+
+		local Spin, EAng = 1200, cmd:GetViewAngles()
+		local WDir = Ply:GetVelocity():GetNormalized()
+		Ply.LerpedYaw = math.ApproachAngle(Ply.LerpedYaw, EAng.y, FT * 120)
+		EAng.yaw = Ply.LerpedYaw + math.NormalizeAngle(WDir.x * Spin * FT)
+		cmd:SetViewAngles(EAng)
+	else
+		Ply.LerpedYaw = cmd:GetViewAngles().y
 	end
 end)
 
@@ -319,10 +352,10 @@ hook.Add("PostDrawTranslucentRenderables", "JMOD_POSTDRAWTRANSLUCENTRENDERABLES"
 
 	if Time > NextSlamScan then
 		NextSlamScan = Time + .5
-		KnownSlams = ents.FindByClass("ent_jack_gmod_ezslam")
+		KnownSLAMs = ents.FindByClass("ent_jack_gmod_ezslam")
 	end
 
-	for k, ent in pairs(KnownSlams) do
+	for k, ent in pairs(KnownSLAMs) do
 		if IsValid(ent) then
 			local pos = ent:GetAttachment(1).Pos
 
@@ -361,11 +394,14 @@ net.Receive("JMod_LuaConfigSync", function(dataLength)
 	JMod.LuaConfig = JMod.LuaConfig or {}
 	JMod.LuaConfig.ArmorOffsets = Payload.ArmorOffsets
 	JMod.Config = JMod.Config or {}
-	JMod.Config.AltFunctionKey = Payload.AltFunctionKey
-	JMod.Config.WeaponSwayMult = Payload.WeaponSwayMult
+	JMod.Config.General = {AltFunctionKey = Payload.AltFunctionKey}
+	JMod.Config.Machines = {Blackhole = Payload.Blackhole}
+	JMod.Config.Weapons = {SwayMult = Payload.WeaponSwayMult}
+	JMod.Config.QoL = table.FullCopy(Payload.QoL)
+	JMod.Config.ResourceEconomy = {MaxResourceMult = Payload.MaxResourceMult}
 
 	if tobool(net.ReadBit()) then
-		for k, v in pairs(player.GetAll()) do
+		for k, v in player.Iterator() do
 			JMod.CopyArmorTableToPlayer(v)
 		end
 	end
@@ -375,7 +411,11 @@ function JMod.MakeModel(self, mdl, mat, scale, col)
 	local Mdl = ClientsideModel(mdl)
 
 	if mat then
-		Mdl:SetMaterial(mat)
+		if isnumber(mat) then
+			Mdl:SetSkin(mat)
+		else
+			Mdl:SetMaterial(mat)
+		end
 	end
 
 	if scale then
@@ -398,6 +438,7 @@ end
 
 function JMod.RenderModel(mdl, pos, ang, scale, color, mat, fullbright, translucency)
 	if not IsValid(mdl) then return end
+	--mdl:SetupBones()
 
 	if pos then
 		mdl:SetRenderOrigin(pos)
@@ -417,7 +458,7 @@ function JMod.RenderModel(mdl, pos, ang, scale, color, mat, fullbright, transluc
 	local RenderCol = color or Vector(1, 1, 1)
 	render.SetColorModulation(RenderCol.x, RenderCol.y, RenderCol.z)
 
-	if mat then
+	if mat and not(tonumber(mat)) then
 		render.ModelMaterialOverride(mat)
 	end
 
@@ -435,6 +476,29 @@ function JMod.RenderModel(mdl, pos, ang, scale, color, mat, fullbright, transluc
 	render.ModelMaterialOverride(nil)
 	render.SuppressEngineLighting(false)
 	render.SetBlend(1)
+end
+
+function JMod.SafeRemoveCSModel(ent, mdl, tab)
+	if tab and istable(tab) then
+		local ModelsToRemove = table.FullCopy(tab)
+		timer.Simple(0, function()
+			if IsValid(ent) then return end
+			for k, v in pairs(ModelsToRemove)do
+				if(IsValid(v))then
+					v:Remove()
+				end
+			end
+		end)
+	end
+	if mdl and IsValid(mdl) then
+		local ModelToRemove = mdl
+		timer.Simple(0, function()
+			if IsValid(ent) then return end
+			if(IsValid(v))then
+				mdl:Remove()
+			end
+		end)
+	end
 end
 
 local FRavg, FRcount = 0, 0
@@ -464,8 +528,16 @@ local function IsWHOT(ent)
 		if not ent.EZWHOTcoldTime then
 			ent.EZWHOTcoldTime = Time + 30
 		end
-	elseif ent:IsVehicle() or (simfphys and simfphys.IsCar(ent)) then
-		-- HL2/Simfphys vehicles
+	elseif ent:IsVehicle() then
+		-- HL2 vehicles
+		if IsValid(ent:GetDriver()) and ent:GetVelocity():Length() >= 200 then
+			ent.EZWHOTcoldTime = Time + math.Clamp(ent:GetVelocity():Length() / 20, 10, 40)
+		end
+
+		if LocalPlayer() == ent:GetDriver() then return false end
+	elseif simfphys and simfphys.IsCar then -- have to check for IsCar because some addons create the 'simfphys' object even if simfphys isn't enabled/installed, weeeee
+		-- simfphys vehicles
+		if not simfphys.IsCar(ent) then return end
 		if IsValid(ent:GetDriver()) and ent:GetVelocity():Length() >= 200 then
 			ent.EZWHOTcoldTime = Time + math.Clamp(ent:GetVelocity():Length() / 20, 10, 40)
 		end
@@ -510,14 +582,14 @@ local thermalmodify = {
 hook.Add("PostDrawOpaqueRenderables", "JMOD_POSTOPAQUERENDERABLES", function()
 	local ply, Time = LocalPlayer(), CurTime()
 
-	if ply:Alive() and ply.EZarmor and ply.EZarmor.effects and ply.EZarmor.effects.thermalVision and not ply:ShouldDrawLocalPlayer() then
+	if ply:Alive() and JMod.PlyHasArmorEff(ply, "thermalVision") and not ply:ShouldDrawLocalPlayer() then
 		DrawColorModify(thermalmodify)
 
 		if NextWHOTcheck < Time then
 			NextWHOTcheck = Time + .5
 			WHOTents = {}
 
-			for k, v in pairs(ents.GetAll()) do
+			for k, v in ents.Iterator() do
 				if IsWHOT(v) then
 					table.insert(WHOTents, v)
 				end
@@ -550,32 +622,110 @@ hook.Add("PostDrawOpaqueRenderables", "JMOD_POSTOPAQUERENDERABLES", function()
 	end
 end)
 
-hook.Add("PostDrawTranslucentRenderables", "JMOD_POSTTRANSLUCENTRENDERABLES", function()
+local Translucent = Color(255, 255, 255, 100)
+hook.Add("PostDrawTranslucentRenderables", "JMOD_PLAYEREFFECTS", function(bDepth, bSkybox)
 	local ply, Time = LocalPlayer(), CurTime()
+	
+	if ply:Alive() then
+		if JMod.PlyHasArmorEff(ply, "thermalVision") and not ply:ShouldDrawLocalPlayer() then
+			for key, targ in pairs(WHOTents) do
+				if IsValid(targ) then
+					local Br = .9
 
-	if ply:Alive() and ply.EZarmor and ply.EZarmor.effects and ply.EZarmor.effects.thermalVision and not ply:ShouldDrawLocalPlayer() then
-		for key, targ in pairs(WHOTents) do
-			if IsValid(targ) then
-				local Br = .9
-
-				if targ.EZWHOTcoldTime then
-					Br = .75 * (targ.EZWHOTcoldTime - Time) / 30
-				end
-
-				if Br > .1 then
-					render.ModelMaterialOverride(ThermalGlowMat)
-					render.SuppressEngineLighting(true)
-					render.SetColorModulation(Br, Br, Br)
-
-					if targ:GetRenderMode() == RENDERMODE_TRANSALPHA then
-						targ:DrawModel()
+					if targ.EZWHOTcoldTime then
+						Br = .75 * (targ.EZWHOTcoldTime - Time) / 30
 					end
 
-					render.SetColorModulation(1, 1, 1)
-					render.SuppressEngineLighting(false)
-					render.ModelMaterialOverride(nil)
+					if Br > .1 then
+						render.ModelMaterialOverride(ThermalGlowMat)
+						render.SuppressEngineLighting(true)
+						render.SetColorModulation(Br, Br, Br)
+
+						if targ:GetRenderMode() == RENDERMODE_TRANSALPHA then
+							targ:DrawModel()
+						end
+
+						render.SetColorModulation(1, 1, 1)
+						render.SuppressEngineLighting(false)
+						render.ModelMaterialOverride(nil)
+					end
 				end
 			end
+		end
+
+		if bSkybox then return end -- avoid drawing in the skybox
+		local ToolBox = ply:GetActiveWeapon()
+
+		if not IsValid(ToolBox) then return end
+		if not ToolBox:GetClass() == "wep_jack_gmod_eztoolbox" then return end
+		
+		if ToolBox.EZpreview then
+		 	if ToolBox.EZpreview.Box then
+		 		if ToolBox:GetSelectedBuild() ~= "" then
+		 			local Filter = {ply}
+		 			for k, v in pairs(ents.FindByClass("npc_bullseye")) do
+		 				table.insert(Filter, v)
+		 			end
+		 			local Tr = util.QuickTrace(ply:GetShootPos(), ply:GetAimVector() * 100 * math.Clamp((ToolBox.CurrentBuildSize or 1), .5, 100), Filter)
+		 			-- this trace code ^ is stolen from the toolbox, had to filter out ply to get a correct trace
+		 																																											--HSVToColor( CurTime() * 50 % 360, 1, 1 ) :troll:
+		 			render.DrawWireframeBox(Tr.HitPos + Tr.HitNormal * 20 * (ToolBox.EZpreview.SizeScale or 1), ToolBox.EZpreview.SpawnAngles or Angle(0, ply:EyeAngles().y, 0), ToolBox.EZpreview.Box.mins, ToolBox.EZpreview.Box.maxs, Translucent, true)
+		 		end
+
+		 	elseif ToolBox:GetSelectedBuild() == "EZ Nail" then
+		 		local Pos, Vec = ply:GetShootPos(), ply:GetAimVector()
+
+		 		local Tr1 = util.QuickTrace(Pos, Vec * 80, {ply})
+		 		local Tr2 = ni
+		 		if Tr1.Hit then
+		 			local Ent1 = Tr1.Entity
+
+		 			if Tr1.HitSky or Ent1:IsWorld() or Ent1:IsPlayer() or Ent1:IsNPC() then return end
+
+		 			Tr2 = util.QuickTrace(Pos, Vec * 120, {ply, Ent1})
+
+		 			if Tr2.Hit then
+		 				local Ent2 = Tr2.Entity
+		 				if (Ent1 == Ent2) or Tr2.HitSky or Ent2:IsPlayer() or Ent2:IsNPC() then return end
+		 				local Dist = Tr1.HitPos:Distance(Tr2.HitPos)
+		 				if Dist > 30 then return end
+		 			end
+		 		end
+		 		-- would've liked to use the existing funcs to find nail location here
+		 		-- but they're server-side only
+		 		-- and also use ent:GetPhysicsObject() which will return nil 99% of the time on client
+
+		 		if not Tr1.Hit or not Tr2.Hit or not Vec then return end
+
+		 		render.DrawWireframeBox(Tr1.HitPos, Vec:Angle(), Vector(15,.5,.5), Vector(-15,-.5,-.5), color_white, false)
+
+		 	elseif ToolBox:GetSelectedBuild() == "EZ Bolt" then
+		 		local Pos, Vec = ply:GetShootPos(), ply:GetAimVector()
+
+		 		local Tr1 = util.QuickTrace(Pos, Vec * 80, {ply})
+
+		 		if Tr1.Hit then
+		 			local Ent1 = Tr1.Entity
+		 			if Tr1.HitSky or Ent1:IsWorld() or Ent1:IsPlayer() or Ent1:IsNPC() then return end
+
+		 			local Tr2 = util.QuickTrace(Tr1.HitPos, Tr1.HitNormal * -40, {ply, Ent1})
+
+		 			if Tr2.Hit then
+	 					local Ent2 = Tr2.Entity
+						if (Ent1 == Ent2) or Tr2.HitSky or Ent2:IsPlayer() or Ent2:IsNPC() then return end
+		 				if Ent2:IsWorld() then return end
+		 				local Dist = Tr1.HitPos:Distance(Tr2.HitPos)
+		 				if Dist > 30 then return end
+
+		 			end
+
+		 			if not Tr1.Hit or not Tr2.Hit or not Vec then return end
+
+		 			local Dir = (Tr1.HitPos - Tr2.HitPos):GetNormalized()
+
+		 			render.DrawWireframeBox(Tr1.HitPos - Dir * 20, Dir:Angle(), Vector(21.5,.5,.5), Vector(-0,-.5,-.5), color_white, true)
+		 		end
+		 	end
 		end
 	end
 end)
@@ -600,7 +750,7 @@ hook.Add("SetupWorldFog", "JMOD_WORLDFOG", function()
 	local Time = CurTime()
 	local ply = LocalPlayer()
 
-	if ply:Alive() and ply.EZarmor and ply.EZarmor.effects and ply.EZarmor.effects.thermalVision and not ply:ShouldDrawLocalPlayer() then
+	if ply:Alive() and JMod.PlyHasArmorEff(ply, "thermalVision") and not ply:ShouldDrawLocalPlayer() then
 		render.FogMode(0)
 
 		return true
@@ -622,7 +772,7 @@ hook.Add("SetupSkyboxFog", "JMOD_SKYFOG", function(scale)
 	local Time = CurTime()
 	local ply = LocalPlayer()
 
-	if ply:Alive() and ply.EZarmor and ply.EZarmor.effects and ply.EZarmor.effects.thermalVision and not ply:ShouldDrawLocalPlayer() then
+	if ply:Alive() and JMod.PlyHasArmorEff(ply, "thermalVision") and not ply:ShouldDrawLocalPlayer() then
 		render.FogMode(0)
 
 		return true
@@ -651,14 +801,15 @@ hook.Add("ShouldSit", "JMOD_SITANYWHERE_COMPATIBILITY", function(ply)
 end)
 
 local function CommNoise()
-	surface.PlaySound("snds_jack_gmod/radio_static" .. math.random(1, 3) .. ".wav")
+	surface.PlaySound("snds_jack_gmod/radio_static" .. math.random(1, 3) .. ".ogg")
 end
 
 hook.Add("PlayerStartVoice", "JMOD_PLAYERSTARTVOICE", function(ply)
-	if not IsValid(ply) or not ply:Alive() then return end
+	if not ply:Alive() then return end
+	if not LocalPlayer():Alive() then return end
 
-	if ply.EZarmor and ply.EZarmor.effects.teamComms and JMod.PlayersCanComm(LocalPlayer(), ply) then
-		surface.PlaySound("snds_jack_gmod/radio_start.wav")
+	if JMod.PlyHasArmorEff(ply, "teamComms") and JMod.PlayersCanComm(LocalPlayer(), ply) then
+		surface.PlaySound("snds_jack_gmod/radio_start.ogg")
 	end
 end)
 
@@ -667,7 +818,7 @@ hook.Add("OnPlayerChat", "JMOD_ONPLAYERCHAT", function(ply, text, isTeam, isDead
 	if not ply:Alive() then return end
 	if not LocalPlayer():Alive() then return end
 
-	if ply.EZarmor and ply.EZarmor.effects.teamComms and JMod.PlayersCanComm(LocalPlayer(), ply) then
+	if JMod.PlyHasArmorEff(ply, "teamComms") and JMod.PlayersCanComm(LocalPlayer(), ply) then
 		CommNoise()
 
 		if not isTeam and not isDead then
@@ -688,8 +839,22 @@ hook.Add("PlayerEndVoice", "JMOD_PLAYERENDVOICE", function(ply)
 	if not ply:Alive() then return end
 	if not LocalPlayer():Alive() then return end
 
-	if ply.EZarmor and ply.EZarmor.effects.teamComms and JMod.PlayersCanComm(LocalPlayer(), ply) then
+	if JMod.PlyHasArmorEff(ply, "teamComms") and JMod.PlayersCanComm(LocalPlayer(), ply) then
 		CommNoise()
+	end
+end)
+
+hook.Add("CalcVehicleView", "JMOD_VEHICLEVIEWCORRECTION", function(veh, ply, view) 
+	local PodParent = veh:GetParent()
+	if IsValid(PodParent) and ((PodParent:GetClass() == "ent_jack_sleepingbag") or (PodParent:GetClass() == "ent_jack_gmod_ezfieldhospital")) then
+		
+		local ViewOrigin = veh:GetPos() + veh:GetUp() * 64
+		--local LerpedViewAng = LerpAngle(FrameTime() * 100, view.angles, veh:GetAngles())
+		--local ViewAng = LerpedViewAng--veh:GetAttachment(veh:LookupAttachment("vehicle_driver_eyes")).Ang
+		view.origin = ViewOrigin
+		--view.angles = ViewAng
+		
+		return view
 	end
 end)
 
@@ -715,10 +880,10 @@ concommand.Add("jacky_supershadows", function(ply, cmd, args)
 end, nil, "Enables higher detailed shadows; great for photography.")
 
 concommand.Add("jmod_debug_showgasparticles", function(ply, cmd, args)
-	if IsValid(ply) and not ply:IsSuperAdmin() then return end
+	if not IsValid(ply) and GetConVar("sv_cheats"):GetBool() then return end
 	ply.EZshowGasParticles = not (ply.EZshowGasParticles or false)
 	print("gas particle display: " .. tostring(ply.EZshowGasParticles))
-end, nil, JMod.Lang("command jmod_debug_showgasparticles"))
+end, nil, JMod.Lang("command jmod_debug_showgasparticles"), nil)
 
 net.Receive("JMod_NuclearBlast", function()
 	local pos, renj, intens = net.ReadVector(), net.ReadFloat(), net.ReadFloat()
@@ -742,8 +907,8 @@ net.Receive("JMod_NuclearBlast", function()
 				local Vec = ent:GetPos() - pos
 				local Dir = Vec:GetNormalized()
 
-				for i = 0, 100 do
-					local Phys = ent:GetPhysicsObjectNum(i)
+				for i = 1, math.min(ent:GetPhysicsObjectCount(), 50) do
+					local Phys = ent:GetPhysicsObjectNum(i - 1)
 
 					if Phys then
 						Phys:ApplyForceCenter(Dir * 1e10)
@@ -768,6 +933,8 @@ end)
 net.Receive("JMod_VisionBlur", function()
 	local ply = LocalPlayer()
 	ply.EZvisionBlur = math.Clamp((ply.EZvisionBlur or 0) + net.ReadFloat(), 0, 75)
+	ply.EZvisionBlurFadeAmt = net.ReadFloat()
+	ply.JMod_RequiredWakeAmount = (tobool(net.ReadBit()) and 100) or 0
 end)
 
 net.Receive("JMod_Bleeding", function()
@@ -789,19 +956,205 @@ end)
 
 net.Receive("JMod_Ravebreak", function()
 	-- fucking HELL YES HERE WE GO
-	surface.PlaySound("snds_jack_gmod/ravebreak.mp3")
+	surface.PlaySound("snds_jack_gmod/ravebreak.ogg")
 	LocalPlayer().JMod_RavebreakStartTime = CurTime() + 2.325
 	LocalPlayer().JMod_RavebreakEndTime = CurTime() + 25.5
 end)
-
 -- note that the song's beat is about .35 seconds
-hook.Add("RenderScene", "JMod_RenderScene", function(origin, angs, fov)
-	render.SetAmbientLight(1, 1, 1)
-	render.SetLightingOrigin(Vector(-3400, 5300, 400))
+
+-- Liquid Effects
+local WaterSprite, FireSprite = Material("effects/splash1"), Material("effects/fire_cloud1")
+local RainbowSprite, RainbowCol = Material("effects/mat_jack_gmod_rainbow"), Color(255, 255, 255, 20)
+
+JMod.ParticleSpecs = {
+	[1] = { -- jellied fuel
+		launchSize = 2,
+		lifeTime = 1.5,
+		finalSize = 200,
+		airResist = .15,
+		mat = Material("effects/mat_jack_gmod_liquidstream"),
+		colorFunc = function(self)
+			local AmbiLight = (render.GetLightColor(self.pos) or Vector(1, 1, 1))
+			AmbiLight.x = math.Clamp(AmbiLight.x + .2, 0, 1)
+			AmbiLight.y = math.Clamp(AmbiLight.y + .2, 0, 1)
+			AmbiLight.z = math.Clamp(AmbiLight.z + .2, 0, 1)
+			return Color(200 * AmbiLight.x, 220 * AmbiLight.y, 255 * AmbiLight.z, 100 * (1 - self.lifeProgress))
+		end,
+		particleDrawFunc = function(self, size, col)
+			render.SetMaterial(WaterSprite)
+			render.DrawSprite(self.pos, size * 2, size * 2, col)
+		end,
+		impactFunc = function(self, normal)
+			if math.random(1, 2) == 1 then
+				local Splach = EffectData()
+				Splach:SetOrigin(self.pos - normal * .5)
+				Splach:SetNormal(normal)
+				Splach:SetScale(math.Rand(1, 3))
+				util.Effect("eff_jack_gmod_tinysplash", Splach)
+			end
+			self.dieTime = self.dieTime - .2
+		end
+	},
+	[2] = { -- flamethrower
+		launchSize = 2,
+		lifeTime = 1,
+		finalSize = 250,
+		airResist = .1,
+		mat = Material("effects/mat_jack_gmod_liquidstream"),
+		colorFunc = function(self)
+			--[[local AmbiLight = (render.GetLightColor(self.pos) or Vector(1, 1, 1))
+			AmbiLight.x = math.Clamp(AmbiLight.x + .2, 0, 1)
+			AmbiLight.y = math.Clamp(AmbiLight.y + .2, 0, 1)
+			AmbiLight.z = math.Clamp(AmbiLight.z + .2, 0, 1)--]]
+			local InverseLife = (1 - self.lifeProgress)
+			local R = 255
+			local G = Lerp(self.lifeProgress, 255, 230)
+			local B = Lerp(self.lifeProgress, 255, 50)
+			return Color(R, G, B, 200 * InverseLife)
+		end,
+		particleDrawFunc = function(self, size, col)
+			render.SetMaterial(FireSprite)
+			render.DrawSprite(self.pos + Vector(0, 0, self.lifeProgress * size * .5), size * 1.5, size * 1.5, Color(255, 255, 255, 100 * (1 - self.lifeProgress)))
+		end,
+		impactFunc = function(self, normal)
+			self.dieTime = self.dieTime - .1
+		end,
+		gravity = 200
+	},
+	[3] = { -- SprinklerWater
+		launchSize = 1,
+		lifeTime = 1.5,
+		finalSize = 200,
+		airResist = 1,
+		mat = Material("effects/mat_jack_gmod_liquidstream"),
+		colorFunc = function(self)
+			local AmbiLight = (render.GetLightColor(self.pos) or Vector(1, 1, 1))
+			AmbiLight.x = math.Clamp(AmbiLight.x + .2, 0, 1)
+			AmbiLight.y = math.Clamp(AmbiLight.y + .2, 0, 1)
+			AmbiLight.z = math.Clamp(AmbiLight.z + .2, 0, 1)
+			return Color(200 * AmbiLight.x, 220 * AmbiLight.y, 255 * AmbiLight.z, 100 * (1 - self.lifeProgress))
+		end,
+		particleDrawFunc = function(self, size, col)
+			render.SetMaterial(WaterSprite)
+			render.DrawSprite(self.pos, size * 2, size * 2, col)
+		end,
+		impactFunc = function(self, normal)
+			local Splach = EffectData()
+			Splach:SetOrigin(self.pos - normal * .5)
+			Splach:SetNormal(normal)
+			Splach:SetScale(math.Rand(1, 3))
+			util.Effect("eff_jack_gmod_tinysplash", Splach)
+			self.dieTime = self.dieTime - .2
+		end,
+		stencilTest = true
+	},
+}
+
+JMod.LiquidParticles = {}
+
+net.Receive("JMod_LiquidParticle", function()
+	local Pos = net.ReadVector()
+	local Dir = net.ReadVector()
+	local Amt = net.ReadInt(8)
+	local Group = net.ReadInt(8)
+	local Type = net.ReadInt(8)
+	JMod.LiquidSpray(Pos, Dir, Amt, Group, Type)
 end)
---hook.Add("PostRender","JMod_PostRender",function()
---	engine.LightStyle(0,"m")
---end)
+
+-- Liquid Think
+hook.Add("Think", "JMod_LiquidStreams", function()
+	local FT, Time = FrameTime(), CurTime()
+	for groupID, group in pairs(JMod.LiquidParticles) do
+		for k, particle in pairs(group) do
+			local Specs = JMod.ParticleSpecs[particle.typ]
+			local Travel = particle.vel * FT
+			local Tr = util.TraceLine({
+				start = particle.pos,
+				endpos = particle.pos + Travel,
+				mask = MASK_SHOT
+			})
+			if (Tr.Hit) then
+				particle.pos = Tr.HitPos + Tr.HitNormal
+				-- deflect when hitting a surface
+				particle.vel = Tr.HitNormal * 70 + VectorRand() * 70
+				particle.dieTime = particle.dieTime - FT * 30 -- disperse quickly
+				if (Specs.impactFunc) then
+					Specs.impactFunc(particle, Tr.HitNormal)
+				end
+			else
+				particle.pos = particle.pos + Travel
+			end
+			particle.vel = particle.vel - Vector(0, 0, (Specs.gravity or 600) * FT)
+			local AirLoss = FT * Specs.airResist
+			particle.vel = particle.vel * (1 - AirLoss)
+			vel = particle.vel + JMod.Wind * FT * 200
+			if (particle.dieTime < Time) then
+				table.remove(JMod.LiquidParticles[groupID], k)
+			else
+				local TimeLeft = particle.dieTime - Time
+				particle.lifeProgress = 1 - (TimeLeft / Specs.lifeTime)
+			end
+		end
+	end
+end)
+
+-- Liquid Render
+local GlowSprite = Material("sprites/mat_jack_basicglow")
+hook.Add("PostDrawTranslucentRenderables", "JMod_DrawLiquidStreams", function( bDrawingDepth, bDrawingSkybox, isDraw3DSkybox )
+	if bDrawingSkybox then return end
+	local SunInfo = util.GetSunInfo()
+	local ViewPos = EyePos()
+	local ViewDir = EyeAngles()
+	--local ScreenWidth, ScreenHeight = ScrW(), ScrH()
+	--local FoV = 1 / (LocalPlayer():GetFOV() / 90)
+	for groupID, group in pairs(JMod.LiquidParticles) do
+		local NumberOfParticles = #group
+		local LastPos = nil
+		for k, particle in ipairs(group) do
+			local Specs = JMod.ParticleSpecs[particle.typ]
+			local Size = Specs.launchSize + (Specs.finalSize - Specs.launchSize) * particle.lifeProgress
+			local Col = Specs.colorFunc(particle, Size)
+			if (Specs.particleDrawFunc) then
+				Specs.particleDrawFunc(particle, Size, Col)
+			end
+			if (LastPos) then
+				-- God's promise to not flood the earth with water
+				if Specs.stencilTest and SunInfo then
+					-- STENCIL TEST
+					render.SetStencilEnable( true )
+					render.ClearStencil()
+					--
+					render.SetStencilTestMask( 255 )
+					render.SetStencilWriteMask( 255 )
+					render.SetStencilReferenceValue( 1 )
+					--
+					render.SetStencilFailOperation( STENCILOPERATION_KEEP )
+					render.SetStencilPassOperation( STENCILOPERATION_REPLACE )
+					render.SetStencilZFailOperation( STENCILOPERATION_KEEP )
+					--
+					render.SetStencilCompareFunction( STENCILCOMPARISONFUNCTION_ALWAYS )
+					-- RENDER NORMAL STUFF HERE
+				end
+				render.SetMaterial(Specs.mat)
+				render.DrawBeam(LastPos, particle.pos, Size, 1, 0, Col)
+				if Specs.stencilTest and SunInfo then
+					-- RAINBOW WILL BE RENDERED BEHIND
+					render.SetStencilCompareFunction( STENCILCOMPARISONFUNCTION_EQUAL )
+					render.SetStencilPassOperation( STENCILOPERATION_KEEP )
+
+					--START REAL RAINBOW DRAW
+					render.SetMaterial(RainbowSprite)
+					render.DrawSprite(ViewPos - SunInfo.direction * 250 + ViewDir:Up() * 200, 200, 100, RainbowCol)
+					--END
+					render.SetStencilEnable( false )
+					-- STENCIL TEST
+				end
+			end
+			LastPos = particle.pos
+		end
+	end
+end)
+
 --[[
 ValveBiped.Bip01_Pelvis
 ValveBiped.Bip01_Spine

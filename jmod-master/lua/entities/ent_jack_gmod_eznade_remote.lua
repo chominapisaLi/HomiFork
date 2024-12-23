@@ -14,7 +14,7 @@ local BaseClass = baseclass.Get(ENT.Base)
 
 if SERVER then
 	function ENT:JModEZremoteTriggerFunc(ply)
-		if IsValid(ply) and ply:Alive() and ply == self:GetOwner() and self:GetState() == JMod.EZ_STATE_ARMED then
+		if IsValid(ply) and ply:Alive() and ply == self.EZowner and self:GetState() == JMod.EZ_STATE_ARMED then
 			self:Detonate()
 		end
 	end
@@ -25,7 +25,7 @@ if SERVER then
 
 		timer.Simple(.1, function()
 			if IsValid(self) then
-				self:EmitSound("snd_jack_minearm.wav", 60, 110)
+				self:EmitSound("snd_jack_minearm.ogg", 60, 110)
 				self:SetState(JMod.EZ_STATE_ARMED)
 			end
 		end)

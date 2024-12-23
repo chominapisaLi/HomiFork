@@ -25,58 +25,56 @@ if SERVER then
 		if destructive then
 			if math.random(1, 20) == 2 then
 				if math.random(1, 2) == 1 then
-					JMod.Sploom(self:GetOwner(), self:GetPos(), math.random(50, 130))
+					JMod.Sploom(self.EZowner, self:GetPos(), math.random(50, 130))
 				end
 
 				for k, ent in pairs(ents.FindInSphere(pos, 600)) do
 					local Vec = (ent:GetPos() - pos):GetNormalized()
 
-					if self:Visible(ent) then
-						if ent:IsPlayer() or ent:IsNPC() then
+					local Phys = ent:GetPhysicsObject()
+					if JMod.VisCheck(nil, ent, self) then
+						if ent:GetMoveType() == MOVETYPE_WALK then
 							ent:SetVelocity(Vec * 1000)
-						elseif IsValid(ent:GetPhysicsObject()) then
-							ent:GetPhysicsObject():ApplyForceCenter(Vec * 50000)
+						elseif IsValid(Phys) then
+							Phys:Wake()
+							Phys:ApplyForceCenter(Vec * 50000)
 						end
 					end
 				end
 			end
 		end
-
-		if vFireInstalled and math.random() <= 0.05 then
-			CreateVFireBall(math.random(3, 5), math.random(3, 5), pos, VectorRand() * math.random(300, 500))
-		end
 	end
 
-	function ENT:AltUse(ply)
-		local Wep = ply:GetActiveWeapon()
+	--[[function ENT:CustomOnTakeDamage(dmginfo)
+		if dmginfo:IsBulletDamage() then
+			local Pos = self:GetPos()
+			if math.random(1, 2) == 1 then
+				JMod.Sploom(self.EZowner, Pos, math.random(50, 130))
+			end
 
-		if Wep and Wep.EZaccepts and (table.HasValue(Wep.EZaccepts, self.EZsupplies)) then
-			local ExistingAmt = Wep:GetGas()
-			local Missing = Wep.EZmaxGas - ExistingAmt
+			for k, ent in pairs(ents.FindInSphere(Pos, 600)) do
+				local Vec = (ent:GetPos() - Pos):GetNormalized()
 
-			if Missing > 0 then
-				local AmtToGive = math.min(Missing, self:GetResource())
-				Wep:SetGas(ExistingAmt + AmtToGive)
-				sound.Play("items/ammo_pickup.wav", self:GetPos(), 65, math.random(90, 110))
-				self:SetResource(self:GetResource() - AmtToGive)
-
-				if self:GetResource() <= 0 then
-					self:Remove()
-
-					return
+				if JMod.VisCheck(Pos, ent, self) then
+					if ent:IsPlayer() or ent:IsNPC() then
+						ent:SetVelocity(Vec * 1000)
+					elseif IsValid(ent:GetPhysicsObject()) then
+						ent:GetPhysicsObject():ApplyForceCenter(Vec * 50000)
+					end
 				end
 			end
 		end
-	end
+	end-]]
 	--
 elseif CLIENT then
+    local drawvec, drawang = Vector(0, 8.15, 15), Angle(-90, 0, 90)
 	function ENT:Draw()
 		self:DrawModel()
 
-		JMod.HoloGraphicDisplay(self, Vector(0, 8.15, 15), Angle(-90, 0, 90), .03, 300, function()
+		JMod.HoloGraphicDisplay(self, drawvec, drawang, .03, 300, function()
 			JMod.StandardResourceDisplay(JMod.EZ_RESOURCE_TYPES.GAS, self:GetResource(), nil, 0, 0, 200, true)
 		end)
 	end
 
-	language.Add(ENT.ClassName, ENT.PrintName)
+	--language.Add(ENT.ClassName, ENT.PrintName)
 end

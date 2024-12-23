@@ -17,6 +17,9 @@ ENT.ImpactNoise1 = "Metal_Box.ImpactHard"
 ENT.ImpactNoise2 = "Weapon.ImpactSoft"
 ENT.DamageThreshold = 120
 ENT.BreakNoise = "Metal_Box.Break"
+ENT.Cookoff = true
+ENT.Explosive = .5
+ENT.IsBoolet = .5
 
 ---
 if SERVER then
@@ -27,7 +30,7 @@ if SERVER then
 			num = 1
 		end
 
-		for i = 1, num * JMod.Config.SupplyEffectMult do
+		for i = 1, num * JMod.Config.Machines.SupplyEffectMult do
 			timer.Simple(i / 200, function()
 				if not IsValid(self) then return end
 				local Eff = EffectData()
@@ -43,13 +46,14 @@ if SERVER then
 		JMod.GiveAmmo(ply, self)
 	end
 elseif CLIENT then
+    local drawvec, drawang = Vector(-0.7, 7.4, 14), Angle(-90, 0, 90)
 	function ENT:Draw()
 		self:DrawModel()
 
-		JMod.HoloGraphicDisplay(self, Vector(-0.7, 7.4, 14), Angle(-90, 0, 90), .055, 300, function()
+		JMod.HoloGraphicDisplay(self, drawvec, drawang, .045, 300, function()
 			JMod.StandardResourceDisplay(JMod.EZ_RESOURCE_TYPES.MUNITIONS, self:GetResource(), nil, 0, 0, 200, false)
 		end)
 	end
 
-	language.Add(ENT.ClassName, ENT.PrintName)
+	--language.Add(ENT.ClassName, ENT.PrintName)
 end

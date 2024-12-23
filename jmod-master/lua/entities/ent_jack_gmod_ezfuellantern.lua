@@ -28,7 +28,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 
@@ -36,11 +36,11 @@ if SERVER then
 	end
 
 	function ENT:Initialize()
-		self.Entity:SetModel("models/props/jigg/lamp.mdl")
-		self.Entity:PhysicsInit(SOLID_VPHYSICS)
-		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-		self.Entity:SetSolid(SOLID_VPHYSICS)
-		self.Entity:DrawShadow(true)
+		self:SetModel("models/props/jigg/lamp.mdl")
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
 		self:SetUseType(ONOFF_USE)
 		self:GetPhysicsObject():SetMass(6)
 
@@ -63,7 +63,7 @@ if SERVER then
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.2 then
 			if data.Speed > 25 then
-				self.Entity:EmitSound("Drywall.ImpactHard")
+				self:EmitSound("Drywall.ImpactHard")
 			end
 			if data.Speed > 600 and not self:IsPlayerHolding() then
 				local Pos, State = self:GetPos(), self:GetState()
@@ -74,10 +74,10 @@ if SERVER then
 	end
 
 	function ENT:OnTakeDamage(dmginfo)
-		self.Entity:TakePhysicsDamage(dmginfo)
+		self:TakePhysicsDamage(dmginfo)
 
 		if ((dmginfo:IsDamageType(DMG_BURN)) or (dmginfo:IsDamageType(DMG_DIRECT))) then
-			if (math.random(1, 10 == 2)) then
+			if (math.random(1, 10) == 2) then
 				self:Light()
 			end
 		end
@@ -91,13 +91,13 @@ if SERVER then
 
 	function ENT:Use(activator, activatorAgain, onOff)
 		local Dude = activator or activatorAgain
-		JMod.SetOwner(self, Dude)
+		JMod.SetEZowner(self, Dude)
 		local Time = CurTime()
 
 		if tobool(onOff) then
 			local State = self:GetState()
 			if State < 0 then return end
-			local Alt = Dude:KeyDown(JMod.Config.AltFunctionKey)
+			local Alt = Dude:KeyDown(JMod.Config.General.AltFunctionKey)
 
 			if Alt then
 				if State == STATE_OFF then
@@ -148,7 +148,7 @@ if SERVER then
 						end)
 					end
 
-					self:EmitSound("snd_jack_claythunk.wav", 65, math.random(80, 120))
+					self:EmitSound("snd_jack_claythunk.ogg", 65, math.random(80, 120))
 					Dude:DropObject()
 					JMod.Hint(Dude, "activate")
 				end
@@ -159,7 +159,7 @@ if SERVER then
 	function ENT:Light()
 		if self:GetState() == STATE_ON then return end
 		self:SetState(STATE_ON)
-		self:EmitSound("snd_jack_littleignite.wav", 50, 120)
+		self:EmitSound("snd_jack_littleignite.ogg", 50, 120)
 		---[[
 		self.ProjTexLight = ents.Create("ent_jack_projtexlight")
 		self.ProjTexLight:SetPos(self:GetPos() + self:GetUp() * 9)
@@ -179,7 +179,7 @@ if SERVER then
 	end
 
 	function ENT:TurnOff()
-		if self:GetState() == STATE_OFF then return end
+		if (self:GetState() <= 0) then return end
 		self:SetState(STATE_OFF)
 		if (IsValid(self.ProjTexLight)) then self.ProjTexLight:Remove() end
 	end
@@ -235,7 +235,7 @@ if SERVER then
 			if(Missing <= 0)then return 0 end
 			Accepted=math.min(Missing, amt)
 			self:SetFuel(Fool + Accepted)
-			self:EmitSound("snds_jack_gmod/liquid_load.wav", 60, math.random(120, 130))
+			self:EmitSound("snds_jack_gmod/liquid_load.ogg", 60, math.random(120, 130))
 		end
 		self.NextRefillTime = Time + 1
 		return math.ceil(Accepted)

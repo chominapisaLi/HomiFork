@@ -20,7 +20,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 		--local effectdata=EffectData()
@@ -90,9 +90,9 @@ if SERVER then
 
 	function ENT:Use(activator, activatorAgain, onOff)
 		local Dude = activator or activatorAgain
-		JMod.SetOwner(self, Dude)
+		JMod.SetEZowner(self, Dude)
 
-		if Dude:KeyDown(JMod.Config.AltFunctionKey) then
+		if Dude:KeyDown(JMod.Config.General.AltFunctionKey) then
 			self.Pouring = not self.Pouring
 
 			if self.Pouring then
@@ -116,7 +116,7 @@ if SERVER then
 		if self.Exploded then return end
 		self.Exploded = true
 		local SelfPos = self:GetPos()
-		self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 80)
+		self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 80)
 		local Blam = EffectData()
 		Blam:SetOrigin(SelfPos)
 		Blam:SetScale(.75)
@@ -124,10 +124,10 @@ if SERVER then
 		util.Effect("eff_jack_powdersplode", Blam, true, true)
 		util.ScreenShake(SelfPos, 20, 20, 1, 700)
 		-- black powder is not HE and its explosion lacks brisance, more of a push than a shock
-		JMod.Sploom(self:GetOwner() or game.GetWorld(), SelfPos, 150)
+		JMod.Sploom(JMod.GetEZowner(self), SelfPos, 150)
 		local Dmg = DamageInfo()
 		Dmg:SetDamage(70)
-		Dmg:SetAttacker(self:GetOwner() or self)
+		Dmg:SetAttacker(JMod.GetEZowner(self))
 		Dmg:SetInflictor(self)
 		Dmg:SetDamageType(DMG_BURN)
 		util.BlastDamageInfo(Dmg, SelfPos, 750)
@@ -174,11 +174,11 @@ if SERVER then
 			if Tr.Hit then
 				local Powder = ents.Create("ent_jack_gmod_ezblackpowderpile")
 				Powder:SetPos(Tr.HitPos + Tr.HitNormal * .1)
-				JMod.SetOwner(Powder, self:GetOwner())
+				JMod.SetEZowner(Powder, self.EZowner)
 				Powder:Spawn()
 				Powder:Activate()
 				constraint.Weld(Powder, Tr.Entity, 0, 0, 0, true)
-				JMod.Hint(self:GetOwner(), "powder", Powder)
+				JMod.Hint(JMod.GetEZowner(self), "powder", Powder)
 			end
 
 			self.Powder = self.Powder - 1

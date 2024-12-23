@@ -8,6 +8,7 @@ ENT.PrintName = "EZ Ammo Box"
 ENT.NoSitAllowed = true
 ENT.Spawnable = false
 ENT.AdminSpawnable = false
+ENT.Model = "models/props_junk/cardboard_box004a.mdl"
 ---
 ENT.JModEZstorable = true
 ENT.JModPreferredCarryAngles = Angle(0, 90, 0)
@@ -23,7 +24,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 		--local effectdata=EffectData()
@@ -35,19 +36,19 @@ if SERVER then
 
 	function ENT:Initialize()
 		self.Specs = JMod.GetAmmoSpecs(self.EZammo)
-		self.Entity:SetModel("models/props_junk/cardboard_box004a.mdl")
-		self.Entity:SetMaterial(self.Specs.mat or "")
+		self:SetModel(self.Model)
+		self:SetMaterial(self.Specs.mat or "")
 
-		--self.Entity:PhysicsInitBox(Vector(-10,-10,-10),Vector(10,10,10))
+		--self:PhysicsInitBox(Vector(-10,-10,-10),Vector(10,10,10))
 		if self.ModelScale and not self.Specs.gayPhysics then
 			self:SetModelScale(self.ModelScale)
 		end
 
-		self.Entity:PhysicsInit(SOLID_VPHYSICS)
-		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-		self.Entity:SetSolid(SOLID_VPHYSICS)
-		self.Entity:DrawShadow(true)
-		self.Entity:SetUseType(SIMPLE_USE)
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
+		self:SetUseType(SIMPLE_USE)
 
 		if self.Specs.size then
 			self:SetModelScale(self.Specs.size, 0)
@@ -60,7 +61,7 @@ if SERVER then
 			self:GetPhysicsObject():Wake()
 		end)
 
-		self.Entity:SetColor(Color(50, 50, 50))
+		self:SetColor(Color(50, 50, 50))
 		---
 		self.EZID = self.EZID or JMod.GenerateGUID()
 		---
@@ -69,12 +70,12 @@ if SERVER then
 
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.1 then
-			self.Entity:EmitSound("weapon.ImpactSoft")
+			self:EmitSound("weapon.ImpactSoft")
 		end
 	end
 
 	function ENT:OnTakeDamage(dmginfo)
-		self.Entity:TakePhysicsDamage(dmginfo)
+		self:TakePhysicsDamage(dmginfo)
 
 		if JMod.LinCh(dmginfo:GetDamage(), 30, 100) then
 			self:Remove()
@@ -87,7 +88,7 @@ if SERVER then
 
 	-- stub
 	function ENT:Use(activator)
-		local Alt = activator:KeyDown(JMod.Config.AltFunctionKey)
+		local Alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
 
 		if Alt then
 			activator:PickupObject(self)

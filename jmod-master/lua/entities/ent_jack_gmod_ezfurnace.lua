@@ -9,8 +9,9 @@ ENT.AdminOnly = false
 ENT.Base = "ent_jack_gmod_ezmachine_base"
 ---
 ENT.Model = "models/jmod/machines/gas_smelter.mdl"
-ENT.Mass = 500
+ENT.Mass = 750
 ENT.SpawnHeight = 10
+ENT.EZcolorable = true
 ---
 ENT.EZconsumes = {
 	JMod.EZ_RESOURCE_TYPES.BASICPARTS,
@@ -26,17 +27,18 @@ ENT.EZconsumes = {
 	JMod.EZ_RESOURCE_TYPES.SILVERORE,
 	JMod.EZ_RESOURCE_TYPES.GOLDORE,
 	JMod.EZ_RESOURCE_TYPES.URANIUMORE,
-	JMod.EZ_RESOURCE_TYPES.PLATINUMORE
+	JMod.EZ_RESOURCE_TYPES.PLATINUMORE,
+	JMod.EZ_RESOURCE_TYPES.SAND
 }
 ---
 ENT.EZupgradable = true
 ENT.StaticPerfSpecs = {
-	MaxDurability = 100,
+	MaxDurability = 200,
 	MaxElectricity = 500,
 	MaxOre = 500
 }
 ENT.DynamicPerfSpecs = {
-	Armor = 1
+	Armor = 2
 }
 ENT.FlexFuels = { JMod.EZ_RESOURCE_TYPES.COAL, JMod.EZ_RESOURCE_TYPES.FUEL }
 ---
@@ -58,7 +60,42 @@ if(SERVER)then
 		self.NextSmeltThink = 0
 		self.NextEnvThink = 0
 	end
+
+	function ENT:SetupWire()
+		if not(istable(WireLib)) then return end
+		self.Inputs = WireLib.CreateInputs(self, {"ToggleState [NORMAL]", "OnOff [NORMAL]"}, {"Toggles the machine on or off with an input > 0", "1 turns on, 0 turns off"})
+		---
+		local WireOutputs = {"State [NORMAL]", "Grade [NORMAL]", "Progress [NORMAL]", "FlexFuel [NORMAL]", "Ore [NORMAL]", "OreType [STRING]"}
+		local WireOutputDesc = {"The state of the machine \n-1 is broken \n0 is off \n1 is on", "The machine grade", "Machine's progress", "Machine's flex fuel left", "Amount of ore left", "The type of ore it's processing"}
+		for _, typ in ipairs(self.EZconsumes) do
+			if typ == JMod.EZ_RESOURCE_TYPES.BASICPARTS then typ = "Durability" end
+			local ResourceName = string.Replace(typ, " ", "")
+			local ResourceDesc = "Amount of "..ResourceName.." left"
+			--
+			if not(string.Right(ResourceName, 3) == "ore") and not(ResourceName == "sand") and not(table.HasValue(self.FlexFuels, typ)) then
+				local OutResourceName = string.gsub(ResourceName, "^%l", string.upper).." [NORMAL]"
+				table.insert(WireOutputs, OutResourceName)
+				table.insert(WireOutputDesc, ResourceDesc)
+			end
+		end
+		self.Outputs = WireLib.CreateOutputs(self, WireOutputs, WireOutputDesc)
+	end
+
+	function ENT:UpdateWireOutputs()
+		if istable(WireLib) then
+			WireLib.TriggerOutput(self, "State", self:GetState())
+			WireLib.TriggerOutput(self, "Grade", self:GetGrade())
+			WireLib.TriggerOutput(self, "Progress", self:GetProgress())
+			WireLib.TriggerOutput(self, "Durability", self.Durability)
+			WireLib.TriggerOutput(self, "FlexFuel", self:GetElectricity())
+			WireLib.TriggerOutput(self, "Ore", self:GetOre())
+			WireLib.TriggerOutput(self, "OreType", self:GetOreType())
+		end
+	end
+
 	function ENT:TurnOn(activator)
+		if self:GetState() > STATE_OFF then return end
+		if (self:WaterLevel() > 0) then return end
 		if (self:GetElectricity() <= 0) then
 			JMod.Hint(activator, "nopower_trifuel")
 			return
@@ -67,8 +104,9 @@ if(SERVER)then
 			JMod.Hint(activator, "need ore")
 			return
 		end
+		if IsValid(activator) then self.EZstayOn = true end
 		self:SetState(STATE_SMELTING)
-		self:EmitSound("snd_jack_littleignite.wav")
+		self:EmitSound("snd_jack_littleignite.ogg")
 		timer.Simple(0.1, function()
 			if(self.SoundLoop)then self.SoundLoop:Stop() end
 			self.SoundLoop = CreateSound(self, "snds_jack_gmod/intense_fire_loop.wav")
@@ -77,21 +115,22 @@ if(SERVER)then
 		end)
 	end
 
-	function ENT:TurnOff()
+	function ENT:TurnOff(activator)
+		if (self:GetState() <= STATE_OFF) then return end
+		if IsValid(activator) then self.EZstayOn = nil end
 		self:SetState(STATE_OFF)
-		self:ProduceResource()
+		self:ProduceResource(IsValid(activator))
 		if(self.SoundLoop)then self.SoundLoop:Stop() end
-
-		self:EmitSound("snd_jack_littleignite.wav")
+		self:EmitSound("snd_jack_littleignite.ogg")
 	end
 
 	function ENT:Use(activator)
 		local State = self:GetState()
-		local OldOwner = self:GetOwner()
-		local Alt = activator:KeyDown(JMod.Config.AltFunctionKey)
-		JMod.SetOwner(self, activator)
-		if(IsValid(self:GetOwner()))then
-			if(OldOwner ~= self:GetOwner())then -- if owner changed then reset team color
+		local OldOwner = JMod.GetEZowner(self)
+		local Alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
+		JMod.SetEZowner(self, activator)
+		if(IsValid(self.EZowner))then
+			if(OldOwner ~= self.EZowner)then -- if owner changed then reset team color
 				JMod.Colorify(self)
 			end
 		end
@@ -108,7 +147,7 @@ if(SERVER)then
 
 				return
 			end
-			self:TurnOff()
+			self:TurnOff(activator)
 		end
 	end
 
@@ -116,44 +155,63 @@ if(SERVER)then
 		if(self.SoundLoop)then self.SoundLoop:Stop() end
 	end
 
-	function ENT:SpawnEffect(pos)
-		self:EmitSound("snds_jack_gmod/ding.wav", 80, 120)
-	end
-
-	function ENT:ResourceLoaded(typ, accepted)
+	--[[function ENT:ResourceLoaded(typ, accepted)
 		if typ == self:GetOreType() and accepted >= 1 then
-			self:TurnOn(self:GetOwner())
+			self:TurnOn(self.EZowner)
 		end
-	end
+	end--]]
 
-	function ENT:ProduceResource()
+	function ENT:ProduceResource(dropOre)
 		local SelfPos, Forward, Up, Right, OreType = self:GetPos(), self:GetForward(), self:GetUp(), self:GetRight(), self:GetOreType()
 		local amt = math.Clamp(math.floor(self:GetProgress()), 0, 100)
 		
 		if amt <= 0 or OreType == "generic" then return end
 
-		local MetalType = JMod.SmeltingTable[OreType][1]
+		local RefinedType = JMod.SmeltingTable[OreType][1]
 
 		local spawnVec = self:WorldToLocal(SelfPos + Right * 30 + Up * 20)
 		local spawnAng = Angle(0, 0, 0)
 		local ejectVec = Forward * 100
 		timer.Simple(0.3, function()
 			if IsValid(self) then
-				JMod.MachineSpawnResource(self, MetalType, amt, spawnVec, spawnAng, ejectVec, true, 200)
+				JMod.MachineSpawnResource(self, RefinedType, amt, spawnVec, spawnAng, ejectVec, 300)
+				--[[if (OreType == JMod.EZ_RESOURCE_TYPES.SAND) and (amt >= 75) and math.random(0, 1000) then
+					JMod.MachineSpawnResource(self, JMod.EZ_RESOURCE_TYPES.DIAMOND, 1, spawnVec + Up * 4, spawnAng, ejectVec, false)
+				end--]]
 			end
 		end)
-		self:SetProgress(0)
-		self:SpawnEffect(SelfPos)
-		if self:GetOre() <= 0 then
+		self:SetProgress(self:GetProgress() - amt)
+		self:EmitSound("snds_jack_gmod/ding.ogg", 80, 120)
+
+		local OreLeft = self:GetOre()
+		if OreLeft <= 0 then
 			self:SetOreType("generic")
+		elseif dropOre and (OreType ~= "generic") then
+			self:SetOre(0)
+			self:SetOreType("generic")
+			JMod.MachineSpawnResource(self, OreType, OreLeft, spawnVec + Up * 20, spawnAng, ejectVec, false)
 		end
 	end
 
 	function ENT:Think()
 		local State, Time, OreTyp = self:GetState(), CurTime(), self:GetOreType()
+
+		self:UpdateWireOutputs()
+
 		if (self.NextSmeltThink < Time) then
 			self.NextSmeltThink = Time + 1
 			if (State == STATE_SMELTING) then
+				if (self:WaterLevel() > 0) then 
+					self:TurnOff() 
+					local Foof = EffectData()
+					Foof:SetOrigin(self:GetPos())
+					Foof:SetNormal(Vector(0, 0, 1))
+					Foof:SetScale(10)
+					Foof:SetStart(self:GetPhysicsObject():GetVelocity())
+					util.Effect("eff_jack_gmod_ezsteam", Foof, true, true)
+					self:EmitSound("snds_jack_gmod/hiss.ogg", 120, 90)
+					return 
+				end
 				if not OreTyp then self:TurnOff() return end
 
 				local Grade = self:GetGrade()
@@ -162,7 +220,7 @@ if(SERVER)then
 				self:ConsumeElectricity(1.5 * JMod.EZ_GRADE_BUFFS[Grade] ^ 1.5)
 
 				if self:GetOre() <= 0 then
-					if (Time - self.LastOreTime) >=5 then self:TurnOff() return end
+					if (Time - self.LastOreTime) >= 5 then self:TurnOff() return end
 				else
 					self.LastOreTime = Time
 					local OreConsumeAmt = GradeBuff ^ 2
@@ -190,13 +248,13 @@ if(SERVER)then
 			local Tr=util.QuickTrace(self:GetPos(), Vector(0, 0, 9e9), self)
 			if not (Tr.HitSky) then
 				for i = 1, 1 do
-					local Gas = ents.Create("ent_jack_gmod_ezgasparticle")
+					local Gas = ents.Create("ent_jack_gmod_ezcoparticle")
 					Gas:SetPos(self:GetPos() + Vector(0, 0, 100))
-					JMod.SetOwner(Gas, self:GetOwner())
+					JMod.SetEZowner(Gas, self.EZowner)
 					Gas:SetDTBool(0, true)
 					Gas:Spawn()
 					Gas:Activate()
-					Gas:GetPhysicsObject():SetVelocity(VectorRand() * math.random(1, 100))
+					Gas.CurVel = (VectorRand() * math.random(1, 100))
 				end
 			end
 		end
@@ -205,14 +263,12 @@ if(SERVER)then
 		return true
 	end
 
-	function ENT:PostEntityPaste(ply, ent, createdEntities)
+	function ENT:OnPostEntityPaste(ply, ent, createdEntities)
 		local Time = CurTime()
-		JMod.SetOwner(self, ply)
-		ent.NextRefillTime = Time + math.random(0.1, 0.5)
-		self.LastOreTime = Time + math.random(0.1, 0.5)
-		self.NextEffThink = Time + math.random(0.1, 0.5)
-		self.NextSmeltThink = Time + math.random(0.1, 0.5)
-		self.NextEnvThink = Time + math.random(0.1, 0.5)
+		self.LastOreTime = Time + math.Rand(0, 3)
+		self.NextEffThink = Time + math.Rand(0, 3)
+		self.NextSmeltThink = Time + math.Rand(0, 3)
+		self.NextEnvThink = Time + math.Rand(0, 3)
 	end
 
 elseif(CLIENT)then
@@ -222,6 +278,23 @@ elseif(CLIENT)then
 	end
 	local WhiteSquare = Material("white_square")
 	local HeatWaveMat = Material("sprites/heatwave")
+	function ENT:Think()
+		local State = self:GetState()
+		if (State == STATE_SMELTING) and JMod.Config.QoL.NiceFire then
+			local GlowPos = self:GetPos() + self:GetUp() * 61 + self:GetRight() * 14.5
+			local light = DynamicLight(self:EntIndex())
+			if (light) then
+				light.Pos = GlowPos
+				light.r = 255
+				light.g = 200
+				light.b = 100
+				light.Brightness = 4
+				light.Decay = 1000
+				light.Size = 200 * math.Rand(.9, 1)
+				light.DieTime = CurTime() + 0.1
+			end
+		end
+	end
 	function ENT:Draw()
 		local SelfPos, SelfAng, State = self:GetPos(), self:GetAngles(), self:GetState()
 		local Up, Right, Forward = SelfAng:Up(), SelfAng:Right(), SelfAng:Forward()
@@ -229,12 +302,12 @@ elseif(CLIENT)then
 		---
 		local BasePos = SelfPos
 
-		local Obscured = util.TraceLine({
+		local Obscured = false--[[util.TraceLine({
 			start=EyePos(), 
 			endpos=BasePos, 
 			filter = {LocalPlayer(), self}, 
 			mask = MASK_OPAQUE
-		}).Hit
+		}).Hit--]]
 
 		local Closeness = LocalPlayer():GetFOV()*(EyePos():Distance(SelfPos))
 		local DetailDraw = Closeness < 120000 -- cutoff point is 400 units when the fov is 90 degrees
@@ -257,20 +330,11 @@ elseif(CLIENT)then
 			for i = 1, 20 do
 				render.DrawQuadEasy(GlowPos + GlowDir * i / 2.5 * math.Rand(.9, 1), GlowDir, 40, 20, Color( 255 - i * 1, 255 - i * 9, 200 - i * 10, 55 - i * 2.5 ), GlowAng.r)
 			end
-			render.SetMaterial(HeatWaveMat)
-			for i = 1, 2 do
-				render.DrawSprite(BasePos + Up * (i * math.random(10, 30) + 120) - Right * 8 + Forward * 10, 60, 60, Color(255, 255 - i * 10, 255 - i * 20, 25))
-			end
-			local light = DynamicLight(self:EntIndex())
-			if (light) then
-				light.Pos = GlowPos + Right * 7 + Up * 1
-				light.r = 255
-				light.g = 200
-				light.b = 100
-				light.Brightness = 4
-				light.Decay = 1000
-				light.Size = 200 * math.Rand(.9, 1)
-				light.DieTime = CurTime() + 0.1
+			if JMod.Config.QoL.NiceFire then
+				render.SetMaterial(HeatWaveMat)
+				for i = 1, 2 do
+					render.DrawSprite(BasePos + Up * (i * math.random(10, 30) + 120) - Right * 8 + Forward * 10, 60, 60, Color(255, 255 - i * 10, 255 - i * 20, 25))
+				end
 			end
 		end
 		---
@@ -303,12 +367,12 @@ elseif(CLIENT)then
 					JMod.StandardRankDisplay(Grade, 485, 65, 118, Opacity + 50)
 					draw.SimpleTextOutlined("PROGRESS", "JMod-Display", 0, 0, Color(255, 255, 255, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
 					draw.SimpleTextOutlined(tostring(math.Round(ProFrac * 100)) .. "%", "JMod-Display", 0, 30, Color(R, G, B, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
-					draw.SimpleTextOutlined("ORE REMAINING", "JMod-Display", 300, 60, Color(255, 255, 255, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
-					draw.SimpleTextOutlined(tostring(math.Round(OreFrac * self.MaxOre)), "JMod-Display", 300, 90, Color(OR, OG, OB, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
-					draw.SimpleTextOutlined("POWER REMAINING", "JMod-Display", 0, 60, Color(255, 255, 255, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
+					draw.SimpleTextOutlined("REMAINING", "JMod-Display", 290, 60, Color(255, 255, 255, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
+					draw.SimpleTextOutlined(tostring(math.Round(OreFrac * self.MaxOre)), "JMod-Display", 290, 90, Color(OR, OG, OB, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
+					draw.SimpleTextOutlined("POWER", "JMod-Display", 0, 60, Color(255, 255, 255, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
 					draw.SimpleTextOutlined(tostring(math.Round(ElecFrac * 100)) .. "%", "JMod-Display", 0, 90, Color(ER, EG, EB, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
-					draw.SimpleTextOutlined("ORE TYPE", "JMod-Display", 300, 0, Color(255, 255, 255, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
-					draw.SimpleTextOutlined(string.upper(self:GetOreType()), "JMod-Display", 300, 30, Color(255, 255, 255, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
+					draw.SimpleTextOutlined("TYPE", "JMod-Display", 290, 0, Color(255, 255, 255, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
+					draw.SimpleTextOutlined(string.upper(self:GetOreType()), "JMod-Display", 290, 30, Color(228, 215, 101, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, Opacity))
 				cam.End3D2D()
 			end
 		end

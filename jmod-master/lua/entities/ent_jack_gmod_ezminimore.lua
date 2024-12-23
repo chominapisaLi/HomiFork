@@ -11,6 +11,7 @@ ENT.AdminSpawnable = true
 ENT.EZscannerDanger = true
 ENT.JModEZstorable = true
 ENT.JModPreferredCarryAngles = Angle(0, -90, 0)
+ENT.EZcolorable = true
 
 ENT.BlacklistedNPCs = {"bullseye_strider_focus", "npc_turret_floor", "npc_turret_ceiling", "npc_turret_ground"}
 
@@ -30,7 +31,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(ply:GetAngles() + Angle(0, -90, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 
@@ -73,7 +74,7 @@ if SERVER then
 			if (self:GetState() == STATE_ARMED) and (math.random(1, 5) == 3) then
 				self:Detonate()
 			else
-				self.Entity:EmitSound("Drywall.ImpactHard")
+				self:EmitSound("Drywall.ImpactHard")
 			end
 		end
 	end
@@ -97,8 +98,8 @@ if SERVER then
 	function ENT:Use(activator)
 		local State = self:GetState()
 		if State < 0 then return end
-		local Alt = activator:KeyDown(JMod.Config.AltFunctionKey)
-		JMod.SetOwner(self, activator)
+		local Alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
+		JMod.SetEZowner(self, activator)
 		JMod.Colorify(self)
 
 		if State == STATE_OFF then
@@ -109,7 +110,7 @@ if SERVER then
 				JMod.Hint(activator, "arm")
 			end
 		else
-			self:EmitSound("snd_jack_minearm.wav", 60, 70)
+			self:EmitSound("snd_jack_minearm.ogg", 60, 70)
 			self:SetState(STATE_OFF)
 			self:DrawShadow(true)
 			JMod.BlockPhysgunPickup(self, false)
@@ -128,13 +129,13 @@ if SERVER then
 		plooie:SetNormal(Up)
 		util.Effect("eff_jack_minesplode", plooie, true, true)
 		util.ScreenShake(SelfPos, 99999, 99999, 1, 500)
-		self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 100)
-		JMod.Sploom(self:GetOwner(), SelfPos, math.random(10, 20))
+		self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 100)
+		JMod.Sploom(self.EZowner, SelfPos, math.random(10, 20))
 
-		if JMod.Config.FragExplosions then
-			JMod.FragSplosion(self, SelfPos, 1000, 10, 8000, self:GetOwner() or game.GetWorld(), Up, .9)
+		if JMod.Config.Explosives.FragExplosions then
+			JMod.FragSplosion(self, SelfPos, 1000, 10, 5000, JMod.GetEZowner(self), Up, .9)
 		else
-			util.BlastDamage(self, self:GetOwner() or game.GetWorld(), SelfPos + Up * 350, 350, 110)
+			util.BlastDamage(self, JMod.GetEZowner(self), SelfPos + Up * 350, 350, 110)
 		end
 
 		self:Remove()
@@ -156,10 +157,10 @@ if SERVER then
 			return
 		end
 
-		JMod.SetOwner(self, armer)
+		JMod.SetEZowner(self, armer)
 		JMod.Hint(armer, "mine friends")
 		self:SetState(STATE_ARMING)
-		self:EmitSound("snd_jack_minearm.wav", 60, 110)
+		self:EmitSound("snd_jack_minearm.ogg", 60, 110)
 		local ang = tr.HitNormal:Angle()
 		ang:RotateAroundAxis(ang:Right(), -90)
 		ang:RotateAroundAxis(ang:Up(), self:GetAngles().yaw - ang.yaw)
@@ -175,20 +176,6 @@ if SERVER then
 		end)
 	end
 
-	function ENT:CanSee(ent)
-		if not IsValid(ent) then return false end
-		local TargPos, SelfPos = ent:LocalToWorld(ent:OBBCenter()), self:LocalToWorld(self:OBBCenter()) + vector_up
-
-		local Tr = util.TraceLine({
-			start = SelfPos,
-			endpos = TargPos,
-			filter = {self, ent},
-			mask = MASK_SHOT + MASK_WATER
-		})
-
-		return not Tr.Hit
-	end
-
 	function ENT:Think()
 		if istable(WireLib) then
 			WireLib.TriggerOutput(self, "State", self:GetState())
@@ -198,11 +185,11 @@ if SERVER then
 
 		if State == STATE_ARMED then
 			for k, targ in pairs(ents.FindInSphere(self:GetPos() + Dir * 200, 150)) do
-				if (not (targ == self) and (targ:IsPlayer() or targ:IsNPC() or targ:IsVehicle())) and JMod.ShouldAttack(self, targ) and self:CanSee(targ) then
+				if (not (targ == self) and (targ:IsPlayer() or targ:IsNPC() or targ:IsVehicle())) and JMod.ShouldAttack(self, targ) and JMod.ClearLoS(self, targ) then
 					self:SetState(STATE_WARNING)
-					sound.Play("snds_jack_gmod/mine_warn.wav", self:GetPos() + Vector(0, 0, 30), 60, 100)
+					sound.Play("snds_jack_gmod/mine_warn.ogg", self:GetPos() + Vector(0, 0, 30), 60, 100)
 
-					timer.Simple(math.Rand(.15, .4) * JMod.Config.MineDelay, function()
+					timer.Simple(math.Rand(.15, .4) * JMod.Config.Explosives.Mine.Delay, function()
 						if IsValid(self) then
 							if self:GetState() == STATE_WARNING then
 								self:Detonate()

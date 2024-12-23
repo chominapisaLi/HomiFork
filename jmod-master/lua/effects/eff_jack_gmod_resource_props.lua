@@ -40,12 +40,12 @@ local ElectronicsModels = {
 	"models/props/cs_office/computer_caseb_p9a.mdl"
 }
 local PartsModels = {
-	"models/jmod/props/bolt/bolt.mdl",
-	"models/jmod/props/bolt/bolt.mdl",
-	"models/jmod/props/bolt/bolt.mdl",
-	"models/jmod/props/bolt/bolt.mdl",
-	"models/jmod/props/bolt/bolt.mdl",
-	"models/jmod/props/bolt/bolt.mdl",
+	"models/jmod/props/ezbolt.mdl",
+	"models/jmod/props/ezbolt.mdl",
+	"models/jmod/props/ezbolt.mdl",
+	"models/jmod/props/ezbolt.mdl",
+	"models/jmod/props/ezbolt.mdl",
+	"models/jmod/props/ezbolt.mdl",
 	"models/Mechanics/gears/gear12x12_small.mdl",
 	"models/Mechanics/gears/gear12x6.mdl",
 	"models/Mechanics/gears/gear16x24_small.mdl",
@@ -261,15 +261,15 @@ local PropConfig = {
 		col = Color(170, 160, 165),
 		scl = .5
 	},
-	[JMod.EZ_RESOURCE_TYPES.ORGANICS] = {
+	--[[[JMod.EZ_RESOURCE_TYPES.ORGANICS] = {
 		mdl = "models/hunter/misc/sphere025x025.mdl",
-
-	}
+		mat = {"models/mat_jack_gmod_grainblock", "models/mat_jack_gmod_beanblock"}
+	}]]--
 }
 
 local TotalParticleCount = 0
 timer.Create("JMod_ResourcePropsParticleClear", 60, 0, function()
-	TotalParticleCount = 0 // we should reset this periodically in case some gmod nonsense causes it to get out of sync
+	TotalParticleCount = 0 -- we should reset this periodically in case some gmod nonsense causes it to get out of sync
 end)
 
 function EFFECT:Init(data)
@@ -331,7 +331,7 @@ function EFFECT:Init(data)
 		phys:Wake()
 		phys:SetDamping(0, 0)
 		phys:SetMass(10)
-		phys:SetMaterial("gmod_silent")
+		phys:SetMaterial("Default_silent")
 		phys:SetVelocity(MyFlightVec * self.Spread + Vector(0, 0, self.Radius))
 
 		if self.Target then
@@ -364,7 +364,7 @@ function EFFECT:Think()
 		end
 
 		if IsValid(Phys) then
-			Phys:ApplyForceCenter(Vec:GetNormalized() * Dist * .7 * self.Speed - Phys:GetVelocity() / 4)
+			Phys:ApplyForceCenter(Vec:GetNormalized() * Dist * 1 * self.Speed - Phys:GetVelocity() / 4)
 		end
 	end
 

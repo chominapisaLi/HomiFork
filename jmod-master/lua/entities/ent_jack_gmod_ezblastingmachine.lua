@@ -49,10 +49,10 @@ if SERVER then
 			return
 		end
 
-		self:GetOwner() = activator
+		self.EZowner = activator
 
-		if activator:KeyDown(JMod.Config.AltFunctionKey) then
-			self:EmitSound("snds_jack_gmod/plunger.wav")
+		if activator:KeyDown(JMod.Config.General.AltFunctionKey) then
+			self:EmitSound("snds_jack_gmod/plunger.ogg")
 			self:SetFired(true)
 
 			timer.Simple(.5, function()

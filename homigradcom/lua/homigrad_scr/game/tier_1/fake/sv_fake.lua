@@ -703,7 +703,23 @@ CustomWeight["models/player/tnb/citizens/female_10.mdl"] = 90
 for i = 1,9 do
 	CustomWeight["models/player/tnb/citizens/male_0"..i..".mdl"] = 90
 end
+local type1 = {
+	['models/player/combine_ground_a.mdl'] = true,
+	['models/player/combine_prison_a.mdl'] = true,
+	['models/player/combine_shotgun_sa.mdl'] = true,
+	['models/player/combine_super_sa.mdl'] = true,
+}
+local type2 = {
+}
 
+for i = 1,9 do
+	type2["models/player/pandafishizens/female_0"..i..".mdl"] = true 
+end
+type2["models/player/tnb/citizens/female_10.mdl"] = true
+for i = 1,9 do
+	type2["models/player/pandafishizens/male_0"..i..".mdl"] = true
+end
+PrintTable(type2)
 util.AddNetworkString("custom name")
 
 net.Receive("custom name",function(len,ply)
@@ -751,7 +767,18 @@ function PlayerMeta:CreateRagdoll(attacker,dmginfo,force) --изменение �
 	
 	rag:AddEFlags(EFL_NO_DAMAGE_FORCES)
 	if IsValid(rag:GetPhysicsObject()) then
-		rag:GetPhysicsObject():SetMass(CustomWeight[rag:GetModel()] or 10)
+		rag:GetPhysicsObject():SetMass(25)
+		print(rag:GetModel())
+		if type1[rag:GetModel()] then -- так легче 
+			rag:SetNW2Int('Speed1',65)
+			rag:SetNW2Int('Speed2',35)
+		elseif type2[rag:GetModel()] then
+			rag:SetNW2Int('Speed1',65)
+			rag:SetNW2Int('Speed2',25)
+		else 
+			rag:SetNW2Int('Speed1',65)
+			rag:SetNW2Int('Speed2',35)
+		end
 	end
 	rag:Activate()
 	rag:SetCollisionGroup(COLLISION_GROUP_WEAPON)
@@ -999,7 +1026,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				if math.Round(lleg_goes) % 2 == 0 then
 					if ldist > 0 then
 						local shadowparams = {
-							secondstoarrive = 0.5,
+							secondstoarrive = 0.00000001,
 							pos = tr.HitPos + angs:Forward() * 20 + rag:GetVelocity() / 10,
 							angle = Angle(angs[1]+90,angs[2]+90,angs[3]),
 							maxangulardamp = 10,
@@ -1015,7 +1042,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				else
 					if rdist > 0 then
 						local shadowparams = {
-							secondstoarrive = 0.5,
+							secondstoarrive = 0.00000001,
 							pos = tr.HitPos + angs:Forward() * 20 + rag:GetVelocity() / 10,
 							angle = Angle(angs[1]+90,angs[2]+90,angs[3]),
 							maxangulardamp = 10,
@@ -1037,7 +1064,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				angs:RotateAroundAxis(angs:Right(),-90)
 				angs:Add(Angle(0,(1 - walkMoment) * 90,0))
 				local shadowparams = {
-					secondstoarrive = 0.5,
+					secondstoarrive = 0.00000001,
 					pos = tr.HitPos + vector_up * 50 * walkMoment - rag:GetVelocity() / 50,
 					angle = angs,
 					maxangulardamp = 10,
@@ -1071,7 +1098,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 					maxangulardamp=30,
 					maxspeeddamp=30,
 					maxangular=90,
-					maxspeed=speed,
+					maxspeed=rag:GetNW2Int('Speed1'),
 					teleportdistance=0,
 					deltatime=0.01,
 				}
@@ -1091,7 +1118,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 						ply:ChatPrint("Ты развязался")
 					end
 					Ropes[1].Constraint:Remove()
-					rag:EmitSound("snd_jack_hmcd_ducttape.wav",90,50,0.5,CHAN_AUTO)
+					rag:EmitSound("snd_jack_hmcd_ducttape.wav",90,50,0.00000001,CHAN_AUTO)
 				end
 			end
 
@@ -1104,13 +1131,13 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 					ang:RotateAroundAxis(eyeangs:Forward(),90)
 					ang:RotateAroundAxis(eyeangs:Right(),75)
 					local shadowparams = {
-						secondstoarrive=0.4,
+						secondstoarrive=0.00000001,
 						pos=head:GetPos()+eyeangs:Forward()*50+eyeangs:Right()*-5,
 						angle=ang,
 						maxangular=670,
 						maxangulardamp=600,
 						maxspeeddamp=50,
-						maxspeed=500,
+						maxspeed=rag:GetNW2Int('Speed1') +20,
 						teleportdistance=0,
 						deltatime=0.01,
 					}
@@ -1137,13 +1164,13 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				local pos = ply:EyePos()
 				pos[3] = head:GetPos()[3]
 				local shadowparams = {
-					secondstoarrive=0.4,
+					secondstoarrive=0.00000001,
 					pos=head:GetPos()+eyeangs:Forward()*50+eyeangs:Right()*15,
 					angle=ang,
 					maxangular=670,
 					maxangulardamp=100,
 					maxspeeddamp=50,
-					maxspeed=600,
+					maxspeed=rag:GetNW2Int('Speed1') +20,
 					teleportdistance=0,
 					deltatime=0.01,
 				}
@@ -1193,7 +1220,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 				local angs = ply:EyeAngles()
 				angs:RotateAroundAxis(angs:Forward(),90)
 				local shadowparams = {
-					secondstoarrive=0.5,
+					secondstoarrive=0.00000001,
 					pos=head:GetPos()+vector_up*(20/math.Clamp(rag:GetVelocity():Length()/300,1,12)),
 					angle=angs,
 					maxangulardamp=10,
@@ -1212,13 +1239,13 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 			local phys = rag:GetPhysicsObjectNum( rag:TranslateBoneToPhysBone(rag:LookupBone( "ValveBiped.Bip01_L_Hand" )) )
 			if ply.Organs["artery"] == 0 and !TwoHandedOrNo[ply.curweapon] then
 				local shadowparams = {
-				secondstoarrive=0.5,
+				secondstoarrive=0.00000001,
 				pos=head:GetPos(),
 				angle=angs,
 				maxangulardamp=10,
 				maxspeeddamp=10,
 				maxangular=370,
-				maxspeed=1120,
+				maxspeed=rag:GetNW2Int('Speed1'),
 				teleportdistance=0,
 				deltatime=deltatime,
 				}
@@ -1313,13 +1340,13 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 			
 			if(rag.ZacConsLH.Ent2:GetVelocity():LengthSqr()<1000) then
 				local shadowparams = {
-					secondstoarrive=0.5,
+					secondstoarrive=0.00000001,
 					pos=lh:GetPos(),
 					angle=phys:GetAngles(),
 					maxangulardamp=10,
 					maxspeeddamp=10,
 					maxangular=50,
-					maxspeed=speed,
+					maxspeed=rag:GetNW2Int('Speed2'),
 					teleportdistance=0,
 					deltatime=deltatime,
 				}
@@ -1337,13 +1364,13 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 			
 			if(rag.ZacConsRH.Ent2:GetVelocity():LengthSqr()<1000)then
 				local shadowparams = {
-					secondstoarrive=0.5,
+					secondstoarrive=0.000000000000001,
 					pos=rh:GetPos(),
 					angle=phys:GetAngles(),
 					maxangulardamp=10,
 					maxspeeddamp=10,
 					maxangular=50,
-					maxspeed=speed,
+					maxspeed=rag:GetNW2Int('Speed2'),
 					teleportdistance=0,
 					deltatime=deltatime,
 				}
@@ -1361,13 +1388,13 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 			
 			if(rag.ZacConsLH.Ent2:GetVelocity():LengthSqr()<1000)then
 				local shadowparams = {
-					secondstoarrive=0.5,
+					secondstoarrive=0.00000000000001,
 					pos=chst:GetPos(),
 					angle=phys:GetAngles(),
 					maxangulardamp=10,
 					maxspeeddamp=10,
 					maxangular=50,
-					maxspeed=speed,
+					maxspeed=rag:GetNW2Int('Speed2') + 20,
 					teleportdistance=0,
 					deltatime=deltatime,
 				}
@@ -1385,7 +1412,7 @@ hook.Add("Player Think","FakeControl",function(ply,time) --управление 
 			
 			if(rag.ZacConsRH.Ent2:GetVelocity():LengthSqr()<1000)then
 				local shadowparams = {
-					secondstoarrive=0.5,
+					secondstoarrive=0.00000001,
 					pos=chst:GetPos(),
 					angle=phys:GetAngles(),
 					maxangulardamp=10,

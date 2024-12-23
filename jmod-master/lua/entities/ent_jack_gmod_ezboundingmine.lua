@@ -30,7 +30,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 		--local effectdata=EffectData()
@@ -81,13 +81,14 @@ if SERVER then
 			local Pos = Tr.HitPos - Tr.HitNormal * 10
 			self:SetAngles(Ang)
 			self:SetPos(Pos)
+			--self:GetPhysicsObject():SetVelocity(Vector(0, 0, 0))
 			constraint.Weld(self, Tr.Entity, 0, 0, 50000, true)
 			local Fff = EffectData()
 			Fff:SetOrigin(Tr.HitPos)
 			Fff:SetNormal(Tr.HitNormal)
 			Fff:SetScale(1)
 			util.Effect("eff_jack_sminebury", Fff, true, true)
-			self:EmitSound("snd_jack_pinpull.wav")
+			self:EmitSound("snd_jack_pinpull.ogg")
 			activator:EmitSound("Dirt.BulletImpact")
 			self.ShootDir = Tr.HitNormal
 			self:DrawShadow(false)
@@ -98,9 +99,13 @@ if SERVER then
 
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.2 then
+			--jprint(self.EZlaunchBury)
 			if data.Speed > 25 then
 				if (self:GetState() == JMod.EZ_STATE_ARMED) and (math.random(1, 5) == 3) then
 					self:Detonate()
+				--elseif self.EZlaunchBury then
+				--	self:Bury(JMod.GetEZowner(self))
+				--	self.EZlaunchBury = false
 				else
 					self:EmitSound("Weapon.ImpactHard")
 				end
@@ -126,11 +131,11 @@ if SERVER then
 	function ENT:Use(activator)
 		local State = self:GetState()
 		if State < 0 then return end
-		local Alt = activator:KeyDown(JMod.Config.AltFunctionKey)
+		local Alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
 
 		if State == JMod.EZ_STATE_OFF then
 			if Alt then
-				JMod.SetOwner(self, activator)
+				JMod.SetEZowner(self, activator)
 				self:Bury(activator)
 				JMod.Hint(activator, "mine friends")
 			else
@@ -138,9 +143,9 @@ if SERVER then
 				JMod.Hint(activator, "arm boundingmine")
 			end
 		else
-			self:EmitSound("snd_jack_minearm.wav", 60, 70)
+			self:EmitSound("snd_jack_minearm.ogg", 60, 70)
 			self:SetState(JMod.EZ_STATE_OFF)
-			JMod.SetOwner(self, activator)
+			JMod.SetEZowner(self, activator)
 			self:DrawShadow(true)
 			constraint.RemoveAll(self)
 			self:SetPos(self:GetPos() + self:GetUp() * 40)
@@ -183,11 +188,11 @@ if SERVER then
 			end
 		end
 
-		util.BlastDamage(self, self:GetOwner() or self, SelfPos, 120 * JMod.Config.MinePower, 30 * JMod.Config.MinePower)
+		util.BlastDamage(self, JMod.GetEZowner(self), SelfPos, 120 * JMod.Config.Explosives.Mine.Power, 30 * JMod.Config.Explosives.Mine.Power)
 		util.ScreenShake(SelfPos, 99999, 99999, 1, 500)
-		self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 100)
-		JMod.Sploom(self:GetOwner(), SelfPos, math.random(10, 20))
-		JMod.FragSplosion(self, SelfPos, 3000, 20, 8000, self:GetOwner() or game.GetWorld(), nil, nil, 3)
+		self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 100)
+		JMod.Sploom(self.EZowner, SelfPos, math.random(10, 20))
+		JMod.FragSplosion(self, SelfPos, 3000, 50, 5000, JMod.GetEZowner(self), nil, nil, 10)
 		self:Remove()
 	end
 
@@ -223,8 +228,8 @@ if SERVER then
 		Poof:SetScale(1)
 		util.Effect("eff_jack_sminepop", Poof, true, true)
 		--util.SpriteTrail(self,0,Color(50,50,50,255),false,8,20,.5,1/(15+1)*0.5,"trails/smoke.vmt")
-		self:EmitSound("snd_jack_sminepop.wav")
-		sound.Play("snd_jack_sminepop.wav", self:GetPos(), 120, 80)
+		self:EmitSound("snd_jack_sminepop.ogg")
+		sound.Play("snd_jack_sminepop.ogg", self:GetPos(), 120, 80)
 
 		timer.Simple(math.Rand(.4, .5), function()
 			if IsValid(self) then
@@ -255,10 +260,10 @@ if SERVER then
 	function ENT:Arm(armer)
 		local State = self:GetState()
 		if State ~= JMod.EZ_STATE_OFF then return end
-		JMod.SetOwner(self, armer)
+		JMod.SetEZowner(self, armer)
 		self:SetState(JMod.EZ_STATE_ARMING)
 		self:SetBodygroup(2, 1)
-		self:EmitSound("snd_jack_minearm.wav", 60, 110)
+		self:EmitSound("snd_jack_minearm.ogg", 60, 110)
 
 		timer.Simple(3, function()
 			if IsValid(self) then
@@ -270,31 +275,17 @@ if SERVER then
 		end)
 	end
 
-	function ENT:CanSee(ent)
-		if not IsValid(ent) then return false end
-		local TargPos, SelfPos = ent:LocalToWorld(ent:OBBCenter()), self:LocalToWorld(self:OBBCenter()) + vector_up * 5
-
-		local Tr = util.TraceLine({
-			start = SelfPos,
-			endpos = TargPos,
-			filter = {self, ent},
-			mask = MASK_SHOT + MASK_WATER
-		})
-
-		return not Tr.Hit
-	end
-
 	function ENT:Think()
 		local State, Time = self:GetState(), CurTime()
 
 		if State == JMod.EZ_STATE_ARMED then
 			for k, targ in pairs(ents.FindInSphere(self:GetPos(), 100)) do
 				if not (targ == self) and (targ:IsPlayer() or targ:IsNPC() or targ:IsVehicle()) then
-					if JMod.ShouldAttack(self, targ) and self:CanSee(targ) then
+					if JMod.ShouldAttack(self, targ) and JMod.ClearLoS(self, targ, false, 5) then
 						self:SetState(JMod.EZ_STATE_WARNING)
-						sound.Play("snds_jack_gmod/mine_warn.wav", self:GetPos() + Vector(0, 0, 30), 60, 100)
+						sound.Play("snds_jack_gmod/mine_warn.ogg", self:GetPos() + Vector(0, 0, 30), 60, 100)
 
-						timer.Simple(math.Rand(.15, .4) * JMod.Config.MineDelay, function()
+						timer.Simple(math.Rand(.15, .4) * JMod.Config.Explosives.Mine.Delay, function()
 							if IsValid(self) then
 								if self:GetState() == JMod.EZ_STATE_WARNING then
 									self:Detonate()
@@ -313,7 +304,33 @@ if SERVER then
 
 	function ENT:OnRemove()
 	end
-	--aw fuck you
+--[[]
+	function ENT:GravGunPunt(ply)
+		if (self:GetState() == JMod.EZ_STATE_OFF) and IsValid(self.EZholdingPlayer) then
+			
+			self.EZlaunchBury = true
+			self.EZholdingPlayer = nil
+			--self:SetState(STATE_LAUNCHED)
+			--self:EmitSound("npc/roller/mine/rmine_predetonate.wav")
+
+			return true
+		else
+			ply:DropObject()
+		end
+	end
+
+	hook.Add("GravGunOnPickedUp", "JMOD_BOUNDINGMINE_GRAB", function(ply, ent)
+		if ent:GetClass() == "ent_jack_gmod_ezboundingmine" then 
+			local State = ent:GetState()
+			--ent.EZlastGravGunGrabTime = CurTime()
+
+			if State ~= JMod.EZ_STATE_ARMED then
+				JMod.SetEZowner(ent, ply)
+				ent.EZholdingPlayer = ply
+			end
+		end
+	end)--]]
+
 elseif CLIENT then
 	function ENT:Initialize()
 	end

@@ -7,8 +7,8 @@ JMod.Equippables = {
 		slot = "glowsticks",
 		mdls = {
 			{
-				mdl = "models/props/army/glowstick.mdl",
-				mat = "models/props/army/jlowstick_on",
+				mdl = "models/jmod/props/glowstick.mdl",
+				mat = "models/jmod/props/jlowstick_on",
 				scl = 1,
 				bon = "ValveBiped.Bip01_Spine4",
 				pos = Vector(-12, -10, -3),
@@ -148,7 +148,7 @@ hook.Add("Think", "JModEquippableThink", function()
 	if CLIENT or (NextServerThink < Time) then
 		NextServerThink = Time + .1
 
-		for k, ply in pairs(player.GetAll()) do
+		for k, ply in player.Iterator() do
 			if ply:Alive() and ply.EZequippables then
 				for slot, info in pairs(ply.EZequippables) do
 					local EquippableSpecs, TimeLeft = JMod.Equippables[info.nam], info.tim - Time
@@ -240,7 +240,7 @@ elseif SERVER then
 			ply.EZequippables[slot] = nil
 		end
 
-		ply:EmitSound("snds_jack_gmod/equip" .. math.random(1, 5) .. ".wav", 60, math.random(90, 110))
+		ply:EmitSound("snds_jack_gmod/equip" .. math.random(1, 5) .. ".ogg", 60, math.random(90, 110))
 		SyncEquippables(ply)
 	end
 

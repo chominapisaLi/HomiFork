@@ -10,7 +10,6 @@ ENT.Spawnable = false
 ENT.AdminSpawnable = false
 ---
 ENT.JModEZstorable = true
-ENT.IsJModArmor = true
 
 ---
 if SERVER then
@@ -19,9 +18,10 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
+		JMod.Hint(ply, self.ClassName)
 		--local effectdata=EffectData()
 		--effectdata:SetEntity(ent)
 		--util.Effect("propspawn",effectdata)
@@ -31,9 +31,8 @@ if SERVER then
 
 	function ENT:Initialize()
 		self.Specs = JMod.ArmorTable[self.ArmorName]
-		self.Entity:SetModel(self.entmdl or self.Specs.mdl)
-		self.Entity:SetMaterial(self.Specs.mat or "")
-		--self.Entity:SetColor(Color(75,75,75))
+		self:SetModel(self.entmdl or self.Specs.mdl)
+		self:SetMaterial(self.Specs.mat or "")
 
 		if self.Specs.lbl then
 			self:SetDTString(0, self.Specs.lbl)
@@ -43,18 +42,18 @@ if SERVER then
 			self:SetColor(Color(self.Specs.clr.r, self.Specs.clr.g, self.Specs.clr.b))
 		end
 
-		--self.Entity:PhysicsInitBox(Vector(-10,-10,-10),Vector(10,10,10))
+		--self:PhysicsInitBox(Vector(-10,-10,-10),Vector(10,10,10))
 		if self.ModelScale and not self.Specs.gayPhysics then
 			self:SetModelScale(self.ModelScale)
 		end
 
-		self.Entity:PhysicsInit(SOLID_VPHYSICS)
-		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-		self.Entity:SetSolid(SOLID_VPHYSICS)
-		self.Entity:DrawShadow(true)
-		self.Entity:SetUseType(SIMPLE_USE)
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
+		self:SetUseType(SIMPLE_USE)
 		self:GetPhysicsObject():SetMass(10)
-		self.Durability = self.Durability or self.Specs.dur
+		self.Durability = self.Durability or self.Specs.dur or 1
 
 		if self.Specs.chrg then
 			self.ArmorCharges = self.ArmorCharges or table.FullCopy(self.Specs.chrg)
@@ -62,7 +61,7 @@ if SERVER then
 
 		---
 		timer.Simple(.01, function()
-			self:GetPhysicsObject():SetMass(4)
+			self:GetPhysicsObject():SetMass(10)
 			self:GetPhysicsObject():Wake()
 		end)
 
@@ -70,43 +69,84 @@ if SERVER then
 		self.EZID = self.EZID or JMod.GenerateGUID()
 	end
 
+	--[[function ENT:TryLoadResource(typ, amt)
+		if (amt <= 0) then return 0 end
+		if self.ArmorCharges then
+			for k, v in pairs(self.ArmorCharges) do
+				if typ == v.typ then
+					local CurAmt = v.amt or 0
+					local Take = math.min(amt, v.max - CurAmt)
+
+					if Take > 0 then
+						v.amt = CurAmt + Take
+						amt = amt - Take
+
+						return Take
+					end
+				end
+			end
+		end
+
+		return 0
+	end--]]
+
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.2 then
 			if data.Speed > 25 then
-				self.Entity:EmitSound("Body.ImpactSoft")
+				self:EmitSound(util.GetSurfaceData(data.OurSurfaceProps).impactSoftSound)
 			end
 		end
 	end
 
 	function ENT:OnTakeDamage(dmginfo)
-		self.Entity:TakePhysicsDamage(dmginfo)
+		self:TakePhysicsDamage(dmginfo)
 
 		if dmginfo:GetDamage() >= 5 then
 			self.Durability = self.Durability - dmginfo:GetDamage() / 2
 
 			if self.Durability <= 0 then
+				if self.Specs.eff and self.Specs.eff.explosive and not(self.exploded) then
+					self.exploded = true
+					local FireAmt = 2--((Info.chrg and Info.chrg.fuel) or 1) / 10
+					JMod.EnergeticsCookoff(self:GetPos(), dmginfo:GetAttacker(), 1, 1, 0, FireAmt)
+				end
 				self:Remove()
 			end
 		end
 	end
 
 	function ENT:Use(activator)
-		local Alt = activator:KeyDown(IN_WALK)
+		local Alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
+
 		if Alt then
-		
 			if activator.JackyArmor and (#table.GetKeys(activator.JackyArmor) > 0) then return end
 
-			JMod.EZ_Equip_Armor(activator, self)
+			if self.Specs.clrForced then
+				JMod.EZ_Equip_Armor(activator, self)
+			else
+				net.Start("JMod_ArmorColor")
+				net.WriteEntity(self)
+				net.WriteBool(false)
+				net.WriteFloat(self.Durability)
+				net.WriteFloat(self.Specs.dur)
+				net.Send(activator)
+			end
 
 			if self.ArmorName == "Headset" then
 				JMod.Hint(activator, "armor friends")
 			else
 				JMod.Hint(activator, "inventory")
 			end
-		activator:EmitSound("snd_jack_clothequip.wav",70,100)
-		--activator:EmitSound("snd_jack_gmod/armorstep1.wav",70,100)--5
-		--activator:EmitSound("snd_jack_gear1.wav",70,100)--6
+			if self.Specs.effects and self.Specs.effects.parachute then
+				JMod.Hint(activator, "parachute")
+			end
+		else
+			activator:PickupObject(self)
+			JMod.Hint(activator, "armor wear")
 		end
+		--activator:EmitSound("snd_jack_clothequip.ogg",70,100)
+		--activator:EmitSound("snd_jack_gmod/armorstep1.ogg",70,100)--5
+		--activator:EmitSound("snd_jack_gear1.ogg",70,100)--6
 	end
 elseif CLIENT then
 	function ENT:Draw()

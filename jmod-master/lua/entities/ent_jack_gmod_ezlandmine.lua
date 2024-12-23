@@ -32,7 +32,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 
@@ -40,13 +40,13 @@ if SERVER then
 	end
 
 	function ENT:Initialize()
-		self.Entity:SetModel("models/props_pipes/pipe02_connector01.mdl")
-		self.Entity:SetMaterial("models/jacky_camouflage/digi2")
-		self.Entity:PhysicsInit(SOLID_VPHYSICS)
-		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-		self.Entity:SetSolid(SOLID_VPHYSICS)
-		self.Entity:DrawShadow(true)
-		self.Entity:SetUseType(SIMPLE_USE)
+		self:SetModel("models/props_pipes/pipe02_connector01.mdl")
+		self:SetMaterial("models/jacky_camouflage/digi2")
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
+		self:SetUseType(SIMPLE_USE)
 		self:GetPhysicsObject():SetMass(20)
 
 		---
@@ -61,7 +61,7 @@ if SERVER then
 		if istable(WireLib) then
 			self.Inputs = WireLib.CreateInputs(self, {"Detonate", "Arm"}, {"This will directly detonate the bomb", "Arms bomb when > 0"})
 
-			self.Outputs = WireLib.CreateOutputs(self, {"State"}, {"1 is armed \n 0 is not \n -1 is broken \n 2 is arming"})
+			self.Outputs = WireLib.CreateOutputs(self, {"State"}, {"-1 is broken \n 0 is unarmed \n 1 is arming \n 2 is armed \n 3 is warning"})
 		end
 
 		---
@@ -76,7 +76,7 @@ if SERVER then
 		if iname == "Detonate" and value > 0 then
 			self:Detonate()
 		elseif iname == "Arm" and value > 0 then
-			self:SetState(STATE_ARMING)
+			self:SetState(STATE_ARMED)
 		end
 	end
 
@@ -86,14 +86,14 @@ if SERVER then
 				if (self:GetState() == STATE_ARMED) and (math.random(1, 5) == 3) then
 					self:Detonate()
 				else
-					self.Entity:EmitSound("Weapon.ImpactHard")
+					self:EmitSound("Weapon.ImpactHard")
 				end
 			end
 		end
 	end
 
 	function ENT:OnTakeDamage(dmginfo)
-		self.Entity:TakePhysicsDamage(dmginfo)
+		self:TakePhysicsDamage(dmginfo)
 
 		if JMod.LinCh(dmginfo:GetDamage(), 10, 50) then
 			local Pos, State = self:GetPos(), self:GetState()
@@ -112,11 +112,11 @@ if SERVER then
 		local State = self:GetState()
 		if State < 0 then return end
 		self.AutoArm = false
-		local Alt = activator:KeyDown(JMod.Config.AltFunctionKey)
+		local Alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
 
 		if State == STATE_OFF then
 			if Alt then
-				JMod.SetOwner(self, activator)
+				JMod.SetEZowner(self, activator)
 				net.Start("JMod_ColorAndArm")
 				net.WriteEntity(self)
 				net.Send(activator)
@@ -125,9 +125,9 @@ if SERVER then
 				JMod.Hint(activator, "arm")
 			end
 		elseif not (activator.KeyDown and activator:KeyDown(IN_SPEED)) then
-			self:EmitSound("snd_jack_minearm.wav", 60, 70)
+			self:EmitSound("snd_jack_minearm.ogg", 60, 70)
 			self:SetState(STATE_OFF)
-			JMod.SetOwner(self, activator)
+			JMod.SetEZowner(self, activator)
 			self:DrawShadow(true)
 		end
 	end
@@ -139,6 +139,7 @@ if SERVER then
 		local Up = Vector(0, 0, 1)
 		local EffectType = 1
 		local Traec = util.QuickTrace(self:GetPos(), Vector(0, 0, -5), self.Entity)
+		local Owner = JMod.GetEZowner(self)
 
 		if Traec.Hit then
 			if (Traec.MatType == MAT_DIRT) or (Traec.MatType == MAT_SAND) then
@@ -161,9 +162,9 @@ if SERVER then
 		plooie:SetNormal(Up)
 		util.Effect("eff_jack_minesplode", plooie, true, true)
 		util.ScreenShake(SelfPos, 99999, 99999, 1, 500)
-		self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 100)
-		JMod.Sploom(self:GetOwner(), SelfPos, math.random(10, 20))
-		JMod.FragSplosion(self, SelfPos, 1000, 20 * JMod.Config.MinePower, 3000, self:GetOwner(), Up, 1.2, 3)
+		self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 100)
+		JMod.Sploom(Owner, SelfPos, math.random(10, 20))
+		JMod.FragSplosion(self, SelfPos + Up * 5, 1000, 25 * JMod.Config.Explosives.Mine.Power, 3000, Owner, Up, 1.2, 3)
 		self:Remove()
 	end
 
@@ -171,9 +172,9 @@ if SERVER then
 		local State = self:GetState()
 		if State ~= STATE_OFF then return end
 		JMod.Hint(armer, "mine friends")
-		JMod.SetOwner(self, armer)
+		JMod.SetEZowner(self, armer)
 		self:SetState(STATE_ARMING)
-		self:EmitSound("snd_jack_minearm.wav", 60, 110)
+		self:EmitSound("snd_jack_minearm.ogg", 60, 110)
 
 		if autoColor then
 			local Tr = util.QuickTrace(self:GetPos() + Vector(0, 0, 10), Vector(0, 0, -50), self)
@@ -206,20 +207,6 @@ if SERVER then
 		end)
 	end
 
-	function ENT:CanSee(ent)
-		if not IsValid(ent) then return false end
-		local TargPos, SelfPos = ent:LocalToWorld(ent:OBBCenter()), self:LocalToWorld(self:OBBCenter()) + vector_up
-
-		local Tr = util.TraceLine({
-			start = SelfPos,
-			endpos = TargPos,
-			filter = {self, ent},
-			mask = MASK_SHOT + MASK_WATER
-		})
-
-		return not Tr.Hit
-	end
-
 	function ENT:Think()
 		if istable(WireLib) then
 			WireLib.TriggerOutput(self, "State", self:GetState())
@@ -230,11 +217,11 @@ if SERVER then
 		if State == STATE_ARMED then
 			for k, targ in pairs(ents.FindInSphere(self:GetPos(), 100)) do
 				if not (targ == self) and (targ:IsPlayer() or targ:IsNPC() or targ:IsVehicle()) then
-					if JMod.ShouldAttack(self, targ) and self:CanSee(targ) then
+					if JMod.ShouldAttack(self, targ) and JMod.ClearLoS(self, targ) then
 						self:SetState(STATE_WARNING)
-						sound.Play("snds_jack_gmod/mine_warn.wav", self:GetPos() + Vector(0, 0, 30), 60, 100)
+						sound.Play("snds_jack_gmod/mine_warn.ogg", self:GetPos() + Vector(0, 0, 30), 60, 100)
 
-						timer.Simple(math.Rand(.05, .3) * JMod.Config.MineDelay, function()
+						timer.Simple(math.Rand(.05, .3) * JMod.Config.Explosives.Mine.Delay, function()
 							if IsValid(self) then
 								if self:GetState() == STATE_WARNING then
 									self:Detonate()
@@ -258,7 +245,7 @@ if SERVER then
 			end
 
 			if self.StillTicks > 4 then
-				self:Arm(self:GetOwner() or game.GetWorld(), true)
+				self:Arm(JMod.GetEZowner(self), true)
 			end
 
 			self:NextThink(Time + .5)

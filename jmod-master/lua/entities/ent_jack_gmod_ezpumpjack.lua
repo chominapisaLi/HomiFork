@@ -12,17 +12,21 @@ ENT.Base = "ent_jack_gmod_ezmachine_base"
 ENT.Model = "models/hunter/blocks/cube4x4x1.mdl"
 ENT.Mass = 3000
 ENT.SpawnHeight = 95
+ENT.JModPreferredCarryAngles = Angle(0, 0, -90)
+ENT.EZcolorable = true
+ENT.EZanchorage = 2000
 ---
 ENT.WhitelistedResources = {JMod.EZ_RESOURCE_TYPES.WATER, JMod.EZ_RESOURCE_TYPES.OIL}
 ---
 ENT.EZupgradable = true
 ENT.StaticPerfSpecs = {
-	MaxDurability = 100,
+	MaxDurability = 400,
 	MaxElectricity = 400,
 }
 ENT.DynamicPerfSpecs = {
 	Armor = 2
 }
+ENT.EZpowerSocket = Vector(-90, 80, 0)
 ---
 local STATE_BROKEN, STATE_OFF, STATE_RUNNING = -1, 0, 1
 ---
@@ -41,134 +45,104 @@ if(SERVER)then
 		end)
         timer.Simple(5, function()
             if IsValid(self) then
-            	JMod.Hint(self:GetOwner(), "liquid scan")
+            	JMod.Hint(JMod.GetEZowner(self), "liquid scan")
             end
         end)
 	end
 
-	function ENT:UpdateDepositKey()
-		local SelfPos = self:GetPos()
-		-- first, figure out which deposits we are inside of, if any
-		local DepositsInRange = {}
-
-		for k, v in pairs(JMod.NaturalResourceTable) do
-			-- Make sure the resource is on the whitelist
-			local Dist = SelfPos:Distance(v.pos)
-
-			-- store they desposit's key if we're inside of it
-			if (Dist <= v.siz) and table.HasValue(self.WhitelistedResources, v.typ) then
-				if not v.rate and (v.amt < 0) then break end
-				table.insert(DepositsInRange, k)
-			end
-		end
-
-		-- now, among all the deposits we are inside of, let's find the closest one
-		local ClosestDeposit, ClosestRange = nil, 9e9
-
-		if #DepositsInRange > 0 then
-			for k, v in pairs(DepositsInRange) do
-				local DepositInfo = JMod.NaturalResourceTable[v]
-				local Dist = SelfPos:Distance(DepositInfo.pos)
-
-				if Dist < ClosestRange then
-					ClosestDeposit = v
-					ClosestRange = Dist
-				end
-			end
-		end
-
-		if ClosestDeposit then
-			self.DepositKey = ClosestDeposit
-			self:SetResourceType(JMod.NaturalResourceTable[self.DepositKey].typ)
-			--print("Our deposit is: "..self.DepositKey) --DEBUG
-			--print("Our deposit type is: "..JMod.NaturalResourceTable[self.DepositKey].typ)
-		else
-			self.DepositKey = nil
-			--print("No valid deposit") --DEBUG
-		end
-	end
-
 	function ENT:TryPlace()
-		--local SelfAng = self:GetAngles()
-		--local Right = SelfAng:Right()
 		local Tr = util.QuickTrace(self:GetPos() + Vector(0, 0, 100), Vector(0, 0, -500), self)
+		SelfAng = self:GetAngles()
 		if (Tr.Hit) and (Tr.HitWorld) then
-			local Pitch = Tr.HitNormal:Angle().x + 90
-			local Yaw = self:GetAngles().y
-			if Tr.HitNormal:Angle().y >= 20 then
-				Yaw = Tr.HitNormal:Angle().y
-			end
-			local Roll = Tr.HitNormal:Angle().z - 90
-			self:SetAngles(Angle(Pitch, Yaw, Roll))
-			self:SetPos(Tr.HitPos + Tr.HitNormal * self.SpawnHeight)
-			--
 			local GroundIsSolid = true
 			for i = 1, 50 do
 				local Contents = util.PointContents(Tr.HitPos - Vector(0, 0, 10 * i))
 				if(bit.band(util.PointContents(self:GetPos()), CONTENTS_SOLID) == CONTENTS_SOLID)then GroundIsSolid = false break end
 			end
+
 			self:UpdateDepositKey()
+
 			if not(self.DepositKey)then
-				JMod.Hint(self:GetOwner(), "oil derrick")
+				JMod.Hint(JMod.GetEZowner(self), "oil derrick")
 			elseif(GroundIsSolid)then
-				if not(IsValid(self.Weld))then self.Weld = constraint.Weld(self, Tr.Entity, 0, 0, 50000, false, false) end
-				if(IsValid(self.Weld) and self.DepositKey)then
-					self:TurnOn(self:GetOwner())
+				local HitAngle = Tr.HitNormal:Angle()
+				--jprint("Before", HitAngle)
+				HitAngle:RotateAroundAxis(HitAngle:Up(), 90)
+				--jprint("After", HitAngle)
+				--self:SetAngles(HitAngle)
+				self:SetAngles(Angle(0, SelfAng.y, -90))
+				self:SetPos(Tr.HitPos + Tr.HitNormal * self.SpawnHeight)
+				---
+				self:GetPhysicsObject():EnableMotion(false)
+				self.EZinstalled = true
+				---
+				if self.DepositKey then
+					self:TurnOn(self.EZowner)
 				else
-					if self:GetState() > 0 then
-						self:TurnOff()
+					if self:GetState() > STATE_OFF then
+						self:TurnOff(JMod.GetEZowner(self))
 					end
-					JMod.Hint(self:GetOwner(), "machine mounting problem")
+					self.EZstayOn = nil
+					JMod.Hint(JMod.GetEZowner(self), "machine mounting problem")
 				end
 			end
 		end
 	end
 
 	function ENT:TurnOn(activator)
+		if self:GetState() ~= STATE_OFF then return end
 		local SelfPos, Forward, Right = self:GetPos(), self:GetForward(), self:GetRight()
-		if self:GetElectricity() > 0 then
-			self:SetState(STATE_RUNNING)
-			self.SoundLoop = CreateSound(self, "snds_jack_gmod/pumpjack_start_loop.wav")
-			self.SoundLoop:SetSoundLevel(65)
-			self.SoundLoop:Play()
-			self.WellPos = SelfPos + Forward * 120 - Right * 95
-			self:SetProgress(0)
+
+		if self.EZinstalled and JMod.NaturalResourceTable[self.DepositKey] then
+			if (self:GetElectricity() > 0) then
+				if IsValid(activator) then self.EZstayOn = true end
+				self:SetState(STATE_RUNNING)
+				self.SoundLoop = CreateSound(self, "snds_jack_gmod/pumpjack_start_loop.wav")
+				self.SoundLoop:SetSoundLevel(65)
+				self.SoundLoop:Play()
+				self.WellPos = SelfPos + Forward * 120 - Right * 95
+				self:SetProgress(0)
+			else
+				JMod.Hint(activator, "nopower")
+			end
 		else
-			JMod.Hint(activator, "nopower")
+			self:TryPlace()
 		end
 	end
 
-	function ENT:TurnOff()
+	function ENT:TurnOff(stayOff)
+		if (self:GetState() <= STATE_OFF) then return end
+		if stayOff then self.EZstayOn = nil end
 		self:SetState(STATE_OFF)
-		self:ProduceResource(self:GetProgress())
+		self:ProduceResource()
 
 		if self.SoundLoop then
 			self.SoundLoop:Stop()
 		end
 
-		self:EmitSound("snds_jack_gmod/pumpjack_stop.wav")
+		self:EmitSound("snds_jack_gmod/pumpjack_stop.ogg")
 	end
 
 	function ENT:Use(activator)
-		local State=self:GetState()
-		local OldOwner=self:GetOwner()
-		local alt = activator:KeyDown(JMod.Config.AltFunctionKey)
-		JMod.SetOwner(self,activator)
-		if(IsValid(self:GetOwner()))then
-			if(OldOwner~=self:GetOwner())then -- if owner changed then reset team color
-				JMod.Colorify(self)
-			end
-		end
+		local State = self:GetState()
+		local OldOwner = JMod.GetEZowner(self)
+		local alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
+		JMod.SetEZowner(self, activator, true)
 
 		if State == STATE_BROKEN then
 			JMod.Hint(activator, "destroyed", self)
 
 			return
-		elseif(State==STATE_OFF)then
-			self:TryPlace()
-		elseif(State==STATE_RUNNING)then
+		elseif State == STATE_OFF then
+			if alt and self.EZinstalled then
+				JMod.EZinstallMachine(self, false)
+
+				return
+			end
+			self:TurnOn(activator)
+		elseif State == STATE_RUNNING then
 			if alt then
-				self:ProduceResource(self:GetProgress())
+				self:ProduceResource()
 
 				return
 			end
@@ -176,11 +150,11 @@ if(SERVER)then
 		end
 	end
 
-	function ENT:ResourceLoaded(typ, accepted)
+	--[[function ENT:ResourceLoaded(typ, accepted)
 		if typ == JMod.EZ_RESOURCE_TYPES.POWER and accepted >= 1 then
-			self:TurnOn(self:GetOwner())
+			self:TurnOn(self.EZowner)
 		end
-	end
+	end--]]
 
 	function ENT:OnRemove()
 		if(self.SoundLoop)then self.SoundLoop:Stop() end
@@ -188,9 +162,22 @@ if(SERVER)then
 
 	function ENT:Think()
 		local State, Time = self:GetState(), CurTime()
+		local Phys = self:GetPhysicsObject()
+
+		self:UpdateWireOutputs()
+
+		if self.EZinstalled then
+			if Phys:IsMotionEnabled() or self:IsPlayerHolding() then
+				self.EZinstalled = false
+				self:TurnOff()
+
+				return
+			end
+		end
 
 		if (self.NextResourceThinkTime < Time) then
 			self.NextResourceThinkTime = Time + 1
+			
 			if State == STATE_BROKEN then
 				if self.SoundLoop then self.SoundLoop:Stop() end
 
@@ -200,28 +187,24 @@ if(SERVER)then
 
 				return
 			elseif State == STATE_RUNNING then
-				if not IsValid(self.Weld) then
-					self.DepositKey = nil
-					self.WellPos = nil
-					--self.Weld = nil
+				
+				if not self.EZinstalled then self:TurnOff() return end
+
+				local Deposit = JMod.NaturalResourceTable[self.DepositKey]
+				if not Deposit then 
 					self:TurnOff()
 
 					return
 				end
 
-				if not JMod.NaturalResourceTable[self.DepositKey] then 
-					self:TurnOff()
-					return
-				end
-
-				self:ConsumeElectricity(.5)
+				self:ConsumeElectricity(.5 * (JMod.EZ_GRADE_BUFFS[self:GetGrade()] ^ 2) * JMod.Config.ResourceEconomy.ExtractionSpeed)
 				-- This is just the rate at which we pump
-				local pumpRate = 0.5 * (JMod.EZ_GRADE_BUFFS[self:GetGrade()] ^ 2)
+				local pumpRate = 1 * (JMod.EZ_GRADE_BUFFS[self:GetGrade()] ^ 2) * JMod.Config.ResourceEconomy.ExtractionSpeed
 				-- Here's where we do the rescource deduction, and barrel production
 				-- If it's a flow (i.e. water)
-				if JMod.NaturalResourceTable[self.DepositKey].rate then
+				if Deposit.rate then
 					-- We get the rate
-					local flowRate = JMod.NaturalResourceTable[self.DepositKey].rate
+					local flowRate = Deposit.rate
 					-- and set the progress to what it was last tick + our ability * the flowrate
 					self:SetProgress(self:GetProgress() + pumpRate * flowRate)
 
@@ -229,15 +212,14 @@ if(SERVER)then
 					if self:GetProgress() >= 100 then
 						-- Spawn barrel
 						local amtToPump = math.min(self:GetProgress(), 100)
-						self:ProduceResource(amtToPump)
+						self:ProduceResource()
 					end
 				else
 					self:SetProgress(self:GetProgress() + pumpRate)
 
 					if self:GetProgress() >= 100 then
-						local amtToPump = math.min(JMod.NaturalResourceTable[self.DepositKey].amt, 100)
-						self:ProduceResource(amtToPump)
-						JMod.DepleteNaturalResource(self.DepositKey, amtToPump)
+						local amtToPump = math.min(Deposit.amt, 100)
+						self:ProduceResource()
 					end
 				end
 
@@ -246,16 +228,17 @@ if(SERVER)then
 		end
 	end
 
-	function ENT:ProduceResource(amt)
+	function ENT:ProduceResource()
 		local SelfPos, Forward, Up, Right, Typ = self:GetPos(), self:GetForward(), self:GetUp(), self:GetRight(), self:GetResourceType()
 		local amt = math.min(self:GetProgress(), 100)
 
 		if amt <= 0 then return end
 
 		local pos = SelfPos + Forward * 15 - Up * 25 - Right * 2
-		local spawnVec = self:WorldToLocal(Vector(SelfPos+Forward*100-Right*50))
-		JMod.MachineSpawnResource(self, self:GetResourceType(), amt, spawnVec, Angle(0, 0, -90), Forward*500, true, 200)
+		local spawnVec = self:WorldToLocal(Vector(SelfPos+Forward*120-Right*50))
 		self:SetProgress(self:GetProgress() - amt)
+		JMod.MachineSpawnResource(self, self:GetResourceType(), amt, spawnVec, Angle(0, 0, 90), Forward*500, 200)
+		JMod.DepleteNaturalResource(self.DepositKey, amt)
 	end
 
 	function ENT:OnDestroy(dmginfo)
@@ -268,13 +251,13 @@ if(SERVER)then
 				oilFire:SetAngles(Angle(180, 0, 90))
 				oilFire.DepositKey = self.DepositKey
 				oilFire:Spawn()
-				JMod.SetOwner(oilFire, self:GetOwner())
+				JMod.SetEZowner(oilFire, self.EZowner)
 				oilFire:Activate()
 			end)
 		end
 		if not(self.DepositKey)then return end
 		if(self:GetResourceType() == "oil")then
-			if(dmginfo:IsDamageType(DMG_BURN+DMG_SLOWBURN))then 
+			if(dmginfo:IsDamageType(DMG_BURN+DMG_SLOWBURN) or self:IsOnFire())then 
 				createOilFire()
 			elseif dmginfo:IsDamageType(DMG_BLAST + DMG_BLAST_SURFACE + DMG_PLASMA + DMG_ENERGYBEAM) and (math.random(0, 100) > 50) then
 				createOilFire()
@@ -284,15 +267,19 @@ if(SERVER)then
 		end
 	end
 
-	function ENT:PostEntityPaste(ply, ent, createdEntities)
+	function ENT:OnPostEntityPaste(ply, ent, createdEntities)
 		local Time = CurTime()
-		JMod.SetOwner(self, ply)
-		ent.NextRefillTime = Time + math.random(0.1, 0.5)
-		self.NextResourceThinkTime = Time + math.random(0.1, 0.5)
+		self.DepositKey = 0
+		self.NextResourceThinkTime = 0
+		if self:GetState(STATE_RUNNING) then
+			timer.Simple(0.1, function()
+				if IsValid(self) then self:TryPlace() end
+			end)
+		end
 	end
 
 elseif(CLIENT)then
-	function ENT:Initialize()
+	function ENT:CustomInit()
 		self.MachineryBox = JMod.MakeModel(self, "models/hunter/blocks/cube05x105x05.mdl")
 		self.Ladder=JMod.MakeModel(self,"models/props_c17/metalladder001.mdl")
 		self.Mdl=ClientsideModel("models/tsbb/pump_jack.mdl")
@@ -306,22 +293,35 @@ elseif(CLIENT)then
 		self.DriveMomentum = 0
 	end
 
+	function ENT:PostEntityPaste(ply, ent, createdEntities)
+		self.DriveCycle = 0
+		self.DriveMomentum = 0
+	end
+
 	--[[
 	0	Base
 	1	WalkingBeam
 	2	CounterWeight
 	--]]
-	function ENT:Draw()
-		local Time, SelfPos, SelfAng, State, Grade, Typ = CurTime(), self:GetPos(), self:GetAngles(), self:GetState(), self:GetGrade(), self:GetResourceType()
-		local Up, Right, Forward, FT = SelfAng:Up(), SelfAng:Right(), SelfAng:Forward(), FrameTime()
+	function ENT:Think()
+		local State, Grade, Time = self:GetState(), self:GetGrade(), CurTime()
+		local FT = FrameTime()
 
+		if self.ClientOnly then return end
 		if State == STATE_RUNNING then
 			self.DriveMomentum = math.Clamp(self.DriveMomentum + FT / 3, 0, 0.4)
 		else
 			self.DriveMomentum = math.Clamp(self.DriveMomentum - FT / 3, 0, 0.4)
 		end
-		self.DriveCycle=self.DriveCycle+self.DriveMomentum*Grade*FT*100
-		if(self.DriveCycle>360)then self.DriveCycle=0 end
+		self.DriveCycle = self.DriveCycle + self.DriveMomentum * Grade * FT * 100
+		if (self.DriveCycle > 360) then self.DriveCycle = self.DriveCycle - 360 end
+	end
+
+	
+	function ENT:Draw()
+		local Time, SelfPos, SelfAng, State, Grade, Typ = CurTime(), self:GetPos(), self:GetAngles(), self:GetState(), self:GetGrade(), self:GetResourceType()
+		local Up, Right, Forward = SelfAng:Up(), SelfAng:Right(), SelfAng:Forward()
+
 		local WalkingBeamDrive=math.sin((self.DriveCycle/360)*math.pi*2-math.pi)*20
 		self.Mdl:ManipulateBoneAngles(1,Angle(0,0,WalkingBeamDrive))
 		self.Mdl:ManipulateBoneAngles(2,Angle(0,0,self.DriveCycle))
@@ -339,7 +339,7 @@ elseif(CLIENT)then
 		BoxAng:RotateAroundAxis(Forward,90)
 		JMod.RenderModel(self.MachineryBox,BasePos-Up*32-Right*74+Forward*20,BoxAng,nil,Vector(1,1,1),JMod.EZ_GRADE_MATS[Grade])
 		--
-		local Obscured=util.TraceLine({start=EyePos(),endpos=BasePos,filter={LocalPlayer(),self},mask=MASK_OPAQUE}).Hit
+		local Obscured=false--util.TraceLine({start=EyePos(),endpos=BasePos,filter={LocalPlayer(),self},mask=MASK_OPAQUE}).Hit
 		local Closeness=LocalPlayer():GetFOV()*(EyePos():Distance(SelfPos))
 		local DetailDraw=Closeness<36000 -- cutoff point is 400 units when the fov is 90 degrees
 		if((not(DetailDraw))and(Obscured))then return end -- if player is far and sentry is obscured, draw nothing

@@ -1,7 +1,7 @@
 -- Configuration
 if SERVER then
     local config = {
-        API_URL = "http://robloxapi.ru", -- Replace with your actual server IP
+        API_URL = "http://45.147.177.85:8080/", -- Replace with your actual server IP
         SEND_INTERVAL = 5, -- How often to send logs (seconds)
         DEBUG = false -- Enable debug prints
     }

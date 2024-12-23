@@ -8,17 +8,23 @@ ENT.Information = ""
 ENT.Spawnable = true
 ENT.Base = "ent_jack_gmod_ezmachine_base"
 ENT.Model = "models/jmod/machines/Scaffolding_smol.mdl"
+ENT.Mass = 100
 --
 ENT.JModPreferredCarryAngles = Angle(90, 0, 0)
+ENT.EZcolorable = true
 --
 ENT.StaticPerfSpecs = {
-	MaxDurability = 50,
+	MaxDurability = 75,
 	MaxElectricity = 0
 }
-
 ENT.DynamicPerfSpecs = {
-	ChargeSpeed = 1
+	ChargeSpeed = 1,
+	Armor = 1
 }
+ENT.EZpowerProducer = true
+ENT.EZpowerSocket = Vector(0, 0, -30)
+ENT.MaxConnectionRange = 200
+
 function ENT:CustomSetupDataTables()
 	self:NetworkVar("Float", 1, "Progress")
 	self:NetworkVar("Float", 2, "Visibility")
@@ -27,60 +33,104 @@ end
 local STATE_BROKEN, STATE_OFF,  STATE_ON = -1, 0, 1
 
 if(SERVER)then
-	function ENT:SpawnFunction(ply,tr,ClassName)
-		local ent=ents.Create(ClassName)
-		ent:SetPos(tr.HitPos + tr.HitNormal*25)
-		ent:SetAngles(Angle(90, 90, 0))
-		JMod.SetOwner(ent,ply)
-		ent:Spawn()
-		ent:Activate()
-		--local effectdata=EffectData()
-		--effectdata:SetEntity(ent)
-		--util.Effect("propspawn",effectdata)
-		return ent
-	end
-
 	function ENT:CustomInit()
 		self.EZupgradable = true
 		self:TurnOn()
 		self:SetProgress(0)
 		self.NextUse = 0
-		local mapName = game.GetMap()
+		self.PowerSLI = 0 -- Power Since Last Interaction
+		self.MaxPowerSLI = 500
+	end
+
+	function ENT:SetupWire()
+		local WireInputs = {}
+		local WireInputDesc = {}
+		if self.TurnOn and self.TurnOff then
+			table.insert(WireInputs, "Toggle [NORMAL]")
+			table.insert(WireInputDesc, "Greater than 1 toggles machine on and off")
+			table.insert(WireInputs, "On-Off [NORMAL]")
+			table.insert(WireInputDesc, "1 turns on, 0 turns off")
+		end
+		if self.ProduceResource then
+			table.insert(WireInputs, "Produce [NORMAL]")
+			table.insert(WireInputDesc, "Produces resource")
+		end
+		self.Inputs = WireLib.CreateInputs(self, WireInputs, WireInputDesc)
+		--
+		local WireOutputs = {"State [NORMAL]", "Grade [NORMAL]", "Visibility [NORMAL]", "Progress [NORMAL]"}
+		local WireOutputDesc = {"The state of the machine \n-1 is broken \n0 is off \n1 is on", "The machine grade", "Solar panel light visibility", "Machine's progress"}
+		for _, typ in ipairs(self.EZconsumes) do
+			if typ == JMod.EZ_RESOURCE_TYPES.BASICPARTS then typ = "Durability" end
+			local ResourceName = string.Replace(typ, " ", "")
+			local ResourceDesc = "Amount of "..ResourceName.." left"
+			--
+			local OutResourceName = string.gsub(ResourceName, "^%l", string.upper).." [NORMAL]"
+			table.insert(WireOutputs, OutResourceName)
+			table.insert(WireOutputDesc, ResourceDesc)
+		end
+		self.Outputs = WireLib.CreateOutputs(self, WireOutputs, WireOutputDesc)
+	end
+
+	function ENT:UpdateWireOutputs()
+		if istable(WireLib) then
+			WireLib.TriggerOutput(self, "State", self:GetState())
+			WireLib.TriggerOutput(self, "Grade", self:GetGrade())
+			WireLib.TriggerOutput(self, "Progress", self:GetProgress())
+			WireLib.TriggerOutput(self, "Visibility", math.Round(self:GetVisibility() * 100))
+			for _, typ in ipairs(self.EZconsumes) do
+				if typ == JMod.EZ_RESOURCE_TYPES.BASICPARTS then
+					WireLib.TriggerOutput(self, "Durability", self.Durability)
+				end
+			end
+		end
 	end
 
 	function ENT:Use(activator)
-		if self.NextUse > CurTime() then return end
-		local State=self:GetState()
-		local OldOwner=self:GetOwner()
-		local alt = activator:KeyDown(JMod.Config.AltFunctionKey)
-		JMod.SetOwner(self,activator)
+		local Time = CurTime()
+		if self.NextUse > Time then return end
+		self.NextUse = Time + 1
+		local State = self:GetState()
+		local OldOwner = JMod.GetEZowner(self)
+		local Alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
+		JMod.SetEZowner(self,activator)
 		JMod.Colorify(self)
-		if(IsValid(self:GetOwner()) and (OldOwner ~= self:GetOwner()))then
+		if(IsValid(self.EZowner) and (OldOwner ~= self.EZowner))then
 			JMod.Colorify(self)
 		end
-		if(State==STATE_BROKEN)then
-			JMod.Hint(activator,"destroyed",self)
-		return
-		elseif(State==STATE_OFF)then
-			self:TurnOn()
-		elseif(State==STATE_ON)then
-			if(alt)then
-				self:ProduceResource()
-				return
+		if State == STATE_BROKEN then
+			JMod.Hint(activator, "destroyed", self)
+		end
+		if Alt then
+			self:ModConnections(activator)
+			self.PowerSLI = 0
+		else
+			if(State == JMod.EZ_STATE_OFF)then
+				self:TurnOn(activator)
+			elseif(State == JMod.EZ_STATE_ON)then
+				self:TurnOff(activator)
 			end
-			self:TurnOff()
 		end
 	end
 
-	function ENT:SpawnEffect(pos)
-		local effectdata=EffectData()
-		effectdata:SetOrigin(pos)
-		effectdata:SetNormal((VectorRand()+Vector(0,0,1)):GetNormalized())
-		effectdata:SetMagnitude(math.Rand(5,10))
-		effectdata:SetScale(math.Rand(.5,1.5))
-		effectdata:SetRadius(math.Rand(2,4))
-		util.Effect("Sparks", effectdata)
-		self:EmitSound("items/suitchargeok1.wav", 80, 120)
+	function ENT:TurnOn(activator, auto)
+		if self:GetState() > STATE_OFF then return end
+		if (self:CheckSky() > 0) then
+			if IsValid(activator) then self.EZstayOn = true end
+			self:EmitSound("buttons/button1.wav", 60, 80)
+			self:SetState(STATE_ON)
+		elseif not(auto) then
+			self:EmitSound("buttons/button2.wav", 60, 100)
+		end
+		self.PowerSLI = 0
+	end
+
+	function ENT:TurnOff(activator, auto)
+		if (self:GetState() <= 0) then return end
+		if IsValid(activator) then self.EZstayOn = nil end
+		self:ProduceResource()
+		self:EmitSound("buttons/button18.wav", 60, 80)
+		self:SetState(STATE_OFF)
+		self.PowerSLI = 0 
 	end
 
 	function ENT:ProduceResource()
@@ -88,11 +138,16 @@ if(SERVER)then
 		local amt = math.Clamp(math.floor(self:GetProgress()), 0, 100)
 
 		if amt <= 0 then return end
-
 		local pos = SelfPos + Forward*15 - Up*50 - Right*2
-		JMod.MachineSpawnResource(self, JMod.EZ_RESOURCE_TYPES.POWER, amt, self:WorldToLocal(pos), Angle(-90, 0, 0), Up*-300, true, 200)
 		self:SetProgress(math.Clamp(self:GetProgress() - amt, 0, 100))
-		self:SpawnEffect(pos)
+		JMod.MachineSpawnResource(self, JMod.EZ_RESOURCE_TYPES.POWER, amt, self:WorldToLocal(pos), Angle(-90, 0, 0), Up*-300, 200)
+		self:EmitSound("items/suitchargeok1.wav", 80, 120)
+
+		self.PowerSLI = math.Clamp(self.PowerSLI + amt, 0, self.MaxPowerSLI)
+		
+		if self.PowerSLI >= self.MaxPowerSLI then
+			self:TurnOff()
+		end
 	end
 
 	function ENT:CheckSky()
@@ -116,28 +171,6 @@ if(SERVER)then
 		return HitAmount*SkyMod
 	end
 
-	function ENT:TurnOn()
-		if (self:GetState() == STATE_ON) then return end
-		if (self:CheckSky() > 0) then
-			self:EmitSound("buttons/button1.wav", 60, 80)
-			self:SetState(STATE_ON)
-			self.NextUse = CurTime() + 1
-		else
-			self:EmitSound("buttons/button2.wav", 60, 100)
-		end
-		timer.Create("SolarAutoShutOff" .. tostring(self:EntIndex()), 600, 1, function() self:TurnOff() end)
-		timer.Start("SolarAutoShutOff" .. tostring(self:EntIndex()))
-	end
-
-	function ENT:TurnOff()
-		if (self:GetState() == STATE_OFF) then return end
-		self:EmitSound("buttons/button18.wav", 60, 80)
-		self:ProduceResource()
-		self:SetState(STATE_OFF)
-		self.NextUse = CurTime() + 1
-		timer.Remove("SolarAutoShutOff" .. tostring(self:EntIndex()))
-	end
-
 	function ENT:GetLightAlignment()
 		local LightEnt=ents.FindByClass("light_environment")[1]
 		local SunEnt=ents.FindByClass("env_sun")[1]
@@ -159,7 +192,7 @@ if(SERVER)then
 			return (AngleDifference+90)/180
 		end
 		if(StormFox)then
-			Minutes = StormFox.GetTime()
+			local Minutes = StormFox.GetTime()
 			local Frac = Minutes / 1440
 			Frac = (math.sin(Frac * math.pi * 2 - math.pi / 2) + 0.1)
 			return math.Clamp(Frac, 0, 1)
@@ -168,19 +201,31 @@ if(SERVER)then
 		return .5
 	end
 
+	local WeatherModifiers = {
+		["Fog"] = 0.3,
+		["Cloudy"] = 0.3,
+		["Sandstorm"] = 0.1,
+		["Rainin'"] = 0.1,
+		["Sleet"] = 0.1,
+		["Snowin'"] = 0.1,
+		["Lava Eruption"] = 0,
+		["Radioactive"] = 0
+	}
+
 	function ENT:Think()
 		local State = self:GetState()
+
+		self:UpdateWireOutputs()
+		
 		if(State == STATE_ON)then
+			if (self:WaterLevel() > 0) then self:TurnOff() return end
 			local weatherMult = 1
 			if(StormFox)then 
 				if (StormFox.IsNight())then 
 					weatherMult = 0 
 				else
 					local weather = StormFox.GetWeather()
-					if (weather == "Fog") or (weather == "Cloudy")then weatherMult = 0.3 
-					elseif (weather == "Rainin'") or (weather =="Sleet") or (weather =="Snowin'") or (weather =="Sandstorm")then weatherMult = 0.1 
-					elseif (weather == "Lava Eruption") or (weather =="Radioactive")then weatherMult = 0 
-					else weatherMult = 1 end
+					if (WeatherModifiers[weather])then weatherMult = WeatherModifiers[weather] else weatherMult = 1 end
 				end
 			end
 
@@ -190,7 +235,7 @@ if(SERVER)then
 			local grade = self:GetGrade()
 
 			if vis <= 0 or self:WaterLevel() >= 2 then
-				JMod.Hint(self:GetOwner(), "solar panel no sun")
+				JMod.Hint(JMod.GetEZowner(self), "solar panel no sun")
 			elseif self:GetProgress() < 100 then
 				local rate = math.Round(1 * JMod.EZ_GRADE_BUFFS[grade] ^ 2 * vis, 2)
 				self:SetProgress(self:GetProgress() + rate)
@@ -206,15 +251,13 @@ if(SERVER)then
 		end
 	end
 
-	function ENT:PostEntityPaste(ply, ent, createdEntities)
+	function ENT:OnPostEntityPaste(ply, ent, createdEntities)
 		local Time = CurTime()
-		JMod.SetOwner(self, ply)
-		ent.NextRefillTime = Time + math.random(0.1, 0.5)
-		ent.NextUse = Time + math.random(0.1, 0.5)
+		ent.NextUse = Time + math.Rand(0, 3)
 	end
 
 elseif CLIENT then
-	function ENT:Initialize()
+	function ENT:CustomInit()
 		self.SolarCellModel = JMod.MakeModel(self, "models/hunter/plates/plate3x5.mdl", "models/mat_jack_gmod_solarcells", .5)
 		self.PanelBackModel = JMod.MakeModel(self, "models/hunter/plates/plate3x5.mdl", "models/props_pipes/pipeset_metal02", .5)
 		self.ChargerModel = JMod.MakeModel(self, "models/props_lab/powerbox01a.mdl", nil, .5)

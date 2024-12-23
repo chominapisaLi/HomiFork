@@ -102,8 +102,14 @@ SolidMapVote[ 'Config' ][ 'Map Pool' ] = {
     'ph_halloweenhouse_v3',
     'gm_bbicotka_hmcd',
     'ttt_overwatch',
-    "deathrun_undertale",
-    "ttt_67thway_2022"
+    "deathrun_iceworld_v2fix",
+    "gm_construct",
+    "zs_adrift_v4",
+    "zs_snowy_castle",
+    "mg_piratewars_remake",
+    "ttt_snowdrop",
+    "ttt_67thway_2022",
+    "ttt_freeway_rain",
 }
 
 -- Allow players to use their mics while in the mapvote
@@ -187,6 +193,11 @@ SolidMapVote[ 'Config' ][ 'Specific Maps' ] = {
     { filename = 'gm_bbicotka_hmcd', displayname = 'Bbicotka', image = 'https://i.imgur.com/NKXR7q4.png', width = 1920, height = 1080 },
     { filename = 'ttt_overwatch', displayname = 'Overwatch', image = 'https://i.imgur.com/b3VHJ6k.png', width = 1920, height = 1080 },
     { filename = 'ttt_67thway_2022', displayname = '67 Way', image = 'https://i.imgur.com/uQbz03E.png', width = 1920, height = 1080 },
-    { filename = 'deathrun_undertale', displayname = 'Deathrun - UNDERTALE', image = 'https://i.imgur.com/UitF726.png', width = 1920, height = 1080 },
-
+    { filename = 'ttt_freeway_rain', displayname = 'Free Way (rain)', image = 'https://i.imgur.com/A28AJeF.png', width = 1920, height = 1080 },
+    { filename = 'ttt_snowdrop', displayname = 'SnowDrop', image = 'https://i.imgur.com/DnCmnsQ.png', width = 1920, height = 1080 },
+    { filename = 'mg_piratewars_remake', displayname = 'Pirate Wars', image = 'https://i.imgur.com/4kBXfvX.png', width = 1920, height = 1080 },
+    { filename = 'zs_snowy_castle', displayname = 'Snowy Castle', image = 'https://i.imgur.com/3L7z2Av.png', width = 1920, height = 1080 },
+    { filename = 'zs_adrift_v4', displayname = 'Island', image = 'https://i.imgur.com/To5RBMz.png', width = 1920, height = 1080 },
+    { filename = 'gm_construct', displayname = 'Construct', image = 'https://i.imgur.com/acqTxTB.png', width = 1920, height = 1080 },
+    { filename = 'deathrun_iceworld_v2fix', displayname = 'DEATHRUN - ICEWORLD', image = 'https://steamuserimages-a.akamaihd.net/ugc/688223410087152532/DCB3BBBB67A9A693CB7F3E6ADFA08CB5E4354D48/?imw=268&imh=268&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true', width = 1920, height = 1080 },
 }

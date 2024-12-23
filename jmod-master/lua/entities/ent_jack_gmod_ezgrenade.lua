@@ -10,16 +10,20 @@ ENT.Spawnable = false
 ENT.Model = "models/weapons/w_grenade.mdl"
 ENT.Material = nil
 ENT.ModelScale = nil
-ENT.HardThrowStr = 500
-ENT.SoftThrowStr = 250
+ENT.HardThrowStr = 600
+ENT.SoftThrowStr = 300
 ENT.Mass = 10
-ENT.ImpactSound = {"weapons/m67/m67_bounce_01.wav","weapons/m67/m67_bounce_02.wav","weapons/m67/m67_bounce_01.wav"}
+ENT.ImpactSound = "Grenade.ImpactHard"
 ENT.SpoonEnt = "ent_jack_spoon"
 ENT.SpoonModel = nil
 ENT.SpoonScale = nil
 ENT.SpoonSound = nil
+ENT.PinBodygroup = nil--{1, 1} -- Body group to change to when we unpin the grenade
+ENT.SpoonBodygroup = nil--{2, 1} -- Body group to change to when we release the spoon
+ENT.DetDelay = 3 -- Delay before detonation
 ENT.JModPreferredCarryAngles = Angle(0, 0, 0)
 ENT.JModEZstorable = true
+ENT.EZinvPrime = true
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Int", 0, "State")
@@ -31,7 +35,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 
@@ -72,24 +76,30 @@ if SERVER then
 		self.NextDet = 0
 
 		if istable(WireLib) then
-			self.Inputs = WireLib.CreateInputs(self, {"Detonate", "Arm"}, {"This will directly detonate the bomb", "Arms bomb when > 0"})
+			self.Inputs = WireLib.CreateInputs(self, {"Detonate", "Arm"}, {"This will directly detonate the grenade", "Arms grenade when > 0"})
 
 			self.Outputs = WireLib.CreateOutputs(self, {"State"}, {"1 is armed \n 0 is not \n -1 is broken"})
+		end
+		if self.CustomInit then
+			self:CustomInit()
 		end
 	end
 
 	function ENT:TriggerInput(iname, value)
 		if (iname == "Detonate") and (value ~= 0) then
 			self:Detonate()
-		elseif iname == "Arm" and value > 0 then
-			self:SetState(STATE_ARMED)
+		elseif (iname == "Arm") and (value > 0) then
+			if self.Prime then 
+				self:Prime()
+			else
+				self:Arm()
+			end
 		end
 	end
 
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.2 and data.Speed > 30 then
-			local sound = table.Random(self.ImpactSound)
-			self:EmitSound(sound)
+			self:EmitSound(self.ImpactSound)
 		end
 	end
 
@@ -121,15 +131,18 @@ if SERVER then
 	function ENT:Use(activator, activatorAgain, onOff)
 		if self.Exploded then return end
 		local Dude = activator or activatorAgain
-		JMod.SetOwner(self, Dude)
+		JMod.SetEZowner(self, Dude)
 		JMod.Hint(Dude, self.ClassName)
 		local Time = CurTime()
-		if self.ShiftAltUse and Dude:KeyDown(JMod.Config.AltFunctionKey) and Dude:KeyDown(IN_SPEED) then return self:ShiftAltUse(Dude, tobool(onOff)) end
+		if self.ShiftAltUse and Dude:KeyDown(JMod.Config.General.AltFunctionKey) and Dude:KeyDown(IN_SPEED) then 
+			
+			return self:ShiftAltUse(Dude, tobool(onOff)) 
+		end
 
 		if tobool(onOff) then
 			local State = self:GetState()
 			if State < 0 then return end
-			local Alt = Dude:KeyDown(JMod.Config.AltFunctionKey)
+			local Alt = Dude:KeyDown(JMod.Config.General.AltFunctionKey)
 
 			if State == JMod.EZ_STATE_OFF and Alt then
 				self:Prime()
@@ -171,7 +184,7 @@ if SERVER then
 			Spewn:SetPos(self:GetPos())
 			Spewn:Spawn()
 			Spewn:GetPhysicsObject():SetVelocity(self:GetPhysicsObject():GetVelocity() + VectorRand() * 250)
-			self:EmitSound("snd_jack_spoonfling.wav", 60, math.random(90, 110))
+			self:EmitSound("snd_jack_spoonfling.ogg", 60, math.random(90, 110))
 		end
 	end
 
@@ -195,7 +208,9 @@ if SERVER then
 		end
 
 		if State == JMod.EZ_STATE_ARMED then
-			JMod.EmitAIsound(self:GetPos(), 500, .5, 8)
+			if not self:GetNoDraw() then
+				JMod.EmitAIsound(self:GetPos(), 500, .5, 8)
+			end
 			self:NextThink(Time + .5)
 
 			return true
@@ -203,20 +218,33 @@ if SERVER then
 	end
 
 	function ENT:Prime()
+		if (self:GetState() ~= JMod.EZ_STATE_OFF) then return end
 		self:SetState(JMod.EZ_STATE_PRIMED)
 		self:EmitSound("weapons/pinpull.wav", 60, 100)
-		self:SetBodygroup(1, 1)
+		if self.PinBodygroup then self:SetBodygroup(self.PinBodygroup[1], self.PinBodygroup[2]) end
 	end
 
 	function ENT:Arm()
-		self:SetBodygroup(2, 1)
+		if (self:GetState() == JMod.EZ_STATE_ARMED) then return end
+		if self.SpoonBodygroup then self:SetBodygroup(self.SpoonBodygroup[1], self.SpoonBodygroup[2]) end
 		self:SetState(JMod.EZ_STATE_ARMED)
 		self:SpoonEffect()
+
+		if self.DetDelay then
+			timer.Simple(self.FuzeTimeOverride or self.DetDelay, function()
+				if IsValid(self) and self.Detonate then
+					self:Detonate()
+				end
+			end)
+		end
+
+		if self.OnArm then self:OnArm() end
 	end
 
 	function ENT:Detonate()
 		if self.Exploded then return end
 		self.Exploded = true
+		JMod.Sploom(self.EZowner, self:GetPos(), 0)
 		self:Remove()
 	end
 end

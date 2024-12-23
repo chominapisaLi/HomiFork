@@ -20,7 +20,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 		--local effectdata=EffectData()
@@ -31,12 +31,12 @@ if SERVER then
 	end
 
 	function ENT:Initialize()
-		self.Entity:SetModel("models/saraphines/binoculars/binoculars_sniper/binoculars_sniper.mdl")
-		self.Entity:PhysicsInit(SOLID_VPHYSICS)
-		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-		self.Entity:SetSolid(SOLID_VPHYSICS)
-		self.Entity:DrawShadow(true)
-		self.Entity:SetUseType(SIMPLE_USE)
+		self:SetModel("models/saraphines/binoculars/binoculars_sniper/binoculars_sniper.mdl")
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
+		self:SetUseType(SIMPLE_USE)
 
 		---
 		timer.Simple(.01, function()
@@ -48,13 +48,13 @@ if SERVER then
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.2 then
 			if data.Speed > 100 then
-				self.Entity:EmitSound("Drywall.ImpactHard")
+				self:EmitSound("Drywall.ImpactHard")
 			end
 		end
 	end
 
 	function ENT:OnTakeDamage(dmginfo)
-		self.Entity:TakePhysicsDamage(dmginfo)
+		self:TakePhysicsDamage(dmginfo)
 
 		if dmginfo:GetDamage() > self.DamageThreshold then
 			local Pos = self:GetPos()
@@ -64,7 +64,7 @@ if SERVER then
 	end
 
 	function ENT:Use(activator)
-		if activator:KeyDown(JMod.Config.AltFunctionKey) then
+		if activator:KeyDown(JMod.Config.General.AltFunctionKey) then
 			activator:PickupObject(self)
 		elseif not activator:HasWeapon("wep_jack_gmod_ezdesignator") then
 			activator:Give("wep_jack_gmod_ezdesignator")

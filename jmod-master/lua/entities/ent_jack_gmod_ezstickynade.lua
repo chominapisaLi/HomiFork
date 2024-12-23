@@ -3,31 +3,17 @@ AddCSLuaFile()
 ENT.Base = "ent_jack_gmod_ezgrenade"
 ENT.Author = "Jackarunda, TheOnly8Z"
 ENT.Category = "JMod - EZ Explosives"
-ENT.PrintName = "EZ Sticky Bomb"
+ENT.PrintName = "EZ Sticky Grenade"
 ENT.Spawnable = true
 ENT.Model = "models/jmod/explosives/grenades/stickynade/sticky_grenade.mdl"
 --ENT.ModelScale=2.25
 ENT.SpoonModel = "models/jmod/explosives/grenades/stickynade/sticky_grenade_pin.mdl"
 ENT.SpoonSound = "physics/cardboard/cardboard_box_impact_soft2.wav"
+ENT.PinBodygroup = {2, 1}
+ENT.SpoonBodygroup = nil
+ENT.DetDelay = 4
 
 if SERVER then
-	function ENT:Prime()
-		self:SetState(JMod.EZ_STATE_PRIMED)
-		self:SetBodygroup(2, 1)
-		self:EmitSound("weapons/pinpull.wav", 60, 100)
-	end
-
-	function ENT:Arm()
-		self:SetState(JMod.EZ_STATE_ARMED)
-		self:SpoonEffect()
-
-		timer.Simple(4, function()
-			if IsValid(self) then
-				self:Detonate()
-			end
-		end)
-	end
-
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.2 and data.Speed > 30 then
 			self:EmitSound("Grenade.ImpactHard")
@@ -78,8 +64,8 @@ if SERVER then
 		if self.Exploded then return end
 		self.Exploded = true
 		local SelfPos = self:GetPos()
-		JMod.Sploom(self:GetOwner() or game.GetWorld(), SelfPos, 160)
-		self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 100)
+		JMod.Sploom(JMod.GetEZowner(self), SelfPos, 160)
+		self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 100)
 		local Blam = EffectData()
 		Blam:SetOrigin(SelfPos)
 		Blam:SetScale(0.5)
@@ -94,9 +80,9 @@ if SERVER then
 			dmginfo:SetDamage((Helf > 2000 and 1500) or 200)
 			dmginfo:SetDamageType((self.StickObj:GetClass() == "gmod_sent_vehicle_fphysics_base" and DMG_GENERIC) or DMG_BLAST)
 			dmginfo:SetInflictor(self)
-			dmginfo:SetAttacker(self:GetOwner())
+			dmginfo:SetAttacker(JMod.GetEZowner(self))
 			dmginfo:SetDamagePosition(SelfPos)
-			dmginfo:SetDamageForce((self.StickObj:GetPos() - self:GetPos()):GetNormalized() * 1000)
+			dmginfo:SetDamageForce((self.StickObj:GetPos() - self:GetPos()):GetNormalized() * 500)
 			self.StickObj:TakeDamageInfo(dmginfo)
 		end
 

@@ -552,6 +552,7 @@ net.Receive("close_tab",function(len)
 	end
 	ResetBeerEffect()
 	ResetRumEffect()  
+	ResetnarkoEffect()
 end)
 
 ToggleScoreboard(false, nil)

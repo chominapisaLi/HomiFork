@@ -28,16 +28,13 @@ if SERVER then
 		end)
 
 		---
-		self:GetOwner() = self:GetOwner() or game.GetWorld()
+		self.EZowner = JMod.GetEZowner(self)
 		self.NextSeek = CurTime() + math.Rand(1, 3)
 	end
 
 	function ENT:PhysicsCollide(data, physobj)
-		if not IsValid(self) then return end
-		if data.HitEntity.EZclusterBusterMunition then return end
-
-		if data.DeltaTime > 0.2 and data.Speed > 25 then
-			self:Detonate()
+		if (data.DeltaTime > 0.2 and data.Speed > 25) and not(data.HitEntity.EZclusterBusterMunition) then
+			timer.Simple(0, function() if IsValid(self) then self:Detonate() end end)
 		end
 	end
 
@@ -55,7 +52,7 @@ if SERVER then
 	function ENT:Detonate(dir)
 		if self.Exploded then return end
 		self.Exploded = true
-		local Att = self:GetOwner() or game.GetWorld()
+		local Att = JMod.GetEZowner(self)
 		local Pos = self:GetPos()
 		JMod.Sploom(Att, Pos, 100)
 		util.ScreenShake(Pos, 99999, 99999, .1, 1000)
@@ -69,7 +66,7 @@ if SERVER then
 			JMod.RicPenBullet(self, Pos, dir, 1100, true, true)
 		end
 
-		self:Remove()
+		SafeRemoveEntityDelayed(self, 0.01)
 	end
 
 	local BlackList = {"prop_", "func_"}
@@ -82,20 +79,6 @@ if SERVER then
 		return false
 	end
 
-	function ENT:CanSee(ent)
-		if not IsValid(ent) then return false end
-		local TargPos, SelfPos = ent:LocalToWorld(ent:OBBCenter()), self:LocalToWorld(self:OBBCenter()) + vector_up
-
-		local Tr = util.TraceLine({
-			start = SelfPos,
-			endpos = TargPos,
-			filter = {self, ent},
-			mask = MASK_SHOT + MASK_WATER
-		})
-
-		return not Tr.Hit
-	end
-
 	function ENT:Think()
 		local Time = CurTime()
 
@@ -104,10 +87,10 @@ if SERVER then
 
 			for k, v in pairs(ents.FindInCone(Pos, Vector(0, 0, -1), 1500, math.cos(math.rad(45)))) do
 				local Phys, Class = v:GetPhysicsObject(), v:GetClass()
-
+				
 				if IsValid(Phys) and not (v == self) and not (Class == self.ClassName) and not IsBlackListed(Class) then
-					if v:IsPlayer() or v:IsNPC() or v:IsVehicle() then
-						if self:CanSee(v) and JMod.ShouldAttack(self, v, nil, true) then
+					if v:IsPlayer() or v:IsNPC() or v:IsVehicle() or v.LVS then
+						if JMod.ClearLoS(self, v) and JMod.ShouldAttack(self, v, nil, true) then
 							table.insert(Targets, v)
 						end
 					end

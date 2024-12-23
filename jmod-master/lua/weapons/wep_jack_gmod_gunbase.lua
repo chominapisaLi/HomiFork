@@ -2,6 +2,15 @@
 SWEP.Spawnable = false -- this obviously has to be set to true
 SWEP.Category = "JMod - EZ Weapons" -- edit this if you like
 SWEP.AdminOnly = false
+----
+SWEP.Trivia_Class = "Freedom Gun"
+SWEP.Trivia_Desc = "Gun that maintains a healty amount of freedom, or tyranny, depending on the user"
+SWEP.Trivia_Manufacturer = "Jackarunda Industries and Company"
+SWEP.Trivia_Calibre = "50 cal."
+SWEP.Trivia_Mechanism = "Patriotism"
+SWEP.Trivia_Country = "'Murica"
+SWEP.Trivia_Year = 1775
+----
 SWEP.EZdroppable = true
 SWEP.UseHands = true
 SWEP.DefaultBodygroups = "000000"
@@ -9,11 +18,11 @@ SWEP.DamageType = DMG_BULLET
 SWEP.ShootEntity = nil -- entity to fire, if any
 SWEP.MuzzleVelocity = 900 -- projectile or phys bullet muzzle velocity
 -- IN M/S
-SWEP.TracerNum = 0 -- tracer every X
+--SWEP.TracerNum = 0 -- tracer every X
 SWEP.TracerCol = Color(255, 25, 25)
 SWEP.TracerWidth = 3
 SWEP.AimSwayFactor = .9
-SWEP.DamageRand = .20
+SWEP.DamageRand = .10
 SWEP.BlastRadiusRand = .1
 SWEP.Num = 1
 SWEP.VisualRecoilMult = 1
@@ -37,7 +46,6 @@ SWEP.MuzzleEffectAttachment = 1 -- which attachment to put the muzzle on
 SWEP.CaseEffectAttachment = 2 -- which attachment to put the case effect on
 SWEP.BulletBones = {} -- the bone that represents bullets in gun/mag -- [0]="bulletchamber", -- [1]="bullet1"
 SWEP.ShootSoundWorldCount = 1
---SWEP.Hook_PostFireBullets -- todo
 SWEP.ProceduralRegularFire = false
 SWEP.ProceduralIronFire = false
 SWEP.AlwaysPhysBullet = false
@@ -112,12 +120,14 @@ SWEP.MeleeViewMovements = {
 	}
 }
 
+SWEP.CustomToggleCustomizeHUD = true
+
 -- teehee --
 hook.Add("InitPostEntity", "JMod_ArcCW_InitPostEntity", function()
 	if not ArcCW then return end
 
 	-- the default arccw ricochet sounds are fucking deafening
-	ArcCW.RicochetSounds = {"weapons/arccw/ricochet01_quiet.wav", "weapons/arccw/ricochet02_quiet.wav", "weapons/arccw/ricochet03_quiet.wav", "weapons/arccw/ricochet04_quiet.wav", "weapons/arccw/ricochet05_quiet.wav"}
+	ArcCW.RicochetSounds = {"weapons/arccw/ricochet01_quiet.ogg", "weapons/arccw/ricochet02_quiet.ogg", "weapons/arccw/ricochet03_quiet.ogg", "weapons/arccw/ricochet04_quiet.ogg", "weapons/arccw/ricochet05_quiet.ogg"}
 end)
 
 -- arccw hooks to do extra stuff --
@@ -133,7 +143,8 @@ SWEP.Hook_AddShootSound = function(self, data) end --[[
 
 SWEP.Hook_PostFireBullets = function(self)
 	local SelfPos = self:GetPos()
-	local RPos, RDir = self:GetOwner():GetShootPos(), self:GetOwner():GetAimVector()
+	if not IsValid(self.Owner) then return end
+	local RPos, RDir = self.Owner:GetShootPos(), self.Owner:GetAimVector()
 
 	if self.BackBlast then
 		if self.ShootEntityOffset then
@@ -146,8 +157,7 @@ SWEP.Hook_PostFireBullets = function(self)
 
 		local Tr = util.QuickTrace(RPos, -RDir * Dist, function(fuck)
 			if fuck:IsPlayer() or fuck:IsNPC() then return false end
-			local Class = fuck:GetClass()
-			if Class == "ent_jack_gmod_ezminirocket" then return false end
+			if fuck.IsEZrocket == true then return false end
 
 			return true
 		end)
@@ -156,12 +166,12 @@ SWEP.Hook_PostFireBullets = function(self)
 			Dist = RPos:Distance(Tr.HitPos)
 
 			if SERVER then
-				JMod.Hint(self:GetOwner(), "backblast wall")
+				JMod.Hint(self.Owner, "backblast wall")
 			end
 		end
 
 		for i = 1, 4 do
-			util.BlastDamage(self, self:GetOwner() or self, RPos + RDir * (i * 40 - Dist) * self.BackBlast, 70 * self.BackBlast, 30 * self.BackBlast)
+			util.BlastDamage(self, self.Owner or self, RPos + RDir * (i * 40 - Dist) * self.BackBlast, 70 * self.BackBlast, 30 * self.BackBlast)
 		end
 
 		if SERVER then
@@ -184,13 +194,13 @@ SWEP.Hook_PostFireBullets = function(self)
 		local Info = self:GetAttachment(self.MuzzleEffectAttachment or 1)
 
 		if CLIENT then
-			Info = self:GetOwner():GetViewModel():GetAttachment(self.MuzzleEffectAttachment or 1)
+			Info = self.Owner:GetViewModel():GetAttachment(self.MuzzleEffectAttachment or 1)
 		end
 
 		if self.ExtraMuzzleLua then
 			local Eff = EffectData()
 			Eff:SetOrigin(Info.Pos)
-			Eff:SetNormal(self:GetOwner():GetAimVector())
+			Eff:SetNormal(self.Owner:GetAimVector())
 			Eff:SetScale(self.ExtraMuzzleLuaScale or 1)
 			util.Effect(self.ExtraMuzzleLua, Eff, true)
 		end
@@ -206,14 +216,21 @@ SWEP.Hook_PostFireBullets = function(self)
 
 	if self.RecoilDamage and SERVER then
 		local Dmg = DamageInfo()
-		Dmg:SetDamagePosition(self:GetOwner():GetShootPos())
+		Dmg:SetDamagePosition(self.Owner:GetShootPos())
 		Dmg:SetDamage(self.RecoilDamage)
 		Dmg:SetDamageType(DMG_CLUB)
-		Dmg:SetAttacker(self:GetOwner())
+		Dmg:SetAttacker(self.Owner)
 		Dmg:SetInflictor(self)
-		Dmg:SetDamageForce(-self:GetOwner():GetAimVector() * self.RecoilDamage * 200)
-		self:GetOwner():SetVelocity(-self:GetOwner():GetAimVector() * self.RecoilDamage * 200)
-		self:GetOwner():TakeDamageInfo(Dmg)
+		Dmg:SetDamageForce(-self.Owner:GetAimVector() * self.RecoilDamage * 200)
+		self.Owner:SetVelocity(-self.Owner:GetAimVector() * self.RecoilDamage * 200)
+		self.Owner:TakeDamageInfo(Dmg)
+	end
+
+	if self.RicPenShotData and SERVER then
+		local Disp = self:GetDispersion() * ArcCW.MOAToAcc / 10
+		self:ApplyRandomSpread(RDir, Disp)
+
+		JMod.RicPenBullet(self.Owner, RPos, RDir, self.RicPenShotData[1] or 10, self.RicPenShotData[2], self.RicPenShotData[3], 1, self.RicPenShotData[4] or 5, "eff_jack_gmod_smallarmstracer", self.RicPenShotCallback and self.RicPenShotCallback)
 	end
 end
 
@@ -230,7 +247,7 @@ function SWEP:TryBustDoor(ent, dmginfo)
 	-- Magic number: 119.506 is the size of door01_left
 	-- The bigger the door is, the harder it is to bust
 	local threshold = GetConVar("arccw_doorbust_threshold"):GetInt() * math.pow((ent:OBBMaxs() - ent:OBBMins()):Length() / 119.506, 2)
-	JMod.Hint(self:GetOwner(), "shotgun breach")
+	JMod.Hint(self.Owner, "shotgun breach")
 	local WorkSpread = JMod.CalcWorkSpreadMult(ent, dmginfo:GetDamagePosition()) ^ 1.1
 	local Amt = dmginfo:GetDamage() * self.DoorBreachPower * WorkSpread
 	ent.ArcCW_BustDamage = (ent.ArcCW_BustDamage or 0) + Amt
@@ -255,14 +272,14 @@ local WDir, StabilityStamina, BreathStatus = VectorRand(), 100, false
 local function FocusIn(wep)
 	if not BreathStatus then
 		BreathStatus = true
-		surface.PlaySound("snds_jack_gmod/ez_weapons/focus_in.wav")
+		surface.PlaySound("snds_jack_gmod/ez_weapons/focus_in.ogg")
 	end
 end
 
 local function FocusOut(wep)
 	if BreathStatus then
 		BreathStatus = false
-		surface.PlaySound("snds_jack_gmod/ez_weapons/focus_out.wav")
+		surface.PlaySound("snds_jack_gmod/ez_weapons/focus_out.ogg")
 	end
 end
 
@@ -272,7 +289,7 @@ hook.Add("CreateMove", "JMod_CreateMove", function(cmd)
 	local Wep = ply:GetActiveWeapon()
 
 	if Wep and IsValid(Wep) and Wep.AimSwayFactor and Wep.GetState and (Wep:GetState() == ArcCW.STATE_SIGHTS) then
-		local GlobalMult = (JMod.Config and JMod.Config.WeaponSwayMult) or 1
+		local GlobalMult = (JMod.Config and JMod.Config.Weapons.SwayMult) or 1
 		local Amt, Sporadicness, FT = 20 * Wep.AimSwayFactor * GlobalMult, 20, FrameTime()
 
 		if ply:Crouching() then
@@ -287,7 +304,7 @@ hook.Add("CreateMove", "JMod_CreateMove", function(cmd)
 			Sporadicness = Sporadicness * 1.5
 			Amt = Amt * 2
 		else
-			local Key = (JMod.Config and JMod.Config.AltFunctionKey) or IN_WALK
+			local Key = (JMod.Config and JMod.Config.General.AltFunctionKey) or IN_WALK
 
 			if ply:KeyDown(Key) then
 				StabilityStamina = math.Clamp(StabilityStamina - FT * 20, 0, 100)
@@ -312,8 +329,12 @@ hook.Add("CreateMove", "JMod_CreateMove", function(cmd)
 	end
 
 	if input.WasKeyPressed(KEY_BACKSPACE) then
-		if not (ply:IsTyping() or gui.IsConsoleVisible()) then
-			RunConsoleCommand("jmod_ez_dropweapon")
+		if not (ply:IsTyping() or gui.IsConsoleVisible() or gui.IsGameUIVisible()) then
+			local Time = CurTime()
+			if not(ply.NextDropTime) or ply.NextDropTime < Time then
+				RunConsoleCommand("jmod_ez_dropweapon")
+				ply.NextDropTime = Time + 1 --Prevent drop spamming
+			end
 		end
 	end
 end)
@@ -385,10 +406,21 @@ function SWEP:OnDrop()
 	local Specs = JMod.WeaponTable[self.PrintName]
 
 	if Specs then
+		local Pos, Ang = self:GetPos(), self:GetAngles()
+		if IsValid(self.EZdropper) and self.EZdropper:IsPlayer() then
+			local AimPos, AimVec = self.EZdropper:GetShootPos(), self.EZdropper:GetAimVector()
+			local PlaceTr = util.QuickTrace(AimPos, AimVec * 60, {self, self.EZdropper})
+			Pos = PlaceTr.HitPos + PlaceTr.HitNormal * 5
+			--Ang = PlaceTr.HitNormal:Angle() --(PlaceTr.HitPos - AimPos):Angle()
+		end
+
 		local Ent = ents.Create(Specs.ent)
-		Ent:SetPos(self:GetPos())
-		Ent:SetAngles(self:GetAngles())
+		Ent:SetPos(Pos)
+		Ent:SetAngles(Ang)
 		Ent.MagRounds = self:Clip1()
+		if self:Clip2() > 0 then
+			Ent.MorRounds = self:Clip2()
+		end
 		Ent:Spawn()
 		Ent:Activate()
 		local Phys = Ent:GetPhysicsObject()
@@ -398,14 +430,49 @@ function SWEP:OnDrop()
 		end
 
 		self:Remove()
+	else
+		self.EZdropper = nil
 	end
 end
 
 -- customization
 function SWEP:ToggleCustomizeHUD(ic)
+	if self.CustomToggleCustomizeHUD == true then return end
+	if ic and self:GetState() == ArcCW.STATE_SPRINT then return end
+	if self:GetReloading() then ic = false end
+
+	noinspect = noinspect or GetConVar("arccw_noinspect")
+	if ic then
+		if (self:GetNextPrimaryFire() + 0.1) >= CurTime() then return end
+
+		self:SetState(ArcCW.STATE_CUSTOMIZE)
+		self:ExitSights()
+		self:SetShouldHoldType()
+		self:ExitBipod()
+		if noinspect and !noinspect:GetBool() then
+			self:PlayAnimation(self:SelectAnimation("enter_inspect"), nil, true, nil, nil, true, false)
+		end
+
+		if CLIENT then
+			self:OpenCustomizeHUD()
+		end
+	else
+		self:SetState(ArcCW.STATE_IDLE)
+		self.Sighted = false
+		self.Sprinted = false
+		self:SetShouldHoldType()
+
+		if noinspect and !noinspect:GetBool() then
+			self:PlayAnimation(self:SelectAnimation("exit_inspect"), nil, true, nil, nil, true, false)
+		end
+
+		if CLIENT then
+			self:CloseCustomizeHUD()
+			self:SendAllDetails()
+		end
+	end
 end
 
--- jmod will have its own customization system
 -- arctic's bash code is REALLY bad tbh
 --[[ -- TODO: do this when we introduce melee weps
 function SWEP:Bash(melee2)
@@ -460,7 +527,7 @@ function SWEP:Bash(melee2)
 		if(k~="BaseClass")then
 			timer.Simple(v.t,function()
 				if(IsValid(self))then
-					self:GetOwner():ViewPunch(v.ang)
+					self.Owner:ViewPunch(v.ang)
 				end
 			end)
 		end
@@ -540,11 +607,11 @@ function SWEP:MeleeAttack(melee2)
 	
 	if(self.MeleeHitBullet)then
 		self:FireBullets({
-			Src=self:GetOwner():GetShootPos(),
-			Dir=self:GetOwner():GetAimVector(),
+			Src=self.Owner:GetShootPos(),
+			Dir=self.Owner:GetAimVector(),
 			Damage=1,
 			Force=Vector(0,0,0),
-			Attacker=self:GetOwner(),
+			Attacker=self.Owner,
 			Tracer=0,
 			Distance=reach*1.2
 		})
@@ -602,13 +669,13 @@ function SWEP:MeleeAttack(melee2)
 
 		local RandFact=self.MeleeDmgRand or 0
 		local Randomness=math.Rand(1-RandFact,1+RandFact)
-		local GlobalMult=((JMod.Config and JMod.Config.WeaponDamageMult) or 1)*.8 -- gmod kiddie factor
+		local GlobalMult=((JMod.Config and JMod.Config.Weapons.DamageMult) or 1)*.8 -- gmod kiddie factor
 
         dmginfo:SetInflictor(self)
         dmginfo:SetDamage(dmg*relspeed*Randomness*GlobalMult)
         dmginfo:SetDamageType(self.MeleeDamageType or DMG_CLUB)
 
-		local ForceVec=self:GetOwner():EyeAngles()
+		local ForceVec=self.Owner:EyeAngles()
 		local U,R,F=ForceVec:Up(),ForceVec:Right(),ForceVec:Forward()
 		ForceVec:RotateAroundAxis(R,self.MeleeForceAng.p)
 		ForceVec:RotateAroundAxis(U,self.MeleeForceAng.y)

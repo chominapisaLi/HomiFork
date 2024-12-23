@@ -8,7 +8,7 @@ ENT.Spawnable = true
 ENT.AdminOnly = true
 ---
 ENT.EZsupplies = JMod.EZ_RESOURCE_TYPES.FISSILEMATERIAL
-ENT.JModPreferredCarryAngles = Angle(0, 0, 0)
+ENT.JModPreferredCarryAngles = Angle(0, 180, 0)
 ENT.Model = "models/kali/props/cases/hard case c.mdl"
 ENT.ModelScale = 1
 ENT.Skin = 2
@@ -23,17 +23,19 @@ if SERVER then
 	function ENT:UseEffect(pos, ent, destructive)
 		if destructive and not self.Sploomd then
 			self.Sploomd = true
-			local Owner, Count = self:GetOwner(), self:GetResource() / 10
+			local Owner, Count = self.EZowner, self:GetResource()
 
 			timer.Simple(.5, function()
-				for k = 1, JMod.Config.NuclearRadiationMult * Count * 10 do
-					local Gas = ents.Create("ent_jack_gmod_ezfalloutparticle")
-					Gas.Range = 1000
-					Gas:SetPos(pos)
-					JMod.SetOwner(Gas, Owner or game.GetWorld())
-					Gas:Spawn()
-					Gas:Activate()
-					Gas:GetPhysicsObject():SetVelocity(VectorRand() * math.random(1, 500) + Vector(0, 0, 10 * JMod.Config.NuclearRadiationMult))
+				for i = 1, math.floor(JMod.Config.Particles.NuclearRadiationMult * Count) do
+					timer.Simple(i * .05, function()
+						local Gas = ents.Create("ent_jack_gmod_ezfalloutparticle")
+						Gas.AffectRange = 500
+						Gas:SetPos(pos)
+						JMod.SetEZowner(Gas, Owner or game.GetWorld())
+						Gas:Spawn()
+						Gas:Activate()
+						Gas.CurVel = (VectorRand() * math.random(1, 1000) + Vector(0, 0, 100 * JMod.Config.Particles.NuclearRadiationMult))
+					end)
 				end
 			end)
 		end
@@ -43,13 +45,14 @@ if SERVER then
 	end
 	--
 elseif CLIENT then
+    local drawvec, drawang = Vector(0, 0, 21.75), Angle(0, 90, 0)
 	function ENT:Draw()
 		self:DrawModel()
 
-		JMod.HoloGraphicDisplay(self, Vector(0, 0, 21.75), Angle(0, 90, 0), .06, 300, function()
+		JMod.HoloGraphicDisplay(self, drawvec, drawang, .06, 300, function()
 			JMod.StandardResourceDisplay(JMod.EZ_RESOURCE_TYPES.FISSILEMATERIAL, self:GetResource(), nil, 0, 0, 200, true)
 		end)
 	end
 
-	language.Add(ENT.ClassName, ENT.PrintName)
+	--language.Add(ENT.ClassName, ENT.PrintName)
 end

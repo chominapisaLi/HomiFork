@@ -10,6 +10,7 @@ ENT.Spawnable = true
 ENT.AdminSpawnable = true
 ---
 ENT.JModPreferredCarryAngles = Angle(90, 0, 180)
+ENT.EZcolorable = true
 ENT.JModEZstorable = true
 
 ---
@@ -24,7 +25,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 		--local effectdata=EffectData()
@@ -71,7 +72,7 @@ if SERVER then
 			if self:GetState() == JMod.EZ_STATE_OFF then
 				self:SetState(JMod.EZ_STATE_ARMING)
 				self:SetBodygroup(0, 1)
-				self:EmitSound("snd_jack_minearm.wav", 60, 100)
+				self:EmitSound("snd_jack_minearm.ogg", 60, 100)
 
 				timer.Simple(3, function()
 					if IsValid(self) then
@@ -114,9 +115,9 @@ if SERVER then
 
 	function ENT:Use(activator, activatorAgain, onOff)
 		local Dude = activator or activatorAgain
-		JMod.SetOwner(self, Dude)
+		JMod.SetEZowner(self, Dude)
 
-		if IsValid(self:GetOwner()) then
+		if IsValid(self.EZowner) then
 			JMod.Colorify(self)
 		end
 
@@ -125,13 +126,13 @@ if SERVER then
 		if tobool(onOff) then
 			local State = self:GetState()
 			if State < 0 then return end
-			local Alt = Dude:KeyDown(JMod.Config.AltFunctionKey)
+			local Alt = Dude:KeyDown(JMod.Config.General.AltFunctionKey)
 
 			if State == JMod.EZ_STATE_OFF then
 				if Alt then
 					self:SetState(JMod.EZ_STATE_ARMING)
 					self:SetBodygroup(0, 1)
-					self:EmitSound("snd_jack_minearm.wav", 60, 100)
+					self:EmitSound("snd_jack_minearm.ogg", 60, 100)
 
 					timer.Simple(3, function()
 						if IsValid(self) then
@@ -166,7 +167,7 @@ if SERVER then
 					JMod.Hint(Dude, "sticky", selfg)
 				end
 			else
-				self:EmitSound("snd_jack_minearm.wav", 60, 70)
+				self:EmitSound("snd_jack_minearm.ogg", 60, 70)
 				self:SetState(JMod.EZ_STATE_OFF)
 				self:SetBodygroup(0, 0)
 			end
@@ -201,7 +202,7 @@ if SERVER then
 							end
 						end
 
-						self:EmitSound("snd_jack_claythunk.wav", 65, math.random(80, 120))
+						self:EmitSound("snd_jack_claythunk.ogg", 65, math.random(80, 120))
 						Dude:DropObject()
 
 						if not JMod.Hint(Dude, "arm") then
@@ -223,16 +224,16 @@ if SERVER then
 
 				if IsValid(self.AttachedBomb) then
 					self.AttachedBomb:EZdetonateOverride(self)
-					JMod.Sploom(self:GetOwner(), SelfPos, 3)
+					JMod.Sploom(self.EZowner, SelfPos, 3)
 					self:Remove()
 
 					return
 				end
 
-				JMod.Sploom(self:GetOwner(), SelfPos, math.random(50, 80))
+				JMod.Sploom(self.EZowner, SelfPos, math.random(50, 80))
 				util.ScreenShake(SelfPos, 99999, 99999, .3, 500)
 				local Dir = (self:GetUp() + VectorRand() * .01):GetNormalized()
-				JMod.RicPenBullet(self, SelfPos, Dir, (dmg or 800) * JMod.Config.MinePower, true, true)
+				JMod.RicPenBullet(self, SelfPos, Dir, (dmg or 800) * JMod.Config.Explosives.Mine.Power, true, true)
 				self:Remove()
 			end
 		end)

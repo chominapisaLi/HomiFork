@@ -25,7 +25,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 		--local effectdata=EffectData()
@@ -52,6 +52,7 @@ if SERVER then
 
 		---
 		self.Fuze = 100
+		self.NextStick = 0
 		self:SetState(JMod.EZ_STATE_OFF)
 
 		if istable(WireLib) then
@@ -100,7 +101,7 @@ if SERVER then
 
 	function ENT:Arm()
 		if self:GetState() == JMod.EZ_STATE_ARMED then return end
-		self:EmitSound("snds_jack_gmod/ignite.wav", 60, 100)
+		self:EmitSound("snds_jack_gmod/ignite.ogg", 60, 100)
 
 		timer.Simple(.5, function()
 			if IsValid(self) then
@@ -111,23 +112,56 @@ if SERVER then
 
 	function ENT:Use(activator, activatorAgain, onOff)
 		local Dude = activator or activatorAgain
-		JMod.SetOwner(self, Dude)
+		JMod.SetEZowner(self, Dude)
 		local Time = CurTime()
 
 		if tobool(onOff) then
 			local State = self:GetState()
 			if State < 0 then return end
-			local Alt = Dude:KeyDown(JMod.Config.AltFunctionKey)
+			local Alt = Dude:KeyDown(JMod.Config.General.AltFunctionKey)
 
 			if State == JMod.EZ_STATE_OFF and Alt then
 				self:Arm()
 				JMod.Hint(Dude, "fuse")
+			else
+				constraint.RemoveAll(self)
+				self.StuckStick = nil
+				self.StuckTo = nil
+				Dude:PickupObject(self)
+				self.NextStick = Time + .5
+				JMod.Hint(Dude, "sticky")
 			end
-
-			Dude:PickupObject(self)
 
 			if not Alt then
 				JMod.Hint(Dude, "arm")
+			end
+		else
+			if self:IsPlayerHolding() and (self.NextStick < Time) then
+				local Tr = util.QuickTrace(Dude:GetShootPos(), Dude:GetAimVector() * 80, {self, Dude})
+
+				if Tr.Hit and IsValid(Tr.Entity:GetPhysicsObject()) and not Tr.Entity:IsNPC() and not Tr.Entity:IsPlayer() then
+					self.NextStick = Time + .5
+					local Ang = Tr.HitNormal:Angle()
+					Ang:RotateAroundAxis(Ang:Right(), -90)
+					Ang:RotateAroundAxis(Ang:Up(), 180)
+					self:SetAngles(Ang)
+					self:SetPos(Tr.HitPos + Tr.HitNormal * 3)
+
+					-- crash prevention
+					if Tr.Entity:GetClass() == "func_breakable" then
+						timer.Simple(0, function()
+							self:GetPhysicsObject():Sleep()
+						end)
+					else
+						local Weld = constraint.Weld(self, Tr.Entity, 0, Tr.PhysicsBone, 3000, false, false)
+						self.StuckTo = Tr.Entity
+						self.StuckStick = Weld
+					end
+
+					self:EmitSound("snd_jack_claythunk.ogg", 65, math.random(80, 120))
+					Dude:DropObject()
+					JMod.Hint(Dude, "arm")
+				end
 			end
 		end
 	end
@@ -154,7 +188,7 @@ if SERVER then
 					sound.Play("BaseExplosionEffect.Sound", SelfPos, 120, math.random(90, 110))
 				end
 
-				self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 100)
+				self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 100)
 
 				timer.Simple(.1, function()
 					for i = 1, 5 do
@@ -166,13 +200,14 @@ if SERVER then
 					end
 				end)
 
-				JMod.WreckBuildings(self, SelfPos, PowerMult)
-				JMod.BlastDoors(self, SelfPos, PowerMult)
-
 				timer.Simple(0, function()
 					local ZaWarudo = game.GetWorld()
-					local Infl, Att = (IsValid(self) and self) or ZaWarudo, (IsValid(self) and IsValid(self:GetOwner()) and self:GetOwner()) or (IsValid(self) and self) or ZaWarudo
+					local Infl, Att = (IsValid(self) and self) or ZaWarudo, (IsValid(self) and IsValid(self.EZowner) and self.EZowner) or (IsValid(self) and self) or ZaWarudo
 					util.BlastDamage(Infl, Att, SelfPos, 120 * PowerMult, 180 * PowerMult)
+
+					JMod.WreckBuildings(self, SelfPos, PowerMult * .75)
+					JMod.BlastDoors(self, SelfPos, PowerMult)
+
 					self:Remove()
 				end)
 			end
@@ -188,14 +223,17 @@ if SERVER then
 		local state = self:GetState()
 
 		if state == JMod.EZ_STATE_ARMED then
-			local Fsh = EffectData()
-			Fsh:SetOrigin(self:GetPos() + self:GetForward() * 18 - self:GetRight() * 5)
-			Fsh:SetScale(1)
+			local FuseBase = self:GetPos() + self:GetForward() * 10
 			local Ang = self:GetForward():Angle()
-			Ang:RotateAroundAxis(self:GetUp(), 45)
+			Ang:RotateAroundAxis(self:GetUp(), 32)
+
+			local Fsh = EffectData()
+			local Frac = (self.Fuze / 100)
+			Fsh:SetOrigin(FuseBase + Ang:Forward() * 11 * Frac + Ang:Right() * -Frac)
+			Fsh:SetScale(1)
 			Fsh:SetNormal(Ang:Forward())
 			util.Effect("eff_jack_fuzeburn", Fsh, true, true)
-			self.Entity:EmitSound("snd_jack_sss.wav", 65, math.Rand(90, 110))
+			self:EmitSound("snd_jack_sss.wav", 65, math.Rand(90, 110))
 			JMod.EmitAIsound(self:GetPos(), 500, .5, 8)
 			self.Fuze = self.Fuze - .5
 

@@ -27,7 +27,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 
@@ -35,12 +35,12 @@ if SERVER then
 	end
 
 	function ENT:Initialize()
-		self.Entity:SetModel("models/hunter/blocks/cube025x025x025.mdl")
-		self.Entity:PhysicsInit(SOLID_VPHYSICS)
-		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-		self.Entity:SetSolid(SOLID_VPHYSICS)
-		self.Entity:DrawShadow(true)
-		self.Entity:SetUseType(SIMPLE_USE)
+		self:SetModel("models/hunter/blocks/cube025x025x025.mdl")
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
+		self:SetUseType(SIMPLE_USE)
 
 		---
 		timer.Simple(.01, function()
@@ -67,12 +67,12 @@ if SERVER then
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.2 then
 			if data.Speed > 25 then
-				self.Entity:EmitSound("Canister.ImpactHard", 60, math.random(80, 120))
+				self:EmitSound("Canister.ImpactHard", 60, math.random(80, 120))
 
 				if self:GetState() == STATE_MELTED then
 					local Dmg = DamageInfo()
 					Dmg:SetDamageType(DMG_BURN)
-					Dmg:SetAttacker(self:GetOwner() or self)
+					Dmg:SetAttacker(JMod.GetEZowner(self))
 					Dmg:SetInflictor(self)
 					Dmg:SetDamage(5)
 					Dmg:SetDamagePosition(self:GetPos())
@@ -88,24 +88,24 @@ if SERVER then
 
 	function ENT:OnTakeDamage(dmginfo)
 		if dmginfo:GetInflictor() == self then return end
-		self.Entity:TakePhysicsDamage(dmginfo)
+		self:TakePhysicsDamage(dmginfo)
 		local Dmg = dmginfo:GetDamage()
 
 		if JMod.LinCh(Dmg, 50, 120) then
-			JMod.SetOwner(self, dmginfo:GetAttacker() or self:GetOwner())
+			JMod.SetEZowner(self, dmginfo:GetAttacker() or self.EZowner)
 			local Pos = self:GetPos()
-			self:EmitSound("snd_jack_turretbreak.wav", 70, math.random(80, 120))
-			local Owner, Count = self:GetOwner(), 50
+			self:EmitSound("snd_jack_turretbreak.ogg", 70, math.random(80, 120))
+			local Owner, Count = self.EZowner, 50
 
 			timer.Simple(.5, function()
-				for k = 1, JMod.Config.NuclearRadiationMult * Count do
+				for k = 1, JMod.Config.Particles.NuclearRadiationMult * Count do
 					local Gas = ents.Create("ent_jack_gmod_ezfalloutparticle")
 					Gas.Range = 500
 					Gas:SetPos(Pos)
-					JMod.SetOwner(Gas, Owner or game.GetWorld())
+					JMod.SetEZowner(Gas, Owner or game.GetWorld())
 					Gas:Spawn()
 					Gas:Activate()
-					Gas:GetPhysicsObject():SetVelocity(VectorRand() * math.random(1, 500) + Vector(0, 0, 10 * JMod.Config.NuclearRadiationMult))
+					Gas.CurVel = VectorRand() * math.random(1, 500) + Vector(0, 0, 10 * JMod.Config.Particles.NuclearRadiationMult)
 				end
 			end)
 
@@ -114,13 +114,13 @@ if SERVER then
 	end
 
 	function ENT:Use(activator)
-		local State, Alt = self:GetState(), activator:KeyDown(JMod.Config.AltFunctionKey)
+		local State, Alt = self:GetState(), activator:KeyDown(JMod.Config.General.AltFunctionKey)
 
 		if State == STATE_OFF then
 			if Alt then
-				JMod.SetOwner(self, activator)
-				self:EmitSound("snd_jack_pinpull.wav", 60, 100)
-				self:EmitSound("snd_jack_spoonfling.wav", 60, 100)
+				JMod.SetEZowner(self, activator)
+				self:EmitSound("snd_jack_pinpull.ogg", 60, 100)
+				self:EmitSound("snd_jack_spoonfling.ogg", 60, 100)
 				self:SetState(STATE_TICKING)
 
 				timer.Simple(20, function()
@@ -135,7 +135,7 @@ if SERVER then
 		elseif State == STATE_MELTED then
 			local Dmg = DamageInfo()
 			Dmg:SetDamageType(DMG_BURN)
-			Dmg:SetAttacker(self:GetOwner() or self)
+			Dmg:SetAttacker(JMod.GetEZowner(self))
 			Dmg:SetInflictor(self)
 			Dmg:SetDamage(5)
 			Dmg:SetDamagePosition(self:GetPos())
@@ -154,7 +154,7 @@ if SERVER then
 		local State = self:GetState()
 
 		if (State ~= STATE_BROKEN) and (State ~= STATE_IRRADIATING) then
-			self:EmitSound("snds_jack_gmod/criticality_weapon_engage.wav", 60, 100)
+			self:EmitSound("snds_jack_gmod/criticality_weapon_engage.ogg", 60, 100)
 			self:SetState(STATE_IRRADIATING)
 
 			timer.Simple(.5, function()
@@ -259,7 +259,7 @@ if SERVER then
 		local State, Time, SelfPos = self:GetState(), CurTime(), self:GetPos() + Vector(0, 0, 15)
 
 		if State == STATE_TICKING then
-			self:EmitSound("snd_jack_metallicclick.wav", 50, 100)
+			self:EmitSound("snd_jack_metallicclick.ogg", 50, 100)
 			self:NextThink(Time + 1)
 
 			return true
@@ -272,7 +272,7 @@ if SERVER then
 					local Vec = TargPos - SelfPos
 					local Dir, Dist = Vec:GetNormalized(), math.Clamp(Vec:Length(), 0, Range)
 					local DistFrac = 1 - (Dist / Range)
-					local DmgAmt = math.Rand(.1, 1) * JMod.Config.NuclearRadiationMult * DistFrac ^ 2
+					local DmgAmt = math.Rand(.1, 1) * JMod.Config.Particles.NuclearRadiationMult * DistFrac ^ 2
 
 					if (Playa and v:Alive()) or NPC then
 						local Shielding = DetermineShieldingFactor(SelfPos, TargPos, self, v, Vec, Dist) -- shielding calcs are spensive, only run them for players/NPCs
@@ -284,7 +284,7 @@ if SERVER then
 							Dmg:SetDamageType(DMG_GENERIC) -- neutron radiation, can't be blocked by a hazmat suit or gas mask
 							Dmg:SetDamage(DmgAmt / 3)
 							Dmg:SetInflictor(self)
-							Dmg:SetAttacker(self:GetOwner() or self)
+							Dmg:SetAttacker(JMod.GetEZowner(self))
 							Dmg:SetDamagePosition(TargPos)
 							v:TakeDamageInfo(Dmg)
 							---
@@ -292,7 +292,7 @@ if SERVER then
 							Dmg2:SetDamageType(DMG_RADIATION)
 							Dmg2:SetDamage(DmgAmt / 4)
 							Dmg2:SetInflictor(self)
-							Dmg2:SetAttacker(self:GetOwner() or self)
+							Dmg2:SetAttacker(JMod.GetEZowner(self))
 							Dmg2:SetDamagePosition(TargPos)
 							v:TakeDamageInfo(Dmg2)
 
@@ -303,7 +303,7 @@ if SERVER then
 								---
 								local DmgTaken = Helf - v:Health()
 
-								if (DmgTaken > 0) and JMod.Config.NuclearRadiationSickness then
+								if (DmgTaken > 0) and JMod.Config.Explosives.Nuke.RadiationSickness then
 									v.EZirradiated = (v.EZirradiated or 0) + DmgTaken * 5 -- fuckin ouch
 
 									timer.Simple(10, function()
@@ -319,7 +319,7 @@ if SERVER then
 						Dmg2:SetDamageType(DMG_RADIATION)
 						Dmg2:SetDamage(DmgAmt / 3)
 						Dmg2:SetInflictor(self)
-						Dmg2:SetAttacker(self:GetOwner() or self)
+						Dmg2:SetAttacker(JMod.GetEZowner(self))
 						Dmg2:SetDamagePosition(TargPos)
 						v:TakeDamageInfo(Dmg2)
 						-- neutron activation
@@ -415,7 +415,7 @@ elseif CLIENT then
 				render.SetMaterial(GlowSprite)
 				render.DrawSprite(SpritePos, 500, 500, Color(Col.r, Col.g, Col.b, 20 * Frac ^ 1.5))
 				render.DrawQuadEasy(QuadPos, Vector(0, 0, 1), 500, 500, Color(Col.r, Col.g, Col.b, 40 * Frac ^ 1.5))
-				DLight = DynamicLight(self:EntIndex())
+				local DLight = DynamicLight(self:EntIndex())
 
 				if DLight then
 					DLight.Brightness = Frac ^ 1.5
@@ -451,7 +451,7 @@ elseif CLIENT then
 			render.DrawQuadEasy(QuadPos, Vector(0, 0, 1), 500, 500, Color(0, 20, 255, 50))
 			render.DrawSprite(SpritePos + Vec * 10, 100, 100, Color(255, 255, 255, 50))
 			render.DrawQuadEasy(QuadPos, Vector(0, 0, 1), 100, 100, Color(255, 255, 255, 50))
-			DLight = DynamicLight(self:EntIndex())
+			local DLight = DynamicLight(self:EntIndex())
 
 			if DLight then
 				DLight.Brightness = 1

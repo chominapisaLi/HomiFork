@@ -1,6 +1,6 @@
 ﻿-- Jackarunda 2021
 AddCSLuaFile()
-ENT.Type = "anim"
+ENT.Base = "ent_jack_gmod_ezgasparticle"
 ENT.PrintName = "EZ Nuclear Fallout"
 ENT.Author = "Jackarunda"
 ENT.NoSitAllowed = true
@@ -9,99 +9,117 @@ ENT.Spawnable = false
 ENT.AdminSpawnable = false
 ENT.AdminOnly = false
 ENT.RenderGroup = RENDERGROUP_TRANSLUCENT
+--
 ENT.EZfalloutParticle = true
 ENT.JModDontIrradiate = true
+ENT.AffectRange = 500
+ENT.ThinkRate = .5
+ENT.MaxLifeTime = 200
+--
 
 if SERVER then
-	function ENT:Initialize()
+	function ENT:CustomInit()
 		local Time = CurTime()
-		self.LifeTime = self.LifeTime or math.random(100, 200) * JMod.Config.NuclearRadiationMult
-		self.DieTime = Time + self.LifeTime
-		self:SetModel("models/dav0r/hoverball.mdl")
-		self:SetMaterial("models/debug/debugwhite")
-		self:RebuildPhysics()
-		self:DrawShadow(false)
+		self.MaxVel = 250
+		self:SetLifeTime(math.random(100, 200) * JMod.Config.Particles.NuclearRadiationMult)
 		self.NextDmg = Time + math.random(1, 10)
+		--self.FalloutEff = true--math.random(1, 5) == 1
 	end
 
-	function ENT:CanSee(ent)
-		local Tr = util.TraceLine({
-			start = self:GetPos(),
-			endpos = ent:GetPos(),
-			filter = {self, ent},
-			mask = MASK_SHOT
-		})
-
-		return not Tr.Hit
+	function ENT:ShouldDamage(ent)
+		return (JMod.ShouldDamageBiologically(ent) and (math.random(1, 5) == 1))
 	end
 
-	function ENT:Think()
-		if CLIENT then return end
-		local Time, SelfPos = CurTime(), self:GetPos()
+	function ENT:DamageObj(obj)
+		JMod.FalloutIrradiate(self, obj)
+		self.NextDmg = CurTime() + math.random(1, 5)
+	end
 
-		if self.DieTime < Time then
-			self:Remove()
+	function ENT:CalcMove(ThinkRateHz)
+		local SelfPos, Time = self:GetPos(), CurTime()
+		local RandDir = Vector(math.random(-10, 10), math.random(-10, 10), math.random(-20, 5))
+		--RandDir.z = RandDir.z / 2
+		local Force = RandDir + (JMod.Wind * 10)
 
-			return
-		end
-
-		local Force = VectorRand() * 10 - Vector(0, 0, 50)
-
-		for key, obj in pairs(ents.FindInSphere(SelfPos, self.Range or 2500)) do
-			if not (obj == self) and self:CanSee(obj) then
-				if obj.EZfalloutParticle then
+		local NearbyParticles = 0
+		for key, obj in ipairs(ents.FindInSphere(SelfPos, self.AffectRange*1.5)) do
+			if not(obj == self) and self:CanSee(obj) then
+				if obj.EZgasParticle and not(obj.EZvirusParticle) then
+					-- repel in accordance with Ideal Gas Law
 					local Vec = (obj:GetPos() - SelfPos):GetNormalized()
-					Force = Force - Vec * 7
-				elseif JMod.ShouldDamageBiologically(obj) and (math.random(1, 5) == 1) and (self.NextDmg < Time) then
-					JMod.FalloutIrradiate(self, obj)
+					Force = Force - Vec * 1
+					NearbyParticles = NearbyParticles + 1
+				elseif self.NextDmg < Time and SelfPos:Distance(obj:GetPos()) <= self.AffectRange and self:ShouldDamage(obj) then
+					self:DamageObj(obj)
 				end
 			end
 		end
 
-		self:Extinguish()
-		local Phys = self:GetPhysicsObject()
-		Phys:SetVelocity(Phys:GetVelocity() * (self.DragMult or .7))
-		Phys:ApplyForceCenter(Force)
-		self:NextThink(Time + math.Rand(4, 8))
+		if (NearbyParticles > 15) then
+			self.NearbyParticleTick = (self.NearbyParticleTick or 0) + 1
+			if (self.NearbyParticleTick > 10) then
+				debugoverlay.Cross(SelfPos, 10, 2, Color(255, 38, 0), true)
+				SafeRemoveEntity(self)
+			end
+		else
+			self.NearbyParticleTick = 0
+		end
+	
+		-- apply acceleration
+		self.CurVel = self.CurVel + Force / ThinkRateHz
 
-		return true
-	end
+		-- apply air resistance
+		--self.CurVel = self.CurVel / 1.5
+		self.CurVel = Vector(math.Clamp(self.CurVel.x, -self.MaxVel, self.MaxVel), math.Clamp(self.CurVel.y, -self.MaxVel, self.MaxVel), math.Clamp(self.CurVel.z, -self.MaxVel, self.MaxVel))
 
-	function ENT:RebuildPhysics()
-		local size = 1
-		self:PhysicsInitSphere(size, "gmod_silent")
-		self:SetCollisionBounds(Vector(-.1, -.1, -.1), Vector(.1, .1, .1))
-		self:PhysWake()
-		self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
-		local Phys = self:GetPhysicsObject()
-		Phys:SetMass(1)
-		Phys:EnableGravity(false)
-		Phys:SetMaterial("gmod_silent")
-	end
+		-- observe current velocity
+		local NewPos = SelfPos + self.CurVel / ThinkRateHz
 
-	function ENT:PhysicsCollide(data, physobj)
-		self:GetPhysicsObject():ApplyForceCenter(-data.HitNormal * 100)
-	end
+		-- make sure we're not gonna hit something. If so, bounce
+		local MoveTrace = util.TraceLine({
+			start = SelfPos,
+			endpos = NewPos,
+			filter = { self, self.Canister },
+			mask = MASK_SHOT+MASK_WATER
+		})
+		if not MoveTrace.Hit then
+			-- move unobstructed
+			self:SetPos(NewPos + MoveTrace.HitNormal * 20)
+		else
+			if MoveTrace.HitSky and math.random(1, 3) == 1 then
+				SafeRemoveEntity(self)
 
-	function ENT:OnTakeDamage(dmginfo)
-		self:TakePhysicsDamage(dmginfo)
-	end
+				return
+			end
+			-- bounce in accordance with Ideal Gas Law
+			self:SetPos(MoveTrace.HitPos + MoveTrace.HitNormal * 1)
+			local CurVelAng, Speed = self.CurVel:Angle(), self.CurVel:Length()
+			CurVelAng:RotateAroundAxis(MoveTrace.HitNormal, 180)
+			local H = Vector(self.CurVel.x, self.CurVel.y, self.CurVel.z)
+			self.CurVel = -(CurVelAng:Forward() * Speed * .5) -- Except for this part
+		end
 
-	function ENT:Use(activator, caller)
+		--[[if self.FalloutEff and self.NextDmg < Time then
+			Feff = EffectData()
+			Feff:SetOrigin(self:GetPos())
+			Feff:SetStart(self.CurVel / 500)
+			Feff:SetScale(1)
+			util.Effect("eff_jack_gmod_ezfalloutdust", Feff, true, false)
+		end--]]
 	end
 	--
 elseif CLIENT then
-	function ENT:Initialize()
-		self.DebugShow = LocalPlayer().EZshowGasParticles or false
-
-		if self.DebugShow then
-			self:SetModelScale(10)
-		end
-	end
+	--[[function ENT:Initialize()
+		self:SetModelScale(10, 0)
+	end]]--
+	local DebugMat = Material("sprites/mat_jack_jackconfetti")
+	local Cheating = GetConVar("sv_cheats")
 
 	function ENT:DrawTranslucent()
+		self.DebugShow = (LocalPlayer().EZshowGasParticles and Cheating:GetBool()) or false
 		if self.DebugShow then
-			self:DrawModel()
+			render.SetMaterial(DebugMat)
+			render.DrawSprite(self:GetPos(), 100, 100, Color(82, 77, 65, 200))
 		end
 	end
 end

@@ -1,189 +1,207 @@
-﻿function JMod.CopyArmorTableToPlayer(ply)
-	ply.JMod_ArmorTableCopy = table.FullCopy(JMod.ArmorTable)
+﻿JMod.ArmorTableCopy = {}
+function JMod.CopyArmorTableToPlayer(ply)
+	-- make a copy of the global armor spec table, personalize it, and store it on the player
+	JMod.ArmorTableCopy = table.FullCopy(JMod.ArmorTable)
 	local plyMdl = ply:GetModel()
 
 	if JMod.LuaConfig and JMod.LuaConfig.ArmorOffsets and JMod.LuaConfig.ArmorOffsets[plyMdl] then
-		table.Merge(ply.JMod_ArmorTableCopy,JMod.LuaConfig.ArmorOffsets[plyMdl])
+		table.Merge(JMod.ArmorTableCopy, JMod.LuaConfig.ArmorOffsets[plyMdl])
 	end
 end
+function JMod.ArmorPlayerModelDraw(ply, nomerge)
+	if ply.EZarmor then
+		if not ply.EZarmorModels then
+			ply.EZarmorModels = {}
+		end
 
-local CurTime = CurTime
-local table_GetKeys = table.GetKeys
+		local Time = CurTime()
 
-local ClientsideModel = ClientsideModel
-local render_SetColorModulation = render.SetColorModulation
-local render_GetColorModulation = render.GetColorModulation
+		if not JMod.ArmorTableCopy or ((ply.NextEZarmorTableCopy or 0) < Time) then
+			JMod.CopyArmorTableToPlayer(ply)
+			ply.NextEZarmorTableCopy = Time + 30
+		end
 
-local models_female = {
-	["models/player/group01/female_01.mdl"] = true,
-	["models/player/group01/female_02.mdl"] = true,
-	["models/player/group01/female_03.mdl"] = true,
-	["models/player/group01/female_04.mdl"] = true,
-	["models/player/group01/female_05.mdl"] = true,
-	["models/player/group01/female_06.mdl"] = true,
+		local plyboneedit = {}
 
-	["models/player/group03/female_01.mdl"] = true,
-	["models/player/group03/female_02.mdl"] = true,
-	["models/player/group03/female_03.mdl"] = true,
-	["models/player/group03/female_04.mdl"] = true,
-	["models/player/group03/female_05.mdl"] = true,
-	["models/player/group03/police_fem.mdl"] = true
-}
+		for id, armorData in pairs(ply.EZarmor.items) do
+			local ArmorInfo = JMod.ArmorTableCopy[armorData.name]
 
-for i = 1,6 do
-	models_female["models/monolithservers/mpd/female_0"..i..".mdl"] = true
-end
+			if not ArmorInfo then continue end
+			if armorData.tgl and ArmorInfo.tgl then
+				ArmorInfo = table.Merge(table.FullCopy(ArmorInfo), ArmorInfo.tgl)
 
-for i = 1,6 do
-	models_female["models/monolithservers/mpd/female_0"..i.."_2.mdl"] = true
-end
-
-function JMod.ArmorPlayerModelDraw(ply)
-	local EZarmor = ply.EZarmor
-	if not EZarmor then return end
-
-	local EZarmorModels = ply.EZarmorModels
-	if not EZarmorModels then
-		EZarmorModels = {}
-		ply.EZarmorModels = EZarmorModels
-	end
-
-	local Time = CurTime()
-
-	if not ply.JMod_ArmorTableCopy or (ply.NextEZarmorTableCopy or 0) < Time then
-		JMod.CopyArmorTableToPlayer(ply)
-		ply.NextEZarmorTableCopy = Time + 30
-	end
-
-	local JMod_ArmorTableCopy = ply.JMod_ArmorTableCopy
-
-	local plyboneedit = {}
-
-	local isClient = ply == LocalPlayer() and GetViewEntity() == ply
-
-	for id,armorData in pairs(EZarmor.items) do
-		local ArmorInfo = JMod_ArmorTableCopy[armorData.name]
-
-		if isClient and (ArmorInfo.slots.mouthnose or ArmorInfo.slots.eyes or ArmorInfo.slots.head) then continue end
-
-		if armorData.tgl and ArmorInfo.tgl then
-			ArmorInfo = table.Merge(table.FullCopy(ArmorInfo),ArmorInfo.tgl)
-
-			for k,v in pairs(ArmorInfo.tgl) do
-				if type(v) == "table" then
-					if #table_GetKeys(v) == 0 then
-						ArmorInfo[k] = {}
+				-- for some reason table.Merge doesn't copy empty tables
+				for k, v in pairs(ArmorInfo.tgl) do
+					if type(v) == "table" then
+						if #table.GetKeys(v) == 0 then
+							ArmorInfo[k] = {}
+						end
 					end
 				end
 			end
-		end
 
-		if IsValid(EZarmorModels[id]) then
-			local Mdl = EZarmorModels[id]
-			local MdlName = string.lower(Mdl:GetModel())
+			if IsValid(ply.EZarmorModels[id]) then
+				local Mdl = ply.EZarmorModels[id]
+				local MdlName = string.lower(Mdl:GetModel())
+				if MdlName == ArmorInfo.mdl and ArmorInfo.bon and not ply != LocalPlayer() then
+					-- render it
+					local Index = ply:LookupBone(ArmorInfo.bon)
 
-			if MdlName == ArmorInfo.mdl and ArmorInfo.bon then
-				local Index = ply:LookupBone(ArmorInfo.bon)
-				
-				local addposY = (models_female[ply:GetModel()] and ArmorInfo.bon == "ValveBiped.Bip01_Spine2") and -3 or 0
+					if Index then
+						local Matric = ply:GetBoneMatrix(Index)
+						local Pos, Ang = Matric:GetTranslation(), Matric:GetAngles()
 
-				if Index then
-					local matrix = ply:GetBoneMatrix(Index)
-					if not matrix then continue end--lol
-					local Pos,Ang = matrix:GetTranslation(),matrix:GetAngles()
-
-					if Pos and Ang then
-						local Right,Forward,Up = Ang:Right(), Ang:Forward(), Ang:Up()
-						Pos = Pos + Right * ArmorInfo.pos.x + Forward * (ArmorInfo.pos.y + addposY) + Up * ArmorInfo.pos.z
-
-						Ang:RotateAroundAxis(Right,ArmorInfo.ang.p)
-						Ang:RotateAroundAxis(Up,ArmorInfo.ang.y)
-						Ang:RotateAroundAxis(Forward,ArmorInfo.ang.r)
-
-						Mdl:SetRenderOrigin(Pos)
-						Mdl:SetRenderAngles(Ang)
-
-						local Mat = Matrix()
-						Mat:Scale(ArmorInfo.siz)
-						Mdl:EnableMatrix("RenderMultiply",Mat)
-
-						local OldR,OldG,OldB = render_GetColorModulation()
-						local Colr = armorData.col
-
-						render_SetColorModulation(Colr.r / 255,Colr.g / 255,Colr.b / 255)
-
-						if ArmorInfo.bdg then
-							for k, v in pairs(ArmorInfo.bdg) do
-								Mdl:SetBodygroup(k,v)
+						if Pos and Ang then
+							if not(ArmorInfo.merge) or nomerge then
+								local Right, Forward, Up = Ang:Right(), Ang:Forward(), Ang:Up()
+								Pos = Pos + Right * ArmorInfo.pos.x + Forward * ArmorInfo.pos.y + Up * ArmorInfo.pos.z
+								Ang:RotateAroundAxis(Right, ArmorInfo.ang.p)
+								Ang:RotateAroundAxis(Up, ArmorInfo.ang.y)
+								Ang:RotateAroundAxis(Forward, ArmorInfo.ang.r)
+								Mdl:SetRenderOrigin(Pos)
+								Mdl:SetRenderAngles(Ang)
+								local Mat = Matrix()
+								Mat:Scale(ArmorInfo.siz)
+								Mdl:EnableMatrix("RenderMultiply", Mat)
+							else
+								Mdl:SetupBones()
+								for i = 0, Mdl:GetBoneCount() do
+									Mdl:ManipulateBoneScale(i, ArmorInfo.siz)
+								end
 							end
+							if ArmorInfo.bdg then
+								for k, v in pairs(ArmorInfo.bdg) do
+									Mdl:SetBodygroup(k, v)
+								end
+							end
+
+							if ArmorInfo.skin then
+								Mdl:SetSkin(ArmorInfo.skin)
+							end
+
+							local OldR, OldG, OldB = render.GetColorModulation()
+							local Colr = armorData.col
+							if (not(ArmorInfo.merge) or nomerge) then
+								render.SetColorModulation(Colr.r / 255, Colr.g / 255, Colr.b / 255)
+							else
+								Mdl:SetColor(Color(Colr.r, Colr.g, Colr.b))
+							end
+
+							local NoDraw = hook.Run("JModHookArmorModelDraw", ply, Mdl, armorData, ArmorInfo)
+
+							if not(NoDraw) and (not(ArmorInfo.merge) or nomerge) then
+								if ply == LocalPlayer() and ArmorInfo.bon == "ValveBiped.Bip01_Head1" and thirdperson then
+									Mdl:DrawModel()
+								elseif ply != LocalPlayer() then
+									Mdl:DrawModel()
+								elseif ply == LocalPlayer() and ArmorInfo.bon != "ValveBiped.Bip01_Head1" then
+										Mdl:DrawModel()
+								end
+							end
+							render.SetColorModulation(OldR, OldG, OldB)
 						end
 
-						if ArmorInfo.skin then Mdl:SetSkin(ArmorInfo.skin) end
-
-						Mdl:DrawModel()
-
-						render_SetColorModulation(OldR,OldG,OldB)
+						if ArmorInfo.bonsiz then
+							ply.EZarmorboneedited = true
+							plyboneedit[Index] = ArmorInfo.bonsiz
+						end
 					end
-
-					if ArmorInfo.bonsiz then
-						ply.EZarmorboneedited = true
-
-						plyboneedit[Index] = ArmorInfo.bonsiz
-					end
+				else
+					-- remove it
+					ply.EZarmorModels[id]:Remove()
+					ply.EZarmorModels[id] = nil
 				end
 			else
-				EZarmorModels[id]:Remove()
-				EZarmorModels[id] = nil
+				-- create it
+				local Mdl = ClientsideModel(ArmorInfo.mdl)
+				Mdl:SetModel(ArmorInfo.mdl) -- Garrry!
+				Mdl:SetMaterial(ArmorInfo.mat or "")
+				Mdl:SetMoveType(MOVETYPE_NONE)
+				if ArmorInfo.merge and not(nomerge) then
+					Mdl:SetParent(ply, 0)
+					Mdl:AddEffects(EF_BONEMERGE)
+					Mdl:AddEffects(EF_BONEMERGE_FASTCULL)
+					--Mdl:SetPredictable(true)
+					--Mdl:FollowBone(ply, 0)
+				else
+					Mdl:SetPos(ply:GetPos())
+					Mdl:SetParent(ply)
+					Mdl:SetNoDraw(true)
+				end
+				ply.EZarmorModels[id] = Mdl
 			end
-		else
-			local Mdl = ClientsideModel(ArmorInfo.mdl)
-			Mdl:SetModel(ArmorInfo.mdl) -- Garrry!
-			Mdl:SetPos(ply:GetPos())
-			Mdl:SetMaterial(ArmorInfo.mat or "")
-			Mdl:SetParent(ply)
-			Mdl:SetNoDraw(true)
+		end
+		if ply.EZarmorboneedited then
+			local edited = false
 
-			Mdl.JModCSModel = true -- doesn't seem to be working though
-			EZarmorModels[id] = Mdl
+			for k = 1, ply:GetBoneCount() do
+				if ply:GetManipulateBoneScale(k) ~= (plyboneedit[k] or Vector(1, 1, 1)) then
+					ply:ManipulateBoneScale(k, plyboneedit[k] or Vector(1, 1, 1))
+				end
+
+				if ply:GetManipulateBoneScale(k) ~= Vector(1, 1, 1) then
+					edited = true
+				end
+			end
+
+			if not edited then
+				--print("JMOD: bones not edited")
+				ply.EZarmorboneedited = false
+			end
 		end
 	end
-
-	if ply.EZarmorboneedited then
-		local edited = false
-
-		for k = 1, ply:GetBoneCount() do
-			if ply:GetManipulateBoneScale(k) ~= (plyboneedit[k] or Vector(1, 1, 1)) then
-				ply:ManipulateBoneScale(k, plyboneedit[k] or Vector(1, 1, 1))
-			end
-
-			if ply:GetManipulateBoneScale(k) ~= Vector(1, 1, 1) then
-				edited = true
-			end
-		end
-
-		if not edited then
-			print("not edited")
-
-			ply.EZarmorboneedited = false
-		end
-	end--lol
 end
 
-hook.Add("PostPlayerDraw","JMOD_ArmorPlayerDraw",function(ply)
+hook.Add("JMod_ArmorModelDraw", "JMod_NoDrawArmorSweps", function(ply, Mdl, ArmorData, ArmorInfo) 
+	if ArmorInfo.eff and ArmorInfo.eff.weapon then
+		if IsValid(ply) and ply:IsPlayer() then
+			local wep = ply:GetActiveWeapon()
+			if IsValid(wep) and (wep:GetClass() == ArmorInfo.eff.weapon) and not(IsValid(JMod.GetPlayerHeldEntity(ply))) then
+				if ArmorInfo.merge then
+					Mdl:SetNoDraw(true)
+				else
+					return true
+				end
+			elseif ArmorInfo.merge then
+				Mdl:SetNoDraw(false)
+			end
+		end
+	end
+end)
+
+hook.Add("PostPlayerDraw", "JMOD_ArmorPlayerDraw", function(ply)
+	if not IsValid(ply) then return end
 	JMod.ArmorPlayerModelDraw(ply)
 end)
 
 net.Receive("JMod_EZarmorSync", function()
 	local ply = net.ReadEntity()
+	ply.EZarmor = net.ReadTable()
 
 	if ply.EZarmorModels then
 		for k, v in pairs(ply.EZarmorModels) do
-			v:Remove()
-			v = nil
+			--if IsValid(v) then
+				local NoMatch = true
+				for id, armorData in pairs(ply.EZarmor.items) do
+					if k == id then
+						NoMatch = false 
+						break
+					end
+				end
+				if NoMatch then
+					--print("Removing: ", v)
+					v:Remove()
+					v = nil
+					ply.EZarmorModels[k] = nil
+				end
+			--else
+			--	ply.EZarmorModels[k] = nil
+			--end
 		end
 	end
-
-	ply.EZarmor = net.ReadTable()
+	
+	--PrintTable(ply.EZarmorModels)
+	--PrintTable(ply.EZarmor)
 end)
 
 concommand.Add("jmod_debug_countclientsidemodels", function()

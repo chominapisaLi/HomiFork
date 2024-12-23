@@ -9,22 +9,23 @@ ENT.Spawnable = false
 ENT.AdminSpawnable = false
 ENT.CollisionGroup = COLLISION_GROUP_NONE
 ENT.NoPhys = true
+ENT.IsEZrocket = true
 local ThinkRate = 22 --Hz
 
 ---
 if SERVER then
 	function ENT:Initialize()
-		self.Entity:SetMoveType(MOVETYPE_NONE)
-		self.Entity:DrawShadow(false)
-		self.Entity:SetCollisionBounds(Vector(-20, -20, -10), Vector(20, 20, 10))
-		self.Entity:PhysicsInitBox(Vector(-20, -20, -10), Vector(20, 20, 10))
-		local phys = self.Entity:GetPhysicsObject()
+		self:SetMoveType(MOVETYPE_NONE)
+		self:DrawShadow(false)
+		self:SetCollisionBounds(Vector(-20, -20, -10), Vector(20, 20, 10))
+		self:PhysicsInitBox(Vector(-20, -20, -10), Vector(20, 20, 10))
+		local phys = self:GetPhysicsObject()
 
 		if IsValid(phys) then
 			phys:EnableCollisions(false)
 		end
 
-		self.Entity:SetNotSolid(true)
+		self:SetNotSolid(true)
 		self.NextDet = 0
 		self.FuelLeft = 100
 		self.DieTime = CurTime() + 10
@@ -36,11 +37,11 @@ if SERVER then
 		if self.NextDet > CurTime() then return end
 		if self.Exploded then return end
 		self.Exploded = true
-		local SelfPos, Att, Dir = (tr and tr.HitPos + tr.HitNormal * 5) or self:GetPos() + Vector(0, 0, 30), self:GetOwner() or self, -self:GetRight()
+		local SelfPos, Att, Dir = (tr and tr.HitPos + tr.HitNormal * 5) or self:GetPos() + Vector(0, 0, 30), self.EZowner or self, -self:GetRight()
 		JMod.Sploom(Att, SelfPos, 150)
 		---
 		util.ScreenShake(SelfPos, 1000, 3, 2, 700)
-		self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 100)
+		self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 100)
 		---
 		util.BlastDamage(game.GetWorld(), Att, SelfPos + Vector(0, 0, 50), self.BlastRadius or 100, self.Damage or 100)
 
@@ -156,42 +157,25 @@ if SERVER then
 	end
 elseif CLIENT then
 	function ENT:Initialize()
-		self.Mdl = ClientsideModel("models/military2/missile/missile_patriot.mdl")
-		self.Mdl:SetMaterial("models/military2/missile/he")
-		self.Mdl:SetPos(self:GetPos())
-		self.Mdl:SetParent(self)
-		self.Mdl:SetNoDraw(true)
+		self.Mdl = JMod.MakeModel(self, "models/jmod/explosives/missile/missile_patriot.mdl", 1)
 		self.RenderPos = self:GetPos()
 		self.NextRender = CurTime() + .05
 	end
 
-	function ENT:Think()
+	function ENT:OnRemove()
+		if IsValid(self.Mdl) then
+			self.Mdl:Remove()
+		end
 	end
 
 	--
 	local GlowSprite = Material("mat_jack_gmod_glowsprite")
 
-	function ENT:Draw()
-		if self.NextRender > CurTime() then return end
-		local Pos, Ang, Dir = self.RenderPos, self:GetAngles(), self:GetRight()
-		Ang:RotateAroundAxis(Ang:Up(), 90)
-		--self:DrawModel()
-		self.Mdl:SetRenderOrigin(Pos + Ang:Up() * 1.5 - Ang:Right() * 0 - Ang:Forward() * 1)
-		self.Mdl:SetRenderAngles(Ang)
-		local Matricks = Matrix()
-		Matricks:Scale(Vector(.2, .4, .4))
-		self.Mdl:EnableMatrix("RenderMultiply", Matricks)
-		self.Mdl:DrawModel()
-		--
+	function ENT:Think()
 		self.BurnoutTime = self.BurnoutTime or CurTime() + 1
 
 		if self.BurnoutTime > CurTime() then
-			render.SetMaterial(GlowSprite)
-
-			for i = 1, 10 do
-				local Inv = 10 - i
-				render.DrawSprite(Pos + Dir * (i * 5 + math.random(30, 40) - 15), 3 * Inv, 3 * Inv, Color(255, 255 - i * 10, 255 - i * 20, 255))
-			end
+			local Pos, Dir = self.RenderPos, self:GetRight()
 
 			local dlight = DynamicLight(self:EntIndex())
 
@@ -204,6 +188,26 @@ elseif CLIENT then
 				dlight.Decay = 200
 				dlight.Size = 400
 				dlight.DieTime = CurTime() + .5
+			end
+		end
+	end
+
+	function ENT:Draw()
+		if self.NextRender > CurTime() then return end
+		local Pos, Ang, Dir = self.RenderPos, self:GetAngles(), self:GetRight()
+		Ang:RotateAroundAxis(Ang:Up(), 90)
+		--self:DrawModel()
+		local RenderPos = Pos + Ang:Up() * 1.5 - Ang:Right() * 0 - Ang:Forward() * 1
+		JMod.RenderModel(self.Mdl, RenderPos, Ang, Vector(.2, .4, .4), nil, nil, true)
+		--
+		self.BurnoutTime = self.BurnoutTime or CurTime() + 1
+
+		if self.BurnoutTime > CurTime() then
+			render.SetMaterial(GlowSprite)
+
+			for i = 1, 10 do
+				local Inv = 10 - i
+				render.DrawSprite(Pos + Dir * (i * 5 + math.random(30, 40) - 15), 3 * Inv, 3 * Inv, Color(255, 255 - i * 10, 255 - i * 20, 255))
 			end
 		end
 

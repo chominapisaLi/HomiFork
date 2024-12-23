@@ -27,7 +27,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 
@@ -68,7 +68,7 @@ if SERVER then
 
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.2 and data.Speed > 25 then
-			self:EmitSound("snd_jack_claythunk.wav", 55, math.random(80, 120))
+			self:EmitSound("snd_jack_claythunk.ogg", 55, math.random(80, 120))
 		end
 	end
 
@@ -104,18 +104,18 @@ if SERVER then
 
 	function ENT:Use(activator, activatorAgain, onOff)
 		local Dude = activator or activatorAgain
-		JMod.SetOwner(self, Dude)
+		JMod.SetEZowner(self, Dude)
 		local Time = CurTime()
 
 		if tobool(onOff) then
 			local State = self:GetState()
 			if State < 0 then return end
-			local Alt = Dude:KeyDown(JMod.Config.AltFunctionKey)
+			local Alt = Dude:KeyDown(JMod.Config.General.AltFunctionKey)
 
 			if State == STATE_OFF then
 				if Alt then
 					self:SetState(STATE_ARMED)
-					self:EmitSound("snd_jack_minearm.wav", 60, 100)
+					self:EmitSound("snd_jack_minearm.ogg", 60, 100)
 					JMod.Hint(Dude, "trigger")
 				else
 					constraint.RemoveAll(self)
@@ -126,7 +126,7 @@ if SERVER then
 					JMod.Hint(Dude, "sticky")
 				end
 			else
-				self:EmitSound("snd_jack_minearm.wav", 60, 70)
+				self:EmitSound("snd_jack_minearm.ogg", 60, 70)
 				self:SetState(STATE_OFF)
 			end
 		else
@@ -152,7 +152,7 @@ if SERVER then
 						self.StuckStick = Weld
 					end
 
-					self:EmitSound("snd_jack_claythunk.wav", 65, math.random(80, 120))
+					self:EmitSound("snd_jack_claythunk.ogg", 65, math.random(80, 120))
 					Dude:DropObject()
 					JMod.Hint(Dude, "arm")
 				end
@@ -190,7 +190,7 @@ if SERVER then
 	end
 
 	function ENT:JModEZremoteTriggerFunc(ply)
-		if not (IsValid(ply) and ply:Alive() and (ply == self:GetOwner())) then return end
+		if not (IsValid(ply) and ply:Alive() and (ply == self.EZowner)) then return end
 		if self:GetState() ~= STATE_ARMED then return end
 		JMod.Hint(ply, "detpack combo", self:GetPos())
 		self:Detonate()
@@ -205,13 +205,13 @@ if SERVER then
 			if IsValid(self) then
 				if self.SympatheticDetonated then return end
 				local SelfPos, PowerMult = self:IncludeSympatheticDetpacks(self:LocalToWorld(self:OBBCenter()))
-				PowerMult = (PowerMult ^ .75) * JMod.Config.DetpackPowerMult
+				PowerMult = (PowerMult ^ .75) * JMod.Config.Explosives.Detpack.PowerMult
 				--
 				local Blam = EffectData()
 				Blam:SetOrigin(SelfPos)
 				Blam:SetScale(PowerMult)
 				util.Effect("eff_jack_plastisplosion", Blam, true, true)
-				JMod.Sploom(self:GetOwner() or self or game.GetWorld(), SelfPos, 20)
+				JMod.Sploom(self.EZowner or self or game.GetWorld(), SelfPos, 20)
 				util.ScreenShake(SelfPos, 99999, 99999, 1, 750 * PowerMult)
 
 				for i = 1, PowerMult do
@@ -224,7 +224,7 @@ if SERVER then
 					end
 				end
 
-				self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 100)
+				self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 100)
 
 				timer.Simple(.1, function()
 					for i = 1, 5 do
@@ -246,28 +246,14 @@ if SERVER then
 
 				timer.Simple(0, function()
 					local ZaWarudo = game.GetWorld()
-					local Infl, Att = (IsValid(self) and self) or ZaWarudo, (IsValid(self) and IsValid(self:GetOwner()) and self:GetOwner()) or (IsValid(self) and self) or ZaWarudo
+					local Infl, Att = (IsValid(self) and self) or ZaWarudo, (IsValid(self) and IsValid(self.EZowner) and self.EZowner) or (IsValid(self) and self) or ZaWarudo
 					util.BlastDamage(Infl, Att, SelfPos, 300 * PowerMult * RangeMult, 200 * PowerMult)
 					-- do a lot of damage point blank, mostly for breaching
-					util.BlastDamage(Infl, Att, SelfPos, 20 * PowerMult * RangeMult, 1700 * PowerMult)
+					util.BlastDamage(Infl, Att, SelfPos, 20 * PowerMult * RangeMult, 1000 * PowerMult)
 					self:Remove()
 				end)
 			end
 		end)
-	end
-
-	function ENT:CanSee(ent)
-		if not IsValid(ent) then return false end
-		local TargPos, SelfPos = ent:LocalToWorld(ent:OBBCenter()), self:LocalToWorld(self:OBBCenter())
-
-		local Tr = util.TraceLine({
-			start = SelfPos,
-			endpos = TargPos,
-			filter = {self, ent},
-			mask = MASK_SHOT + MASK_WATER
-		})
-
-		return not Tr.Hit
 	end
 
 	function ENT:Think()

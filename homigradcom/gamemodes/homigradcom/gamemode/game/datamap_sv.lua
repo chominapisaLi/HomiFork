@@ -7,6 +7,7 @@ SpawnPointsList = {
 	spawnpointst = {"red",Color(255,0,0)},
 	spawnpointsct = {"blue",Color(0,0,255)},
 	spawnpointspepoples = {"spawnpointspepoples",Color(0,0,255)},
+	ttt_weapon = {"ttt_weapon",Color(0,0,255)},
 	spawnpointswick = {"spawnpointswick",Color(255,0,0)},
 	spawnpointsnaem = {"spawnpointsnaem",Color(0,0,255)},
 

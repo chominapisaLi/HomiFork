@@ -13,6 +13,7 @@ ENT.EZscannerDanger = true
 ENT.JModGUIcolorable = true
 ENT.JModEZstorable = true
 ENT.JModPreferredCarryAngles = Angle(0, 0, 0)
+ENT.EZbuoyancy = .4
 
 ENT.BlacklistedNPCs = {"bullseye_strider_focus", "npc_turret_floor", "npc_turret_ceiling", "npc_turret_ground"}
 
@@ -32,7 +33,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(90, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 		--local effectdata=EffectData()
@@ -43,13 +44,13 @@ if SERVER then
 	end
 
 	function ENT:Initialize()
-		--self.Entity:SetModel("models/mechanics/wheels/wheel_smooth_24.mdl")
-		self.Entity:SetModel("models/props_pipes/pipe03_connector01.mdl")
-		self.Entity:PhysicsInit(SOLID_VPHYSICS)
-		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-		self.Entity:SetSolid(SOLID_VPHYSICS)
-		self.Entity:DrawShadow(true)
-		self.Entity:SetUseType(SIMPLE_USE)
+		--self:SetModel("models/mechanics/wheels/wheel_smooth_24.mdl")
+		self:SetModel("models/props_pipes/pipe03_connector01.mdl")
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
+		self:SetUseType(SIMPLE_USE)
 		self:GetPhysicsObject():SetMass(10)
 
 		---
@@ -61,6 +62,7 @@ if SERVER then
 		---
 		self:SetState(STATE_OFF)
 		self.NextDet = 0
+		self.StillTicks = 0
 
 		if istable(WireLib) then
 			self.Inputs = WireLib.CreateInputs(self, {"Detonate", "Arm"}, {"This will directly detonate the bomb", "Arms bomb when > 0"})
@@ -73,7 +75,7 @@ if SERVER then
 		if iname == "Detonate" and value > 0 then
 			self:Detonate()
 		elseif iname == "Arm" and value > 0 then
-			self:SetState(STATE_ARMING)
+			self:SetState(STATE_ARMED)
 		end
 	end
 
@@ -83,14 +85,14 @@ if SERVER then
 				if (self:GetState() == STATE_ARMED) and (math.random(1, 5) == 1) then
 					self:Detonate()
 				else
-					self.Entity:EmitSound("Weapon.ImpactHard")
+					self:EmitSound("Weapon.ImpactHard")
 				end
 			end
 		end
 	end
 
 	function ENT:OnTakeDamage(dmginfo)
-		self.Entity:TakePhysicsDamage(dmginfo)
+		self:TakePhysicsDamage(dmginfo)
 
 		if JMod.LinCh(dmginfo:GetDamage(), 50, 150) then
 			local Pos, State = self:GetPos(), self:GetState()
@@ -108,11 +110,11 @@ if SERVER then
 	function ENT:Use(activator)
 		local State = self:GetState()
 		if State < 0 then return end
-		local Alt = activator:KeyDown(JMod.Config.AltFunctionKey)
+		local Alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
 
 		if State == STATE_OFF then
 			if Alt then
-				JMod.SetOwner(self, activator)
+				JMod.SetEZowner(self, activator)
 				net.Start("JMod_ColorAndArm")
 				net.WriteEntity(self)
 				net.Send(activator)
@@ -121,9 +123,9 @@ if SERVER then
 				JMod.Hint(activator, "arm")
 			end
 		else
-			self:EmitSound("snd_jack_minearm.wav", 60, 70)
+			self:EmitSound("snd_jack_minearm.ogg", 60, 70)
 			self:SetState(STATE_OFF)
-			JMod.SetOwner(self, activator)
+			JMod.SetEZowner(self, activator)
 			self:DrawShadow(true)
 		end
 	end
@@ -131,9 +133,10 @@ if SERVER then
 	function ENT:Detonate()
 		if self.Exploded then return end
 		self.Exploded = true
-		sound.Play("snds_jack_gmod/mine_warn.wav", self:GetPos() + Vector(0, 0, 30), 60, 100)
+		sound.Play("snds_jack_gmod/mine_warn.ogg", self:GetPos() + Vector(0, 0, 30), 60, 100)
 
-		timer.Simple(math.Rand(.1, .2) * JMod.Config.MineDelay, function()
+		timer.Simple(math.Rand(.1, .2) * JMod.Config.Explosives.Mine.Delay, function()
+			if not IsValid(self) then return end
 			local SelfPos = self:LocalToWorld(self:OBBCenter())
 			local Eff = "100lb_ground"
 
@@ -142,10 +145,10 @@ if SERVER then
 			end
 
 			util.ScreenShake(SelfPos, 99999, 99999, 1, 1000)
-			self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 100)
+			self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 100)
 			sound.Play("ambient/explosions/explode_" .. math.random(1, 9) .. ".wav", SelfPos, 100, 130)
-			JMod.Sploom(self:GetOwner(), SelfPos, 10)
-			local Att = self:GetOwner() or game.GetWorld()
+			JMod.Sploom(self.EZowner, SelfPos, 10)
+			local Att = JMod.GetEZowner(self)
 			util.BlastDamage(self, Att, SelfPos + Vector(0, 0, 30), 100, 5500)
 			util.BlastDamage(self, Att, SelfPos + Vector(0, 0, 10), 300, 100)
 
@@ -186,20 +189,36 @@ if SERVER then
 				plooie:SetRadius(EffectType)
 				plooie:SetNormal(Up)
 				util.Effect("eff_jack_minesplode", plooie, true, true)
-				sound.Play("snd_jack_debris" .. math.random(1, 2) .. ".mp3", SelfPos, 80, math.random(90, 110))
+				sound.Play("snd_jack_debris" .. math.random(1, 2) .. ".ogg", SelfPos, 80, math.random(90, 110))
 			end)
 
 			self:Remove()
 		end)
 	end
 
-	function ENT:Arm(armer)
+	function ENT:Arm(armer, autoColor)
 		local State = self:GetState()
 		if State ~= STATE_OFF then return end
 		JMod.Hint(armer, "mine friends")
-		JMod.SetOwner(self, armer)
+		JMod.SetEZowner(self, armer)
 		self:SetState(STATE_ARMING)
-		self:EmitSound("snd_jack_minearm.wav", 60, 90)
+		self:EmitSound("snd_jack_minearm.ogg", 60, 90)
+
+		if autoColor then
+			local Tr = util.QuickTrace(self:GetPos() + Vector(0, 0, 10), Vector(0, 0, -50), self)
+
+			if Tr.Hit then
+				local Info = JMod.HitMatColors[Tr.MatType]
+
+				if Info then
+					self:SetColor(Info[1])
+
+					if Info[2] then
+						self:SetMaterial(Info[2])
+					end
+				end
+			end
+		end
 
 		timer.Simple(3, function()
 			if IsValid(self) then
@@ -216,20 +235,6 @@ if SERVER then
 		end)
 	end
 
-	function ENT:CanSee(ent)
-		if not IsValid(ent) then return false end
-		local TargPos, SelfPos = ent:LocalToWorld(ent:OBBCenter()), self:LocalToWorld(self:OBBCenter()) + vector_up
-
-		local Tr = util.TraceLine({
-			start = SelfPos,
-			endpos = TargPos,
-			filter = {self, ent},
-			mask = MASK_SHOT + MASK_WATER
-		})
-
-		return not Tr.Hit
-	end
-
 	function ENT:Think()
 		if istable(WireLib) then
 			WireLib.TriggerOutput(self, "State", self:GetState())
@@ -239,7 +244,7 @@ if SERVER then
 
 		if State == STATE_ARMED then
 			if self.NextDet < CurTime() then
-				self:GetPhysicsObject():SetBuoyancyRatio(.4)
+				self:GetPhysicsObject():SetBuoyancyRatio(self.EZbuoyancy)
 
 				if JMod.EnemiesNearPoint(self, self:GetPos(), 100, true) then
 					self:Detonate()
@@ -251,6 +256,22 @@ if SERVER then
 
 				return true
 			end
+		elseif self.AutoArm then
+			local Vel = self:GetPhysicsObject():GetVelocity()
+
+			if Vel:Length() < 1 then
+				self.StillTicks = self.StillTicks + 1
+			else
+				self.StillTicks = 0
+			end
+
+			if self.StillTicks > 4 then
+				self:Arm(JMod.GetEZowner(self), true)
+			end
+
+			self:NextThink(Time + .5)
+
+			return true
 		end
 	end
 

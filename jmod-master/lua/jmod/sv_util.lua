@@ -1,4 +1,225 @@
-﻿-- this causes an object to rotate to point forward while moving, like a dart
+﻿
+function JMod.SetEZowner(ent, newOwner, setColor)
+	if not IsValid(ent) then return end
+	if not (newOwner and IsValid(newOwner)) then newOwner = game.GetWorld() end
+
+	if JMod.GetEZowner(ent) == newOwner then
+		if setColor == true then
+			JMod.Colorify(ent)
+		end
+
+		return 
+	end
+
+	ent.EZowner = newOwner
+	if newOwner:IsPlayer() then
+		ent.EZownerID = newOwner:SteamID64()
+		ent.EZownerTeam = newOwner:Team()
+	else
+		ent.EZownerID = nil
+		ent.EZownerTeam = nil
+	end
+
+	if setColor == true then
+		JMod.Colorify(ent)
+	end
+
+	if CPPI and isfunction(ent.CPPISetOwner) then
+		ent:CPPISetOwner(newOwner)
+	end
+end
+function JMod.GetEZowner(ent)
+	if not IsValid(ent) then return game.GetWorld() end
+
+	if ent.EZowner and IsValid(ent.EZowner) then
+
+		return ent.EZowner
+	elseif ent:IsPlayer() then
+			
+		return ent	
+	else
+		
+		return game.GetWorld()
+	end
+end
+
+function JMod.GetPlayerStrength(ply)
+	if not(IsValid(ply) and ply:IsPlayer() and ply:Alive()) then return 1 end
+	local PlyHealth = ply:Health()
+	local PlyMaxHealth = ply:GetMaxHealth()
+
+	--jprint(1 + (math.max(PlyHealth - PlyMaxHealth, 0) ^ 1.2 / (PlyMaxHealth)) * JMod.Config.General.HandGrabStrength)
+	return 1 + (math.max(PlyHealth - PlyMaxHealth, 0) ^ 1.2 / (PlyMaxHealth)) * JMod.Config.General.HandGrabStrength
+end
+
+function JMod.EZprogressTask(ent, pos, deconstructor, task, mult)
+	mult = mult or 1
+	local Time = CurTime()
+
+	if not IsValid(ent) then return "Invalid Ent" end
+
+	if task == "mining" then
+		local DepositKey = JMod.GetDepositAtPos(ent, pos)
+		local DepositInfo = JMod.NaturalResourceTable[DepositKey]
+		if DepositInfo and ent.SetResourceType then
+			local NewType = DepositInfo.typ
+			if ent.GetResourceType and (ent:GetResourceType() ~= NewType) then
+				ent:SetNW2Float("EZminingProgress", 0) -- No you don't
+			end 
+			ent:SetResourceType(NewType)
+		end
+		
+		if ent.EZpreviousMiningPos and ent.EZpreviousMiningPos:Distance(pos) > 200 then
+			ent:SetNW2Float("EZminingProgress", 0)
+			ent.EZpreviousMiningPos = nil
+		end
+		if ent:GetNW2Float("EZcancelminingTime", 0) <= Time then
+			ent:SetNW2Float("EZminingProgress", 0)
+			ent.EZpreviousMiningPos = nil
+		end
+		ent:SetNW2Float("EZcancelminingTime", Time + 5)
+		ent.EZpreviousMiningPos = pos
+
+		local Prog = ent:GetNW2Float("EZminingProgress", 0)
+		local AddAmt = math.random(15, 25) * mult * JMod.Config.ResourceEconomy.ExtractionSpeed
+
+		ent:SetNW2Float("EZminingProgress", math.Clamp(Prog + AddAmt, 0, 100))
+
+		if (Prog >= 10) and not(DepositInfo) then
+			ent:SetNW2Float("EZminingProgress", 0)
+			ent.EZpreviousMiningPos = nil
+			local NearestGoodDeposit = JMod.GetDepositAtPos(ent, pos, 3)
+			local NearestGoodDepositInfo = JMod.NaturalResourceTable[NearestGoodDeposit]
+			if NearestGoodDepositInfo then
+				net.Start("JMod_ResourceScanner")
+					net.WriteEntity(ent)
+					net.WriteTable({NearestGoodDepositInfo})
+				net.Broadcast()
+				return NearestGoodDepositInfo.typ .. " nearby"
+			else
+				return "nothing of value nearby"
+			end
+		elseif Prog >= 100 then
+			local AmtToProduce
+
+			if DepositInfo.rate then
+				local Rate = DepositInfo.rate
+				AmtToProduce = Rate * Prog
+			else
+				local AmtLeft = DepositInfo.amt
+				AmtToProduce = math.min(AmtLeft, math.random(5, 20))
+				if (DepositInfo.typ == JMod.EZ_RESOURCE_TYPES.DIAMOND) then
+					AmtToProduce = math.min(AmtLeft, math.random(1, 2))
+				end
+				JMod.DepleteNaturalResource(DepositKey, AmtToProduce)
+			end
+
+			local SpawnPos = ent:WorldToLocal(pos + Vector(0, 0, 8))
+			JMod.MachineSpawnResource(ent, DepositInfo.typ, AmtToProduce, SpawnPos, Angle(0, 0, 0), SpawnPos, 100)
+			ent:SetNW2Float("EZminingProgress", 0)
+			ent.EZpreviousMiningPos = nil
+			JMod.ResourceEffect(DepositInfo.typ, pos, nil, 1, 1, 1, 5)
+			util.Decal("EZgroundHole", pos + Vector(0, 0, 10), pos + Vector(0, 0, -10))
+			--
+			net.Start("JMod_ResourceScanner")
+				net.WriteEntity(ent)
+				net.WriteTable({DepositInfo})
+			net.Broadcast()
+
+			ent:SetResourceType("")
+			
+			return nil
+		end
+
+		return nil
+	end
+
+	if ent:GetNW2Float("EZcancel"..task.."Time", 0) <= Time then
+		ent:SetNW2Float("EZ"..task.."Progress", 0)
+	end
+	ent:SetNW2Float("EZcancel"..task.."Time", Time + 3)
+	
+	local Prog = ent:GetNW2Float("EZ"..task.."Progress", 0)
+	local Phys = ent:GetPhysicsObject()
+	
+	if IsValid(Phys) then
+		local WorkSpreadMult = JMod.CalcWorkSpreadMult(ent, pos)
+
+		if task == "loosen" then
+			if constraint.HasConstraints(ent) or not Phys:IsMotionEnabled() then
+				local Mass = Phys:GetMass() ^ .8
+				local AddAmt = 300 / Mass * WorkSpreadMult * JMod.Config.Tools.Toolbox.DeconstructSpeedMult
+				ent:SetNW2Float("EZ"..task.."Progress", math.Clamp(Prog + AddAmt, 0, 100))
+
+				if Prog >= 100 then
+					sound.Play("snds_jack_gmod/ez_tools/hit.ogg", pos + VectorRand(), 70, math.random(50, 60))
+					constraint.RemoveAll(ent)
+					Phys:EnableMotion(true)
+					Phys:Wake()
+					ent:SetNW2Float("EZ"..task.."Progress", 0)
+					if ent.EZnails then
+						for _, v in ipairs(ent.EZnails) do
+							if IsValid(v) then
+								v:Remove()
+							end
+						end
+						ent.EZnails = {}
+					end
+				end
+			else
+				return "object is already unconstrained"
+			end
+		elseif task == "salvage" then
+			if constraint.HasConstraints(ent) or not Phys:IsMotionEnabled() then
+				return "object is constrained"
+			else
+				local Mass = (Phys:GetMass() * ent:GetPhysicsObjectCount()) ^ .8
+				ent:ForcePlayerDrop()
+				local Yield, Message = JMod.GetSalvageYield(ent)
+
+				if #table.GetKeys(Yield) <= 0 then
+					return Message
+				else
+					local AddAmt = 250 / Mass * WorkSpreadMult * JMod.Config.Tools.Toolbox.DeconstructSpeedMult
+					ent:SetNW2Float("EZ"..task.."Progress", math.Clamp(Prog + AddAmt, 0, 100))
+					
+					if Prog >= 100 then
+						sound.Play("snds_jack_gmod/ez_tools/hit.ogg", pos + VectorRand(), 70, math.random(50, 60))
+
+						for k, v in pairs(Yield) do
+							local AmtLeft = v
+
+							while AmtLeft > 0 do
+								local Remove = math.min(AmtLeft, 100 * JMod.Config.ResourceEconomy.MaxResourceMult)
+								local Ent = ents.Create(JMod.EZ_RESOURCE_ENTITIES[k])
+								Ent:SetPos(pos + VectorRand() * 40 + Vector(0, 0, 30))
+								Ent:SetAngles(AngleRand())
+								Ent:Spawn()
+								Ent:Activate()
+								Ent:SetEZsupplies(k, Remove)
+								JMod.SetEZowner(Ent, deconstructor)
+								timer.Simple(.1, function()
+									if (IsValid(Ent) and IsValid(Ent:GetPhysicsObject())) then 
+										Ent:GetPhysicsObject():SetVelocity(Vector(0, 0, 0)) --- This is so jank
+									end
+								end)
+								AmtLeft = AmtLeft - Remove
+							end
+						end
+						--[[if ent.JModInv then
+							for _, v in ipairs(ent.JModInv.items) do
+								JMod.RemoveFromInventory(ent, v.ent, pos + VectorRand() * 50)
+							end
+						end--]]
+						SafeRemoveEntity(ent)
+					end
+				end
+			end
+		end
+	end
+end
+
+-- this causes an object to rotate to point forward while moving, like a dart
 function JMod.AeroDrag(ent, forward, mult, spdReq)
 	if constraint.HasConstraints(ent) then return end
 	if ent:IsPlayerHolding() then return end
@@ -387,7 +608,7 @@ local WreckBlacklist = {"gmod_lamp", "gmod_cameraprop", "gmod_light", "ent_jack_
 
 function JMod.WreckBuildings(blaster, pos, power, range, ignoreVisChecks)
 	local origPower = power
-	power = power * JMod.Config.ExplosionPropDestroyPower
+	power = power * 1
 	local maxRange = 250 * power * (range or 1) -- todo: this still doesn't do what i want for the nuke
 	local maxMassToDestroy = 10 * power ^ .8
 	local masMassToLoosen = 30 * power
@@ -949,7 +1170,7 @@ function JMod.ResourceEffect(typ, fromPoint, toPoint, amt, spread, scale, upSpee
 
 	for j = 0, 2 * amt do
 		timer.Simple(j / 20, function()
-			for i = 1, math.ceil(7 * amt * JMod.Config.SupplyEffectMult) do
+			for i = 1, math.ceil(7 * amt * 0.1) do
 				local whee = EffectData()
 				whee:SetOrigin(fromPoint)
 				if toPoint then

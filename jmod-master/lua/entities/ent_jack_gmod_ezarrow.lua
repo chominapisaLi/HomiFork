@@ -15,31 +15,31 @@ ENT.BreakMats = {MAT_CONCRETE, MAT_EGGSHELL, MAT_GRATE, MAT_CLIP, MAT_METAL, MAT
 ENT.EZammo = "Arrow"
 ENT.CollisionGroup = COLLISION_GROUP_NONE
 ENT.NoPhys = true
-local ThinkRate = 22 --Hz
+local ThinkRate = 33 --Hz
 
 ---
 if SERVER then
 	function ENT:Initialize()
-		self.Entity:SetMoveType(MOVETYPE_NONE)
-		self.Entity:DrawShadow(false)
-		self.Entity:SetCollisionBounds(Vector(-20, -20, -10), Vector(20, 20, 10))
-		self.Entity:PhysicsInitBox(Vector(-20, -20, -10), Vector(20, 20, 10))
-		local phys = self.Entity:GetPhysicsObject()
+		self:SetMoveType(MOVETYPE_NONE)
+		self:DrawShadow(false)
+		self:SetCollisionBounds(Vector(-20, -20, -10), Vector(20, 20, 10))
+		self:PhysicsInitBox(Vector(-20, -20, -10), Vector(20, 20, 10))
+		local phys = self:GetPhysicsObject()
 
 		if IsValid(phys) then
 			phys:EnableCollisions(false)
 		end
 
-		self.Entity:SetNotSolid(true)
-		self.Entity:SetUseType(SIMPLE_USE)
-		self.Entity:SetTrigger(true)
+		self:SetNotSolid(true)
+		self:SetUseType(SIMPLE_USE)
+		self:SetTrigger(true)
 		self.DieTime = CurTime() + 120
 	end
 
 	function ENT:Impact(tr)
 		if self.Impacted then return end
 		self.Impacted = true
-		local SelfPos, Att, Dir = (tr and tr.HitPos + tr.HitNormal * 5) or self:GetPos() + Vector(0, 0, 30), self:GetOwner() or self, self.CurVel:GetNormalized()
+		local SelfPos, Att, Dir = (tr and tr.HitPos + tr.HitNormal * 5) or self:GetPos() + Vector(0, 0, 30), self.Owner or self, self.CurVel:GetNormalized()
 
 		self:FireBullets({
 			Damage = self.Damage * .66,
@@ -49,14 +49,14 @@ if SERVER then
 			Spread = Vector(0, 0, 0),
 			Src = self:GetPos(),
 			Dir = Dir,
-			Attacker = self:GetOwner() or game.GetWorld(),
+			Attacker = self.Owner or game.GetWorld(),
 			AmmoType = self.AmmoType
 		})
 
 		local Slash = DamageInfo()
 		Slash:SetDamagePosition(tr.HitPos)
 		Slash:SetDamageType(DMG_SLASH)
-		Slash:SetAttacker(self:GetOwner() or game.GetWorld())
+		Slash:SetAttacker(self.Owner or game.GetWorld())
 		Slash:SetInflictor(self)
 		Slash:SetDamageForce(Dir * self.Damage * .33)
 		Slash:SetDamage(self.Damage * .33)
@@ -69,7 +69,7 @@ if SERVER then
 				self:SetParent(tr.Entity)
 				self.StuckIn = tr.Entity
 			else
-				self:DropToGround()
+				self:DropToGround(tr.Entity)
 			end
 
 			return
@@ -128,11 +128,15 @@ if SERVER then
 					elseif self.StuckIn:IsNPC() and self.StuckIn.Health and self.StuckIn:Health() <= 0 then
 						StaySticked = false
 					end
+				else
+					StaySticked = false
 				end
 
 				if not StaySticked then
 					self:DropToGround()
 				end
+			else
+				self:DropToGround()
 			end
 
 			if self.DieTime < CurTime() then
@@ -155,7 +159,7 @@ if SERVER then
 		else
 			local Filter = {self}
 
-			table.insert(Filter, self:GetOwner())
+			table.insert(Filter, self.Owner)
 			--Tr=util.TraceLine({start=Pos,endpos=Pos+self.CurVel/ThinkRate,filter=Filter})
 			local Mask = MASK_SHOT
 
@@ -195,13 +199,15 @@ if SERVER then
 		return true
 	end
 
-	function ENT:DropToGround()
-		local Tr = util.QuickTrace(self:GetPos(), Vector(0, 0, -600), {self, self:GetOwner(), self.StuckIn})
+	function ENT:DropToGround(entToIgnore)
+		local filterTab = {self, self.Owner, self.StuckIn}
+		if entToIgnore then table.insert(filterTab, entToIgnore) end
+		local Tr = util.QuickTrace(self:GetPos(), Vector(0, 0, -600), filterTab)
 
 		self:SetParent(nil)
 		self.StuckIn = nil
 
-		if Tr.Hit then
+		if Tr.Hit and Tr.Fraction > 0.01 then
 			self:SetPos(Tr.HitPos + Tr.HitNormal * .1)
 			self:SetAngles(Angle(0, math.random(0, 360), 0))
 		end

@@ -20,7 +20,7 @@ if SERVER then
 	end
 
 	function ENT:OnTakeDamage(dmginfo)
-		self.Entity:TakePhysicsDamage(dmginfo)
+		self:TakePhysicsDamage(dmginfo)
 
 		if dmginfo:GetInflictor() ~= self and dmginfo:GetDamage() >= 5 and not self.Exploded and self:GetState() ~= JMod.EZ_STATE_BROKEN then
 			self:EmitSound("physics/metal/metal_box_impact_bullet2.wav", 75, 200)
@@ -38,15 +38,15 @@ if SERVER then
 	function ENT:Use(activator, activatorAgain, onOff)
 		if self.Exploded then return end
 		local Dude = activator or activatorAgain
-		JMod.SetOwner(self, Dude)
+		JMod.SetEZowner(self, Dude)
 		JMod.Hint(Dude, self.ClassName)
 		local Time = CurTime()
-		if self.ShiftAltUse and Dude:KeyDown(JMod.Config.AltFunctionKey) and Dude:KeyDown(IN_SPEED) then return self:ShiftAltUse(Dude, tobool(onOff)) end
+		if self.ShiftAltUse and Dude:KeyDown(JMod.Config.General.AltFunctionKey) and Dude:KeyDown(IN_SPEED) then return self:ShiftAltUse(Dude, tobool(onOff)) end
 
 		if tobool(onOff) then
 			local State = self:GetState()
 			if State < 0 then return end
-			local Alt = Dude:KeyDown(JMod.Config.AltFunctionKey)
+			local Alt = Dude:KeyDown(JMod.Config.General.AltFunctionKey)
 
 			if State == JMod.EZ_STATE_OFF and Alt then
 				self:Prime()
@@ -71,7 +71,7 @@ if SERVER then
 
 	function ENT:PhysicsCollide(data, physobj)
 		if (not IsValid(self.AttachedBomb)) and self:IsPlayerHolding() and data.HitEntity.EZdetonateOverride then
-			self.Entity:EmitSound("Grenade.ImpactHard")
+			self:EmitSound("Grenade.ImpactHard")
 			self:SetPos(data.HitPos - data.HitNormal)
 			self.AttachedBomb = data.HitEntity
 			self.LastVel = data.HitEntity:GetVelocity()
@@ -90,15 +90,15 @@ if SERVER then
 		local SelfPos = self:GetPos()
 
 		if IsValid(self.AttachedBomb) then
-			JMod.SetOwner(self.AttachedBomb, self:GetOwner() or self.AttachedBomb.Owner or game.GetWorld())
+			JMod.SetEZowner(self.AttachedBomb, self.EZowner or self.AttachedBomb.EZowner or game.GetWorld())
 			self.AttachedBomb:EZdetonateOverride(self)
-			JMod.Sploom(self:GetOwner(), SelfPos, 3)
+			JMod.Sploom(self.EZowner, SelfPos, 3)
 			self:Remove()
 
 			return
 		end
 
-		JMod.Sploom(self:GetOwner(), SelfPos, self.MiniNadeDamage, self.MiniNadeDamageMax)
+		JMod.Sploom(self.EZowner, SelfPos, self.MiniNadeDamage, self.MiniNadeDamageMax)
 		util.ScreenShake(SelfPos, 20, 20, 1, 500)
 		self:Remove()
 	end

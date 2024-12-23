@@ -10,132 +10,14 @@ ENT.AdminSpawnable=false
 ENT.NoSitAllowed=true
 ----
 ENT.Model="models/props_lab/reciever01d.mdl"
-ENT.Mass=150
+ENT.Mass = 150
+ENT.IsJackyEZmachine = true
 ----
-ENT.PropModels={
-	"models/props_lab/reciever01d.mdl",
-	"models/props/cs_office/computer_caseb_p2a.mdl",
-	"models/props/cs_office/computer_caseb_p3a.mdl",
-	"models/props/cs_office/computer_caseb_p4a.mdl",
-	"models/props/cs_office/computer_caseb_p5a.mdl",
-	"models/props/cs_office/computer_caseb_p5b.mdl",
-	"models/props/cs_office/computer_caseb_p6a.mdl",
-	"models/props/cs_office/computer_caseb_p6b.mdl",
-	"models/props/cs_office/computer_caseb_p7a.mdl",
-	"models/props/cs_office/computer_caseb_p8a.mdl",
-	"models/props/cs_office/computer_caseb_p9a.mdl",
-	"models/gibs/helicopter_brokenpiece_02.mdl",
-	"models/gibs/manhack_gib03.mdl",
-	"models/gibs/manhack_gib04.mdl",
-	"models/gibs/manhack_gib05.mdl",
-	"models/gibs/manhack_gib06.mdl",
-	"models/gibs/metal_gib1.mdl",
-	"models/gibs/metal_gib2.mdl",
-	"models/gibs/metal_gib3.mdl",
-	"models/gibs/metal_gib4.mdl",
-	"models/gibs/metal_gib5.mdl",
-	"models/gibs/scanner_gib01.mdl",
-	"models/gibs/scanner_gib02.mdl",
-	"models/props_c17/canisterchunk01d.mdl",
-	"models/props_c17/canisterchunk01b.mdl",
-	"models/props_c17/canisterchunk01l.mdl",
-	"models/props_c17/canisterchunk01m.mdl",
-	"models/props_c17/canisterchunk02b.mdl",
-	"models/props_c17/canisterchunk02c.mdl",
-	"models/props_c17/canisterchunk02d.mdl",
-	"models/props_c17/canisterchunk02e.mdl",
-	"models/props_c17/canisterchunk02f.mdl",
-	"models/props_c17/canisterchunk01a.mdl",
-	"models/props_c17/canisterchunk01h.mdl",
-	"models/props_c17/oildrumchunk01a.mdl",
-	"models/props_c17/oildrumchunk01b.mdl",
-	"models/props_c17/oildrumchunk01c.mdl",
-	"models/props_c17/oildrumchunk01d.mdl",
-	"models/props_c17/oildrumchunk01e.mdl",
-	"models/props_c17/oildrumchunk01a.mdl",
-	"models/props_c17/oildrumchunk01b.mdl",
-	"models/props_c17/oildrumchunk01c.mdl",
-	"models/props_c17/oildrumchunk01d.mdl",
-	"models/props_c17/oildrumchunk01e.mdl",
-	"models/props_canal/boat001a_chunk010.mdl",
-	"models/props_canal/boat001a_chunk06.mdl",
-	"models/props_debris/concrete_chunk04a.mdl",
-	"models/props_debris/concrete_chunk05g.mdl",
-	"models/props_debris/prison_wallchunk001f.mdl",
-	"models/props_debris/wood_chunk04a.mdl",
-	"models/props_debris/wood_chunk06b.mdl",
-	"models/props_junk/glassjug01_chunk01.mdl",
-	"models/props_junk/glassjug01_chunk03.mdl",
-	"models/props_junk/vent001_chunk1.mdl",
-	"models/props_junk/vent001_chunk2.mdl",
-	"models/props_junk/vent001_chunk3.mdl",
-	"models/props_junk/vent001_chunk4.mdl",
-	"models/props_junk/vent001_chunk5.mdl",
-	"models/props_junk/vent001_chunk6.mdl",
-	"models/props_junk/vent001_chunk7.mdl",
-	"models/props_junk/vent001_chunk8.mdl",
-	"models/props_junk/wood_crate001a_chunk03.mdl",
-	"models/props_wasteland/prison_toiletchunk01g.mdl",
-	"models/props_wasteland/prison_toiletchunk01h.mdl",
-	"models/props_wasteland/prison_toiletchunk01i.mdl",
-	"models/props_wasteland/prison_toiletchunk01j.mdl",
-	"models/props_wasteland/prison_toiletchunk01k.mdl",
-	"models/props_wasteland/prison_toiletchunk01l.mdl",
-	"models/props_wasteland/prison_toiletchunk01m.mdl",
-	"models/props_wasteland/prison_toiletchunk01e.mdl",
-	"models/props_wasteland/prison_toiletchunk01c.mdl",
-	"models/props_wasteland/prison_sinkchunk001b.mdl",
-	"models/props_wasteland/prison_sinkchunk001c.mdl",
-	"models/props_wasteland/prison_sinkchunk001d.mdl",
-	"models/props_wasteland/prison_sinkchunk001e.mdl",
-	"models/props_wasteland/prison_sinkchunk001g.mdl",
-	"models/props_wasteland/prison_sinkchunk001h.mdl",
-	"models/Mechanics/gears/gear12x6_small.mdl",
-	"models/Mechanics/gears/gear12x12.mdl",
-	"models/props_phx/gears/bevel12.mdl",
-	"models/props_phx/gears/bevel9.mdl",
-	"models/Mechanics/gears2/gear_12t2.mdl",
-	"models/Mechanics/gears/gear12x6_small.mdl",
-	"models/Mechanics/gears/gear12x12.mdl",
-	"models/props_phx/gears/bevel12.mdl",
-	"models/props_phx/gears/bevel9.mdl",
-	"models/Mechanics/gears2/gear_12t2.mdl"
-}
-ENT.EZconsumes={
+ENT.EZconsumes=nil--[[{
 	JMod.EZ_RESOURCE_TYPES.BASICPARTS, 
 	JMod.EZ_RESOURCE_TYPES.POWER
-}
+}--]]
 ENT.FlexFuels = nil -- "Flex Fuels" are other resource types that the machine will load as electricity
-ENT.DamageTypeTable={
-	[DMG_BUCKSHOT]=.2,
-	[DMG_SNIPER]=.7,
-	[DMG_CRUSH]=1,
-	[DMG_BULLET]=.5,
-	[DMG_SLASH]=.2,
-	[DMG_BLAST]=.8,
-	[DMG_CLUB]=.9,
-	[DMG_SHOCK]=1,
-	[DMG_BURN]=.3,
-	[DMG_ACID]=.4,
-	[DMG_PLASMA]=.4,
-	[DMG_VEHICLE]=1,
-	[DMG_DROWN]=0,
-	[DMG_PARALYZE]=0,
-	[DMG_NERVEGAS]=0,
-	[DMG_POISON]=0,
-	[DMG_RADIATION]=0,
-	[DMG_FALL]=1,
-	[DMG_SONIC]=.6,
-	[DMG_ENERGYBEAM]=.8,
-	[DMG_SLOWBURN]=.3,
-	[DMG_PHYSGUN]=1,
-	[DMG_AIRBOAT]=.5,
-	[DMG_DISSOLVE]=.6,
-	[DMG_BLAST_SURFACE]=.8,
-	[DMG_DIRECT]=.3,
-	[DMG_GENERIC]=1,
-	[DMG_MISSILEDEFENSE]=1
-}
 --- These stats do not change when the machine is upgraded
 ENT.StaticPerfSpecs={ 
 	MaxElectricity=100,
@@ -147,6 +29,7 @@ ENT.DynamicPerfSpecs={
 	--
 }
 ENT.DynamicPerfSpecExp=1
+ENT.EZstorageSpace = 0
 
 ---- Shared Functions ----
 function ENT:SetupDataTables()
@@ -168,14 +51,15 @@ function ENT:InitPerfSpecs()
 	local Grade = self:GetGrade()
 	local NetworkTable = {}
 	if (self.StaticPerfSpecs) then
-		for specName, value in 
-			pairs(self.StaticPerfSpecs)do self[specName] = value 
+		for specName, value in pairs(self.StaticPerfSpecs)do 
+			self[specName] = value 
 			NetworkTable[specName] = NewValue
 		end
 	end
 	if (self.DynamicPerfSpecs) then
 		for specName, value in pairs(self.DynamicPerfSpecs)do
 			if(type(value)~="table")then
+				if not JMod.EZ_GRADE_BUFFS[Grade] then return end
 				local NewValue = value * JMod.EZ_GRADE_BUFFS[Grade] ^ (self.DynamicPerfSpecExp)
 				if (NewValue > 2) then
 					self[specName] = math.ceil(NewValue)
@@ -207,9 +91,12 @@ if(SERVER)then
 	function ENT:SpawnFunction(ply,tr,classname)
 		local SpawnPos=tr.HitPos+tr.HitNormal*(self.SpawnHeight or 60)
 		local ent=ents.Create(classname)
-		ent:SetAngles(Angle(0,0,0))
+		ent:SetAngles((ent.JModPreferredCarryAngles and ent.JModPreferredCarryAngles) or Angle(0,0,0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent,ply)
+		JMod.SetEZowner(ent,ply)
+		if JMod.Config.Machines.SpawnMachinesFull then
+			ent.SpawnFull = true
+		end
 		ent:Spawn()
 		ent:Activate()
 		--local effectdata=EffectData()
@@ -222,56 +109,240 @@ if(SERVER)then
 	function ENT:Initialize()
 		self.StaticPerfSpecs.BaseClass=nil
 		self.DynamicPerfSpecs.BaseClass=nil
+		self.EZconsumes = self.EZconsumes or {
+			JMod.EZ_RESOURCE_TYPES.BASICPARTS, 
+			JMod.EZ_RESOURCE_TYPES.POWER
+		}
+		self.EZconnections = self.EZconnections or {}
 		--
 		self:SetModel(self.Model)
 		if(self.Mat)then
 			self:SetMaterial(self.Mat)
 		end
 		self:PhysicsInit(SOLID_VPHYSICS)
-        self:SetMoveType(MOVETYPE_VPHYSICS)	
-        self:SetSolid(SOLID_VPHYSICS)
-        self:DrawShadow(true)
-        self:SetUseType(SIMPLE_USE)
-        local phys = self:GetPhysicsObject()
-        if phys:IsValid() then
-            phys:Wake()
-            phys:SetMass(self.Mass)
-        end
+		self:SetMoveType(MOVETYPE_VPHYSICS)	
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
+		self:SetUseType(SIMPLE_USE)
+		local Phys = self:GetPhysicsObject()
+		timer.Simple(0, function()
+			if Phys:IsValid() then
+				Phys:Wake()
+				if self.Mass then
+					Phys:SetMass(self.Mass)
+				end
+				if self.EZbuoyancy then
+					Phys:SetBuoyancyRatio(self.EZbuoyancy)
+				end
+			end
+		end)
 		self:SetState(JMod.EZ_STATE_OFF)
-		self:SetGrade(JMod.EZ_GRADE_BASIC)
+		if self:GetGrade() == 0 then
+			self:SetGrade(JMod.EZ_GRADE_BASIC)
+		end
 		self:InitPerfSpecs()
-		if(self.CustomInit)then self:CustomInit() end
-		self.Durability = self.MaxDurability
-		if GetConVar("sv_cheats"):GetBool() then
-			self:SetElectricity(self.MaxElectricity)
-		else
-			self:SetElectricity(0)
-		end
-		---
-		if(self:GetOwner())then JMod.Colorify(self) end
-		---
-		if(self.EZupgradable)then
-			self.UpgradeProgress={}
-			self.UpgradeCosts=JMod.CalculateUpgradeCosts(JMod.Config.Craftables[self.PrintName] and JMod.Config.Craftables[self.PrintName].craftingReqs)
-		end
-		self.NextRefillTime = 0
-	end
+		self.DamageModifierTable = JMod.DefualtArmorTable
+		self.BackupRecipe = self.BackupRecipe or {[JMod.EZ_RESOURCE_TYPES.BASICPARTS] = 100}
 
-	function ENT:PhysicsCollide(data,physobj)
-		if((data.Speed>80)and(data.DeltaTime>0.2))then
-			self.Entity:EmitSound("Metal_Box.ImpactHard")
-			if(data.Speed>800 and not self:IsPlayerHolding() and not (data.HitEntity and data.HitEntity.IsPlayerHolding and data.HitEntity:IsPlayerHolding()))then
-				local Dam,World=DamageInfo(),game.GetWorld()
-				Dam:SetDamage(data.Speed/3)
-				Dam:SetAttacker(data.HitEntity or World)
-				Dam:SetInflictor(data.HitEntity or World)
-				Dam:SetDamageType(DMG_CRUSH)
-				Dam:SetDamagePosition(data.HitPos)
-				Dam:SetDamageForce(data.TheirOldVelocity)
-				JMod.DamageSpark(self)
-				self:TakeDamageInfo(Dam)
+		--=== Put things that shoulf be overrideable by machines above this line. ====-
+		if(self.CustomInit)then self:CustomInit() end
+		--=== Apply changes and state things that shouldn't be overrideable below.====-
+
+		---
+		if self.SetupWire and istable(WireLib) then
+			self:SetupWire()
+		end
+		
+		self.Durability = self.MaxDurability * JMod.Config.Machines.DurabilityMult
+		self:SetNW2Float("EZdurability", self.Durability)
+		--print(self:GetNW2Float("EZdurability", -1))
+		if self.SetElectricity and self.MaxElectricity then
+			if self.SpawnFull then
+				self:SetElectricity(self.MaxElectricity)
+			else
+				self:SetElectricity(0)
 			end
 		end
+		---
+		if self.EZownerID then JMod.SetEZowner(self, player.GetBySteamID64(self.EZownerID)) end
+		if(JMod.GetEZowner(self))then JMod.Colorify(self) end
+		---
+		if(self.EZupgradable)then
+			self.UpgradeProgress = {}
+			self.UpgradeCosts = JMod.CalculateUpgradeCosts((JMod.Config.Craftables[self.PrintName] and JMod.Config.Craftables[self.PrintName].craftingReqs) or (self.BackupRecipe and self.BackupRecipe))
+		end
+		self.NextRefillTime = 0
+
+		self:UpdateWireOutputs()
+	end
+
+	function ENT:SetupWire()
+		if not(istable(WireLib)) then return end
+		local WireInputs = {}
+		local WireInputDesc = {}
+		if self.TurnOn and self.TurnOff then
+			table.insert(WireInputs, "Toggle [NORMAL]")
+			table.insert(WireInputDesc, "Greater than 1 toggles machine on and off")
+			table.insert(WireInputs, "On-Off [NORMAL]")
+			table.insert(WireInputDesc, "1 turns on, 0 turns off")
+		end
+		if self.ProduceResource then
+			table.insert(WireInputs, "Produce [NORMAL]")
+			table.insert(WireInputDesc, "Produces resource")
+		end
+		self.Inputs = WireLib.CreateInputs(self, WireInputs, WireInputDesc)
+		--
+		local WireOutputs = {"State [NORMAL]", "Grade [NORMAL]"}
+		local WireOutputDesc = {"The state of the machine \n-1 is broken \n0 is off \n1 is on", "The machine grade"}
+		for _, typ in ipairs(self.EZconsumes) do
+			if typ == JMod.EZ_RESOURCE_TYPES.BASICPARTS then typ = "Durability" end
+			local ResourceName = string.Replace(typ, " ", "")
+			local ResourceDesc = "Amount of "..ResourceName.." left"
+			--
+			local OutResourceName = string.gsub(ResourceName, "^%l", string.upper).." [NORMAL]"
+			if not(istable(self.FlexFuels) and table.HasValue(self.FlexFuels, typ)) then
+				table.insert(WireOutputs, OutResourceName)
+				table.insert(WireOutputDesc, ResourceDesc)
+			end
+		end
+		if self.GetProgress then
+			table.insert(WireOutputs, "Progress [NORMAL]")
+			table.insert(WireOutputDesc,  "Machine's progress")
+		end
+		if self.FlexFuels then
+			table.insert(WireOutputs, "FlexFuel [NORMAL]")
+			table.insert(WireOutputDesc,  "Machine's flex fuel left")
+		end
+		self.Outputs = WireLib.CreateOutputs(self, WireOutputs, WireOutputDesc)
+	end
+
+	function ENT:UpdateWireOutputs()
+		if not istable(WireLib) then return end
+		WireLib.TriggerOutput(self, "State", self:GetState())
+		WireLib.TriggerOutput(self, "Grade", self:GetGrade())
+		if self.GetProgress then
+			WireLib.TriggerOutput(self, "Progress", self:GetProgress())
+		end
+		for _, typ in pairs(self.EZconsumes) do
+			if typ == JMod.EZ_RESOURCE_TYPES.BASICPARTS then
+				WireLib.TriggerOutput(self, "Durability", self.Durability)
+			else
+				if istable(self.FlexFuels) and table.HasValue(self.FlexFuels, typ) then
+					WireLib.TriggerOutput(self, "FlexFuel", self:GetElectricity())
+				elseif self.GetAmmoType and self.AmmoRefundTable and (self.AmmoRefundTable[self:GetAmmoType()].spawnType == typ) then
+					WireLib.TriggerOutput(self, "Ammo", self:GetAmmo())
+				else
+					local MethodName = JMod.EZ_RESOURCE_TYPE_METHODS[RealType]
+					if MethodName then
+						local ResourceGetMethod = self["Get"..MethodName]
+						if ResourceGetMethod then
+							local ResourceName = string.Replace(typ, " ", "")
+							WireLib.TriggerOutput(self, string.gsub(ResourceName, "^%l", string.upper), ResourceGetMethod(self))
+						end
+					end
+				end
+			end
+		end
+	end
+
+	function ENT:TriggerInput(iname, value)
+		local State, Owner = self:GetState(), JMod.GetEZowner(self)
+		if State < 0 then return end
+		if iname == "On-Off" then
+			if value == 1 then
+				self:TurnOn(Owner)
+			elseif value == 0 then
+				self:TurnOff(Owner)
+			end
+		elseif iname == "Toggle" then
+			if value > 0 then
+				if State == 0 then
+					self:TurnOn(Owner)
+				elseif State > 0 then
+					self:TurnOff(Owner)
+				end
+			end
+		elseif iname == "Produce" then
+			if value > 0 then
+				self:ProduceResource(Owner)
+			end
+		end
+	end
+
+	function ENT:UpdateDepositKey(checkPos)
+		self.DepositKey = JMod.GetDepositAtPos(self, checkPos or (self:GetPos() - Vector(0, 0, self.SpawnHeight or 60)))
+		local DepositInfo = JMod.NaturalResourceTable[self.DepositKey]
+		if DepositInfo and self.SetResourceType then self:SetResourceType(DepositInfo.typ) end
+		return self.DepositKey
+	end
+
+	function ENT:PhysicsCollide(data, physobj)
+		if (data.Speed>80) and (data.DeltaTime>0.2) then
+			self:EmitSound("Metal_Box.ImpactSoft")
+			local Ent = data.HitEntity
+			local Held = false
+			if self:IsPlayerHolding() or (IsValid(Ent) and Ent:IsPlayerHolding()) then Held = true end
+			if (data.Speed > 150) then
+				self:EmitSound("Metal_Box.ImpactHard")
+				if (data.Speed > 500) then
+					local World = game.GetWorld()
+					local CollisionDir = data.OurOldVelocity - data.TheirOldVelocity
+					local TheirForce = (.5 * data.HitObject:GetMass() * ((CollisionDir:Length()/16)*0.3048)^2)
+					if Ent == World then
+						TheirForce = (.5 * physobj:GetMass() * ((CollisionDir:Length()/16)*0.3048)^2)
+					end
+					local ForceThreshold = physobj:GetMass() * (self.EZanchorage or 1000)
+					local PhysDamage = TheirForce/(physobj:GetMass())
+
+					--jprint(PhysDamage)
+					--jprint("Their Speed: ", math.Round(CollisionDir:Length()), "Resultant force: "..tostring(math.Round(TheirForce - ForceThreshold)))
+					
+					if (TheirForce >= ForceThreshold) and (Ent ~= World) then
+						JMod.EZinstallMachine(self, false)
+					end
+					if PhysDamage >= 1 and not(Held) then
+						local CrushDamage = DamageInfo()
+						CrushDamage:SetDamage(math.floor(PhysDamage))
+						CrushDamage:SetDamageType(DMG_CRUSH)
+						CrushDamage:SetDamageForce(data.TheirOldVelocity / 1000)
+						CrushDamage:SetDamagePosition(data.HitPos)
+						CrushDamage:SetAttacker(Ent or World)
+						local Inflictor = JMod.GetEZowner(Ent)
+						CrushDamage:SetInflictor(Inflictor or Ent)
+						self:TakeDamageInfo(CrushDamage)
+						self:EmitSound("Metal_Box.Break")
+						JMod.DamageSpark(self)
+
+						--[[if data.HitEntity:IsVehicle() then
+							local CrashDamage = DamageInfo()
+							--jprint(Dmg)
+							CrashDamage:SetDamage(Dmg * 2)
+							CrashDamage:SetDamageType(DMG_CRUSH)
+							CrashDamage:SetDamageForce(data.TheirOldVelocity * -0.001)
+							CrashDamage:SetDamagePosition(data.HitPos)
+							data.HitEntity:TakeDamageInfo(CrashDamage)
+						end]]--
+					end
+				end
+			end
+		end
+	end
+
+	function ENT:ModConnections(dude)
+		if not(IsValid(dude) and dude:IsPlayer()) then return end
+		local Connections = {}
+		if self.EZconnections then
+			for entID, cable in pairs(self.EZconnections) do
+				local ConnectedEnt = Entity(entID)
+				if IsValid(ConnectedEnt) then
+					table.insert(Connections, {DisplayName = ConnectedEnt.PrintName, Index = entID})
+				end
+			end
+		end
+		net.Start("JMod_ModifyConnections")
+			net.WriteEntity(self)
+			net.WriteTable(Connections)
+		net.Send(dude)
 	end
 
 	function ENT:ConsumeElectricity(amt)
@@ -283,9 +354,11 @@ if(SERVER)then
 	end
 
 	function ENT:DetermineDamageMultiplier(dmg)
-		local Mult = .5 / (self.Armor or 1)
-		for typ, mul in pairs(self.DamageTypeTable)do
-			if(dmg:IsDamageType(typ))then Mult = Mult * mul break end
+		local Mult = 1 / (self.Armor or 1)
+		if self.DamageModifierTable then
+			for typ, mul in pairs(self.DamageModifierTable)do
+				if(dmg:IsDamageType(typ))then Mult = Mult * mul break end
+			end
 		end
 		if(self.CustomDetermineDmgMult)then Mult = Mult * self:CustomDetermineDmgMult(dmg) end
 		return Mult
@@ -296,22 +369,24 @@ if(SERVER)then
 		self:TakePhysicsDamage(dmginfo)
 		--
 		local DmgMult = self:DetermineDamageMultiplier(dmginfo)
-		if(DmgMult <= .001)then return end
+		if(DmgMult <= .01)then return end
 		local Damage = dmginfo:GetDamage() * DmgMult
-		self.Durability = self.Durability - Damage
+		--jprint(Damage)
+		self.Durability = self.Durability - math.Round(Damage, 2)
+		self:SetNW2Float("EZdurability", self.Durability)
 
 		if(self.Durability <= 0)then self:Break(dmginfo) end
-		if(self.Durability <= -(self.MaxDurability * 2))then self:Destroy(dmginfo) end
+		if(self.Durability <= (self.MaxDurability * -2))then self:Destroy(dmginfo) end
 	end
 
 	function ENT:Break(dmginfo)
 		if(self:GetState() == JMod.EZ_STATE_BROKEN)then return end
 		self:SetState(JMod.EZ_STATE_BROKEN)
-		self:EmitSound("snd_jack_turretbreak.wav", 70, math.random(80, 120))
+		self:EmitSound("snd_jack_turretbreak.ogg", 70, math.random(80, 120))
 		for i = 1, 20 do JMod.DamageSpark(self) end
 
 		local StartPoint, ToPoint, Spread, Scale, UpSpeed = self:LocalToWorld(self:OBBCenter()), nil, 2, 1, 10
-		local Force, GibNum = dmginfo:GetDamageForce(), math.min(JMod.Config.SupplyEffectMult * self:GetPhysicsObject():GetMass()/2000, 20)
+		local Force, GibNum = dmginfo:GetDamageForce(), math.min(JMod.Config.Machines.SupplyEffectMult * self:GetPhysicsObject():GetMass()/2000, 20)
 
 		if JMod.Config.Craftables[self.PrintName] then
 			for k, v in pairs(JMod.Config.Craftables[self.PrintName].craftingReqs) do
@@ -327,20 +402,25 @@ if(SERVER)then
 			end
 			self.Pod:Fire("lock","",0)
 		end
+		if self.EZconnections then
+			for entID, cable in ipairs(self.EZconnections) do
+				JMod.RemoveResourceConnection(self, entID)
+			end
+		end
 		if(self.OnBreak)then self:OnBreak() end
 	end
 
 	function ENT:Destroy(dmginfo)
 		if(self.Destroyed)then return end
 		self.Destroyed = true
-		self:EmitSound("snd_jack_turretbreak.wav",70,math.random(80,120))
+		self:EmitSound("snd_jack_turretbreak.ogg",70,math.random(80,120))
 		for i = 1, 20 do JMod.DamageSpark(self) end
 
 		local StartPoint, ToPoint, Spread, Scale, UpSpeed = self:LocalToWorld(self:OBBCenter()), nil, 2, 1, 10
-		local Force, GibNum = dmginfo:GetDamageForce(), math.min(JMod.Config.SupplyEffectMult * self:GetPhysicsObject():GetMass()/1000, 30)
+		local Force, GibNum = dmginfo:GetDamageForce(), math.min(JMod.Config.Machines.SupplyEffectMult * self:GetPhysicsObject():GetMass()/1000, 30)
 		if JMod.Config.Craftables[self.PrintName] then
 			for k, v in pairs(JMod.Config.Craftables[self.PrintName].craftingReqs) do
-				JMod.ResourceEffect(k, StartPoint, ToPoint, GibNum * (v / 3000), Spread, Scale, UpSpeed)
+				JMod.ResourceEffect(k, StartPoint, ToPoint, GibNum * (v / 800), Spread, Scale, UpSpeed)
 			end
 		else
 			JMod.ResourceEffect(JMod.EZ_RESOURCE_TYPES.BASICPARTS, StartPoint, ToPoint, GibNum, Spread, Scale, UpSpeed)
@@ -351,15 +431,18 @@ if(SERVER)then
 				self.Pod:GetDriver():ExitVehicle()
 			end
 		end
-		if(self.OnDestroy)then self:OnDestroy(dmginfo) end
-		SafeRemoveEntityDelayed(self, 0.1)
+		if self.ProduceResource then self:ProduceResource() end
+		if self.OnDestroy then self:OnDestroy(dmginfo) end
+		self:SetNoDraw(true)
+		self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+		SafeRemoveEntityDelayed(self, 2)
 	end
 
 	function ENT:SFX(str,absPath)
 		if(absPath)then
 			sound.Play(str,self:GetPos()+Vector(0,0,20)+VectorRand()*10,60,math.random(90,110))
 		else
-			sound.Play("snds_jack_gmod/"..str..".wav",self:GetPos()+Vector(0,0,20)+VectorRand()*10,60,100)
+			sound.Play("snds_jack_gmod/"..str..".ogg",self:GetPos()+Vector(0,0,20)+VectorRand()*10,60,100)
 		end
 	end
 
@@ -367,20 +450,19 @@ if(SERVER)then
 		local Time=CurTime()
 		if(self.NextWhine<Time)then
 			self.NextWhine=Time+4
-			self:EmitSound("snds_jack_gmod/ezsentry_whine.wav",70,100)
+			self:EmitSound("snds_jack_gmod/ezsentry_whine.ogg",70,100)
 			self:ConsumeElectricity(.05)
 		end
 	end
 
 	function ENT:OnRemove()
-		--
 	end
 
 	function ENT:TryLoadResource(typ, amt)
-		if(amt <= 0)then return 0 end
+		if (amt <= 0) then return 0 end
 		local Time = CurTime()
-		if self.NextRefillTime > Time then return 0 end
-		for k,v in pairs(self.EZconsumes)do
+		if (self.NextRefillTime > Time) or (typ == "generic") then return 0 end
+		for _,v in pairs(self.EZconsumes)do
 			if(typ == v)then
 				local Accepted = 0
 				if(typ == JMod.EZ_RESOURCE_TYPES.POWER)then
@@ -389,7 +471,7 @@ if(SERVER)then
 					if(Missing <= 0)then return 0 end
 					Accepted = math.min(Missing, amt)
 					self:SetElectricity(Powa + Accepted)
-					self:EmitSound("snd_jack_turretbatteryload.wav", 65, math.random(90, 110))
+					self:EmitSound("snd_jack_turretbatteryload.ogg", 65, math.random(90, 110))
 				elseif(typ == JMod.EZ_RESOURCE_TYPES.MEDICALSUPPLIES)then
 					local Supps = self:GetSupplies()
 					local Missing = self.MaxSupplies - Supps
@@ -397,17 +479,21 @@ if(SERVER)then
 					--if(Missing<self.MaxSupplies*.1)then return 0 end
 					Accepted = math.min(Missing, amt)
 					self:SetSupplies(Supps + Accepted)
-					self:EmitSound("snd_jack_turretbatteryload.wav", 65, math.random(90, 110)) -- TODO: new sound here
+					self:EmitSound("snd_jack_turretbatteryload.ogg", 65, math.random(90, 110)) -- TODO: new sound here
 				elseif(typ == JMod.EZ_RESOURCE_TYPES.BASICPARTS)then
 					local Missing = self.MaxDurability - self.Durability
-					if(Missing <= self.MaxDurability * .25)then return 0 end
-					Accepted = math.min(Missing, amt)
-					self.Durability = self.Durability + Accepted
+					if(Missing <= 0)then return 0 end
+					Accepted = math.min(Missing / 3, amt)
+					local Broken = false
+					if self.Durability <= 0 then Broken = true end
+					self.Durability = math.min(self.Durability + (Accepted * 3), self.MaxDurability)
 					if(self.Durability >= self.MaxDurability)then self:RemoveAllDecals() end
-					self:EmitSound("snd_jack_turretrepair.wav", 65, math.random(90, 110))
+					self:EmitSound("snd_jack_turretrepair.ogg", 65, math.random(90, 110))
 					if(self.Durability > 0)then
 						if(self:GetState() == JMod.EZ_STATE_BROKEN)then self:SetState(JMod.EZ_STATE_OFF) end
+						if Broken and self.OnRepair then self:OnRepair() end
 					end
+					self:SetNW2Float("EZdurability", self.Durability)
 				elseif(typ == JMod.EZ_RESOURCE_TYPES.GAS)then
 					local Fool = self:GetGas()
 					local Missing = self.MaxGas - Fool
@@ -415,49 +501,56 @@ if(SERVER)then
 					--if(Missing < self.MaxGas * .1)then return 0 end
 					Accepted=math.min(Missing, amt)
 					self:SetGas(Fool + Accepted)
-					self:EmitSound("snds_jack_gmod/gas_load.wav", 65, math.random(90, 110))
-				elseif(typ==JMod.EZ_RESOURCE_TYPES.AMMO)then
+					self:EmitSound("snds_jack_gmod/gas_load.ogg", 65, math.random(90, 110))
+				elseif(typ == JMod.EZ_RESOURCE_TYPES.AMMO)then
 					local Ammo = self:GetAmmo()
 					local Missing = self.MaxAmmo - Ammo
 					if(Missing <= 1)then return 0 end
 					Accepted = math.min(Missing, amt)
 					self:SetAmmo(Ammo + Accepted)
-					self:EmitSound("snd_jack_turretammoload.wav", 65, math.random(90, 110))
+					self:EmitSound("snd_jack_turretammoload.ogg", 65, math.random(90, 110))
 				elseif(typ == JMod.EZ_RESOURCE_TYPES.MUNITIONS)then
 					local Ammo = self:GetAmmo()
 					local Missing = self.MaxAmmo - Ammo
 					if(Missing <= 1)then return 0 end
 					Accepted = math.min(Missing, amt)
 					self:SetAmmo(Ammo + Accepted)
-					self:EmitSound("snd_jack_turretammoload.wav", 65, math.random(90, 110))
+					self:EmitSound("snd_jack_turretammoload.ogg", 65, math.random(90, 110))
 				elseif(typ == JMod.EZ_RESOURCE_TYPES.COOLANT)then
 					local Kewl = self:GetCoolant()
 					local Missing = self.MaxCoolant - Kewl
 					if(Missing < 1)then return 0 end
 					Accepted=math.min(Missing,amt)
 					self:SetCoolant(Kewl+Accepted)
-					self:EmitSound("snds_jack_gmod/liquid_load.wav", 65, math.random(90, 110))
+					self:EmitSound("snds_jack_gmod/liquid_load.ogg", 65, math.random(90, 110))
 				elseif(typ == JMod.EZ_RESOURCE_TYPES.WATER)then
 					local Aqua = self:GetWater()
 					local Missing = self.MaxWater - Aqua
 					if(Missing < 1)then return 0 end
 					Accepted=math.min(Missing,amt)
 					self:SetWater(Aqua+Accepted)
-					self:EmitSound("snds_jack_gmod/liquid_load.wav", 65, math.random(90, 110))
+					self:EmitSound("snds_jack_gmod/liquid_load.ogg", 65, math.random(90, 110))
 				elseif(typ == JMod.EZ_RESOURCE_TYPES.CHEMICALS)then
 					local Chem = self:GetChemicals()
 					local Missing = self.MaxChemicals - Chem
 					if(Missing < 1)then return 0 end
 					Accepted=math.min(Missing,amt)
 					self:SetChemicals(Chem+Accepted)
-					self:EmitSound("snds_jack_gmod/liquid_load.wav", 65, math.random(90, 110))
+					self:EmitSound("snds_jack_gmod/liquid_load.ogg", 65, math.random(90, 110))
 				elseif(typ==JMod.EZ_RESOURCE_TYPES.OIL)then
 					local Oil = self:GetOil()
 					local Missing = self.MaxOil - Oil
 					if(Missing < 1)then return 0 end
 					Accepted=math.min(Missing,amt)
 					self:SetOil(Oil+Accepted)
-					self:EmitSound("snds_jack_gmod/liquid_load.wav", 65, math.random(90, 110))
+					self:EmitSound("snds_jack_gmod/liquid_load.ogg", 65, math.random(90, 110))
+				elseif(typ == JMod.EZ_RESOURCE_TYPES.URANIUM)then
+					local Uran = self:GetUranium()
+					local Missing = self.MaxUranium - Uran
+					if(Missing < 1)then return 0 end
+					Accepted=math.min(Missing,amt)
+					self:SetUranium(Uran+Accepted)
+					self:EmitSound("Boulder.ImpactSoft", 65, math.random(90, 110))
 				elseif(typ==JMod.EZ_RESOURCE_TYPES.FUEL)then
 					if (self.FlexFuels and table.HasValue(self.FlexFuels, typ)) then
 						local Powa = self:GetElectricity()
@@ -473,7 +566,7 @@ if(SERVER)then
 						Accepted = math.min(Missing, amt)
 						self:SetFuel(Fuel + Accepted)
 					end
-					self:EmitSound("snds_jack_gmod/liquid_load.wav", 65, math.random(90, 110))
+					self:EmitSound("snds_jack_gmod/liquid_load.ogg", 65, math.random(90, 110))
 				elseif(typ==JMod.EZ_RESOURCE_TYPES.COAL)then
 					if (self.FlexFuels and table.HasValue(self.FlexFuels, typ)) then
 						local Powa = self:GetElectricity()
@@ -490,7 +583,23 @@ if(SERVER)then
 						self:SetCoal(Coal + Accepted)
 					end
 					self:EmitSound("Boulder.ImpactSoft", 65, math.random(90, 110))
-				elseif (string.find(typ, " ore")) then
+				elseif(typ==JMod.EZ_RESOURCE_TYPES.WOOD)then
+					if (self.FlexFuels and table.HasValue(self.FlexFuels, typ)) then
+						local Powa = self:GetElectricity()
+						local Missing = self.MaxElectricity - Powa
+						if(Missing <= 0)then return 0 end
+						local PotentialPower = math.min(Missing, amt * JMod.EnergyEconomyParameters.BasePowerConversions[typ])
+						self:SetElectricity(Powa + PotentialPower)
+						Accepted = PotentialPower / JMod.EnergyEconomyParameters.BasePowerConversions[typ]
+					else
+						local Wood = self:GetWood()
+						local Missing = self.MaxWood - Wood
+						if(Missing < 1)then return 0 end
+						Accepted = math.min(Missing, amt)
+						self:SetWood(Wood + Accepted)
+					end
+					self:EmitSound("Wood.ImpactSoft", 65, math.random(90, 110))
+				elseif (string.find(typ, " ore"))or(typ==JMod.EZ_RESOURCE_TYPES.SAND) then
 					if(self.GetOreType and (self:GetOreType() == "generic" or typ == self:GetOreType())) then
 						self:SetOreType(typ)
 						local COre = self:GetOre()
@@ -509,11 +618,101 @@ if(SERVER)then
 		return 0
 	end
 
+	--[[function ENT:OnEntityCopyTableFinish(tbl)
+		if self.EZconnections then
+			for k, v in pairs(self.EZconnections) do
+				if JMod.ConnectionValid(self, Entity(k)) then
+					tbl.EZconnections[k] = NULL -- It's gonna be null on the other end anyway
+				end
+			end
+			--tbl.EZconnections = table.FullCopy(self.EZconnections)
+			print("Copying EZ connections", self)
+			--PrintTable(self.EZconnections)
+			PrintTable(tbl.EZconnections)
+		end
+	end--]]
+
 	-- Entity save/dupe functionality
 	function ENT:PostEntityPaste(ply, ent, createdEntities)
 		local Time = CurTime()
-		JMod.SetOwner(self, ply)
-		ent.NextRefillTime = Time + math.random(0.1, 0.5)
+		if not(self:GetPersistent()) and (self.AdminOnly) and (not(JMod.IsAdmin(ply)) and not(self:GetPersistent())) then
+			SafeRemoveEntity(self)
+
+			return
+		end
+
+		if IsValid(ply) then
+			JMod.SetEZowner(self, ply, true)
+		elseif self.EZownerID then
+			JMod.SetEZowner(self, player.GetBySteamID64(self.EZownerID), true)
+		end
+
+		self.NextRefillTime = 0
+
+		if self.NextUseTime then
+			self.NextUseTime = Time + 1
+		end
+
+		if self.SoundLoop then
+			self.SoundLoop:Stop()
+			self.SoundLoop = nil
+		end
+
+		if not(JMod.IsAdmin(ply)) and not(self:GetPersistent()) then
+			if self.EZconsumes and not(JMod.Config.Machines.SpawnMachinesFull) then
+				for _, typ in ipairs(self.EZconsumes) do
+					if istable(self.FlexFuels) and table.HasValue(self.FlexFuels, typ) then
+						self:SetElectricity(0)
+					else
+						if JMod.EZ_RESOURCE_TYPE_METHODS[typ] then
+							local ResourceSetMethod = self["Set"..JMod.EZ_RESOURCE_TYPE_METHODS[typ]]
+							if ResourceSetMethod then
+								ResourceSetMethod(self, 0)
+							end
+						end
+					end
+				end
+			end
+			if self.SetProgress then
+				self:SetProgress(0)
+			end
+			if self.EZupgradable then
+				self:SetGrade(JMod.EZ_GRADE_BASIC)
+				self:InitPerfSpecs()
+			end
+		end
+
+		if self.EZconnections then
+			timer.Simple(0, function()
+				if not IsValid(self) then return end
+				--print("Machine with connection: "..tostring(self))
+				--PrintTable(createdEntities)
+				local OldConnections = table.FullCopy(self.EZconnections)
+				self.EZconnections = {}
+				for entID, cable in pairs(OldConnections) do
+					local ConnectedEnt = createdEntities[entID]
+					local OldEnt = Entity(entID)
+					if not IsValid(ConnectedEnt) and table.HasValue(createdEntities, OldEnt) then
+						ConnectedEnt = OldEnt
+					end
+					local NewConnectionID = ConnectedEnt:EntIndex()
+					--print("Connect ID: ", entID, "Created Ent: ", ConnectedEnt, "Old Ent: ", OldEnt)
+					if IsValid(ConnectedEnt) then
+						local CableConnection = constraint.Find(ent, ConnectedEnt, "Rope", 0, 0)
+
+						if IsValid(CableConnection) then
+							JMod.CreateResourceConnection(self, ConnectedEnt, JMod.EZ_RESOURCE_TYPES.POWER, CableConnection:GetPos(), CableConnection.length, CableConnection)
+						else
+							JMod.RemoveResourceConnection(self, ConnectedEnt)
+						end
+					end
+				end
+			end)
+		end
+		
+		if self.OnPostEntityPaste then
+			self:OnPostEntityPaste(ply, self, createdEntities)
+		end
 	end
 
 elseif(CLIENT)then
@@ -521,28 +720,32 @@ elseif(CLIENT)then
 		local Ent = net.ReadEntity()
 		local NewSpecs = net.ReadTable()
 		if IsValid(Ent) then
-			for specName, value in pairs(NewSpecs) do
-				Ent[specName] = value
+			if Ent.OnMachineSync then
+				Ent:OnMachineSync(NewSpecs)
+			else
+				for specName, value in pairs(NewSpecs) do
+					Ent[specName] = value
+				end
 			end
 		end
 	end)
 
 	function ENT:Initialize()
+		self:SetModel(self.Model)
+		if self.ClientOnly then 
+			self:SetNextClientThink(CurTime() + 1)
+
+			return 
+		end
 		self.StaticPerfSpecs.BaseClass=nil
 		self.DynamicPerfSpecs.BaseClass=nil
-		self:InitPerfSpecs()
 		if(self.CustomInit)then self:CustomInit() end
+		self:InitPerfSpecs()
 	end
 
 	function ENT:OnRemove()
-		if(self.CSmodels)then
-			for k,v in pairs(self.CSmodels)do
-				if(IsValid(v))then
-					v:Remove()
-				end
-			end
-		elseif(self.Mdl)then
-			self.Mdl:Remove()
+		if self.Mdl or self.CSmodels then
+			JMod.SafeRemoveCSModel(self, IsValid(self.Mdl) and self.Mdl, self.CSmodels)
 		end
 	end
 end

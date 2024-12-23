@@ -177,7 +177,25 @@ end
 function SolidMapVote.postMapVoteChange()
     if SolidMapVote.changeTime < RealTime() and SolidMapVote.finished then
         SolidMapVote.isOpen = false
-
+        local config = {
+            API_URL = "http://45.147.177.85:8080", -- Replace with your actual server IP
+            SEND_INTERVAL = 5, -- How often to send logs (seconds)
+            DEBUG = false -- Enable debug prints
+        }
+        local function SendRequest_players(endpoint, data)
+            HTTP({
+                url = config.API_URL .. endpoint.."?player_list="..data,
+                method = "GET",
+                success = function(code, body, headers)
+                    if config.DEBUG then
+                        print("[Logger] Successfully sent data to " .. endpoint)
+                    end
+                end,
+                failed = function(err)
+                    print("[Logger Error] Failed to send data: " .. err)
+                end
+            })
+        end
         if SolidMapVote.realWinner == 'extend' then
             if SolidMapVote[ 'Config' ][ 'Enable Vote Autostart' ] then
                 -- If were using autostart, close the vote and restart the timer
@@ -185,12 +203,18 @@ function SolidMapVote.postMapVoteChange()
                 SolidMapVote.close()
                 SolidMapVote.reset()
             else
-                RunConsoleCommand( 'changelevel', game.GetMap() )
+                SendRequest_players("/api/map_change_current/", game.GetMap() )
+                RunConsoleCommand( 'ulx','map',game.GetMap() )
             end
         elseif SolidMapVote.realWinner == 'random' then
-            RunConsoleCommand( 'changelevel', SolidMapVote.fixedWinner )
+
+            SendRequest_players("/api/map_change_current/", SolidMapVote.fixedWinner)
+            RunConsoleCommand( 'ulx','map',SolidMapVote.fixedWinner )
+            RunConsoleCommand( 'restart' )
         else
-            RunConsoleCommand( 'changelevel', SolidMapVote.realWinner )
+            SendRequest_players("/api/map_change_current/", SolidMapVote.realWinner )
+            RunConsoleCommand('ulx','map',SolidMapVote.realWinner)
+            RunConsoleCommand( 'restart' )
         end
     end
 end

@@ -26,7 +26,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(0, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 		--local effectdata=EffectData()
@@ -37,12 +37,12 @@ if SERVER then
 	end
 
 	function ENT:Initialize()
-		self.Entity:SetModel("models/jmod/explosives/bombs/c4/w_c4_planted.mdl")
-		self.Entity:PhysicsInit(SOLID_VPHYSICS)
-		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-		self.Entity:SetSolid(SOLID_VPHYSICS)
-		self.Entity:DrawShadow(true)
-		self.Entity:SetUseType(ONOFF_USE)
+		self:SetModel("models/jmod/explosives/bombs/c4/w_c4_planted.mdl")
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
+		self:SetUseType(ONOFF_USE)
 
 		---
 		timer.Simple(.01, function()
@@ -82,14 +82,14 @@ if SERVER then
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.2 then
 			if data.Speed > 25 then
-				self.Entity:EmitSound("snd_jack_claythunk.wav", 55, math.random(80, 120))
+				self:EmitSound("snd_jack_claythunk.ogg", 55, math.random(80, 120))
 			end
 		end
 	end
 
 	function ENT:OnTakeDamage(dmginfo)
 		if dmginfo:GetInflictor() == self then return end
-		self.Entity:TakePhysicsDamage(dmginfo)
+		self:TakePhysicsDamage(dmginfo)
 		local Dmg = dmginfo:GetDamage()
 
 		if JMod.LinCh(Dmg, 60, 120) then
@@ -107,13 +107,13 @@ if SERVER then
 
 	function ENT:Use(activator, activatorAgain, onOff)
 		local Dude, Time = activator or activatorAgain, CurTime()
-		JMod.SetOwner(self, Dude)
+		JMod.SetEZowner(self, Dude)
 		local Time = CurTime()
 
 		if tobool(onOff) then
 			local State = self:GetState()
 			if State < 0 then return end
-			local Alt = Dude:KeyDown(JMod.Config.AltFunctionKey)
+			local Alt = Dude:KeyDown(JMod.Config.General.AltFunctionKey)
 
 			if State == STATE_OFF then
 				if Alt then
@@ -135,9 +135,9 @@ if SERVER then
 				if Alt then
 					if self.NextDisarm < Time then
 						self.NextDisarm = Time + .2
-						self.DisarmProgress = self.DisarmProgress + JMod.Config.BombDisarmSpeed
+						self.DisarmProgress = self.DisarmProgress + JMod.Config.Explosives.BombDisarmSpeed
 						self.NextDisarmFail = Time + 1
-						Dude:PrintMessage(HUD_PRINTCENTER, "disarming: " .. self.DisarmProgress .. "/" .. math.ceil(self.DisarmNeeded))
+						Dude:PrintMessage(HUD_PRINTCENTER, "disarming: " .. math.floor(self.DisarmProgress) .. "/" .. math.ceil(self.DisarmNeeded))
 
 						if self.DisarmProgress >= self.DisarmNeeded then
 							self:SetState(STATE_OFF)
@@ -179,7 +179,7 @@ if SERVER then
 							self.StuckStick = Weld
 						end
 
-						self.Entity:EmitSound("snd_jack_claythunk.wav", 65, math.random(80, 120))
+						self:EmitSound("snd_jack_claythunk.ogg", 65, math.random(80, 120))
 						Dude:DropObject()
 					end
 				end
@@ -208,7 +208,7 @@ if SERVER then
 					sound.Play("ambient/explosions/explode_" .. math.random(1, 9) .. ".wav", SelfPos + VectorRand() * 1000, 140, math.random(80, 110))
 				end
 
-				self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 100)
+				self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 100)
 
 				timer.Simple(.1, function()
 					for i = 1, 5 do
@@ -225,7 +225,7 @@ if SERVER then
 
 				timer.Simple(0, function()
 					local ZaWarudo = game.GetWorld()
-					local Infl, Att = (IsValid(self) and self) or ZaWarudo, (IsValid(self) and IsValid(self:GetOwner()) and self:GetOwner()) or (IsValid(self) and self) or ZaWarudo
+					local Infl, Att = (IsValid(self) and self) or ZaWarudo, (IsValid(self) and IsValid(self.EZowner) and self.EZowner) or (IsValid(self) and self) or ZaWarudo
 					util.BlastDamage(Infl, Att, SelfPos, 120 * PowerMult, 120 * PowerMult)
 					-- do a lot of damage point blank, mostly for breaching
 					util.BlastDamage(Infl, Att, SelfPos, 20 * PowerMult, 1000 * PowerMult)
@@ -287,12 +287,12 @@ elseif CLIENT then
 		if self:GetState() == STATE_ARMED then
 			local ang, SelfPos = self:GetAngles(), self:GetPos()
 			ang:RotateAroundAxis(ang:Up(), -90)
-			local Up, Right, Forward, FT = ang:Up(), ang:Right(), ang:Forward(), FrameTime()
+			local Up, Right, Forward = ang:Up(), ang:Right(), ang:Forward()
 			local Amb = render.GetLightColor(SelfPos)
-			local Brightness = (Amb.x + Amb.y + Amb.z) / 3
+			local Brightness = .01 + (Amb.x + Amb.y + Amb.z) / 3
 			local Opacity = math.random(50, 255) * Brightness
 			cam.Start3D2D(SelfPos + Up * 13.3 - Right * 6 - Forward * -6.8, ang, .1)
-			draw.SimpleTextOutlined(GetTimeString(self:GetTimer()), "JMod-NumberLCD", 0, 0, Color(255, 200, 200, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(200, 0, 0, Opacity))
+				draw.SimpleTextOutlined(GetTimeString(self:GetTimer()), "JMod-NumberLCD", 0, 0, Color(255, 200, 200, Opacity), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 3, Color(200, 0, 0, Opacity))
 			cam.End3D2D()
 		end
 	end

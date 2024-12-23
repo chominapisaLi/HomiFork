@@ -1,43 +1,46 @@
 ﻿-- Jackarunda 2021
 AddCSLuaFile()
-ENT.Type="anim"
-ENT.PrintName="EZ Automated Field Hospital"
-ENT.Author="Jackarunda"
-ENT.Category="JMod - EZ Machines"
-ENT.Information="glhfggwpezpznore"
-ENT.Spawnable=true
-ENT.AdminSpawnable=true
-ENT.Base="ent_jack_gmod_ezmachine_base"
+ENT.Type = "anim"
+ENT.PrintName = "EZ Automated Field Hospital"
+ENT.Author = "Jackarunda"
+ENT.Category = "JMod - EZ Machines"
+ENT.Information = "glhfggwpezpznore"
+ENT.Spawnable = true
+ENT.AdminSpawnable = true
+ENT.Base = "ent_jack_gmod_ezmachine_base"
 ---
-ENT.Model="models/mri-sjanner/mri-sjanner.mdl"
-ENT.Mass=750
-ENT.EZconsumes={
+ENT.Model = "models/mri-sjanner/mri-sjanner.mdl"
+ENT.Mass = 750
+ENT.EZconsumes = {
     JMod.EZ_RESOURCE_TYPES.POWER,
     JMod.EZ_RESOURCE_TYPES.BASICPARTS,
 	JMod.EZ_RESOURCE_TYPES.MEDICALSUPPLIES
 }
+ENT.EZcolorable = true
+ENT.EZbouyancy = .3
 -- Config --
 ENT.StaticPerfSpecs={
-	MaxDurability=100
+	MaxDurability = 100
 }
 ENT.DynamicPerfSpecs={
-	Armor=.7,
-	MaxSupplies=50,
-	ElectricalEfficiency=1,
-	HealEfficiency=1,
-	HealSpeed=1
+	Armor = .7,
+	MaxSupplies = 50,
+	ElectricalEfficiency = 1,
+	HealEfficiency = 1,
+	HealSpeed = 1
 }
 
 ----
 local STATE_BROKEN,STATE_OFF,STATE_ON,STATE_OCCUPIED,STATE_WORKING=-1,0,1,2,3
 function ENT:CustomSetupDataTables()
-	self:NetworkVar("Int",2,"Supplies")
+	self:NetworkVar("Int", 2, "Supplies")
 end
 if(SERVER)then
 	function ENT:CustomInit()
-		local phys=self:GetPhysicsObject()
-		if phys:IsValid()then
-			phys:SetBuoyancyRatio(.3)
+		if self.SpawnFull then
+			self:SetSupplies(self.MaxSupplies)
+		else
+			self:SetSupplies(0)
 		end
 
 		---
@@ -51,6 +54,11 @@ if(SERVER)then
 		---
 		self.EZupgradable=true
 		--
+		self:CreatePod()
+		self.NextOpStart = 0
+	end
+
+	function ENT:CreatePod()
 		self.Pod = ents.Create("prop_vehicle_prisoner_pod")
 		self.Pod:SetModel("models/vehicles/prisoner_pod_inner.mdl")
 		local Ang, Up, Right, Forward = self:GetAngles(), self:GetUp(), self:GetRight(), self:GetForward()
@@ -62,7 +70,30 @@ if(SERVER)then
 		self.Pod:Activate()
 		self.Pod:SetParent(self)
 		self.Pod:SetNoDraw(true)
-		self.NextOpStart = 0
+		self.Pod:SetThirdPersonMode(false)
+		--self.Pod.IsJackyPod = true
+	end
+
+	function ENT:ReviveCorpses()
+		for _, v in ipairs(ents.FindByClass("ent_jack_gmod_ezcorpse")) do
+			--jprint(v, v.VeryDead)
+			if (self:GetPos():Distance(v:GetPos()) < 512) and not(v.VeryDead) then
+				if IsValid(v.DeadPlayer) and not(v.DeadPlayer:Alive()) then
+					if IsValid(v.EZragdoll) then
+						if istable(v.EZragdoll.EZarmorP) then
+							constraint.RemoveAll(v.EZragdoll)
+							v.EZragdoll.EZarmorP = nil
+						end
+					end
+					v.DeadPlayer:Spawn()
+					v.DeadPlayer:SetPos(v.EZragdoll:GetPos())
+					v.DeadPlayer:EnterVehicle(self.Pod)
+					v.DeadPlayer:SetHealth(1)
+					v:Remove()
+					break
+				end
+			end
+		end
 	end
 
 	function ENT:Use(activator)
@@ -88,7 +119,7 @@ if(SERVER)then
 	end
 	
 	function ENT:TurnOn()
-		if self:GetState() == STATE_ON then return end
+		if self:GetState() > STATE_OFF then return end
 
 		if self:GetElectricity() <= 0 then
 			JMod.Hint(activator, "nopower")
@@ -104,10 +135,11 @@ if(SERVER)then
 		self.Pod:Fire("unlock", "", 1.4)
 		self.NextEnter = Time + 1.6
 		self:ConsumeElectricity()
+		--self:ReviveCorpses()
 	end
 
 	function ENT:TurnOff()
-		if self:GetState() == STATE_OFF then return end
+		if (self:GetState() <= STATE_OFF) then return end
 		self:SetState(STATE_OFF)
 		self:SFX("afh_shutdown")
 		self.Patient = nil
@@ -169,9 +201,11 @@ if(SERVER)then
 	function ENT:Think()
 		local State, Time, Electricity = self:GetState(), CurTime(), self:GetElectricity()
 
+		self:UpdateWireOutputs()
+
 		if self.NextRealThink < Time then
 			if not IsValid(self.Pod) then
-				self:Remove()
+				self:CreatePod()
 
 				return
 			end
@@ -258,39 +292,39 @@ if(SERVER)then
 
 		if (Injury > 0) or (Rads > 0) or gassed or contaminated then
 			if Bleed > 0 then
-				self.Patient.EZbleeding = math.Clamp(Bleed - self.HealEfficiency * JMod.Config.MedBayHealMult * 5, 0, 9e9)
+				self.Patient.EZbleeding = math.Clamp(Bleed - self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult * 5, 0, 9e9)
 				self.Patient:PrintMessage(HUD_PRINTCENTER, "stopping bleeding")
 				self:HealEffect()
 			elseif Rads > 0 or contaminated then
-				self.Patient.EZirradiated = math.Clamp(Rads - self.HealEfficiency * JMod.Config.MedBayHealMult * 5, 0, 9e9)
+				self.Patient.EZirradiated = math.Clamp(Rads - self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult * 5, 0, 9e9)
 
 				if RemoveContamination then
-					RemoveContamination(self.Patient, 140 * self.HealEfficiency * JMod.Config.MedBayHealMult)
+					RemoveContamination(self.Patient, 140 * self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult)
 				end
 
-				self:HealEffect("hl1/ambience/steamburst1.wav", true)
+				self:HealEffect("hl1/ambience/steamburst1.ogg", true)
 				self.Patient:PrintMessage(HUD_PRINTCENTER, "decontaminating")
 			elseif gassed then
-				removeDelayedExposure(self.Patient, 3 * self.HealEfficiency * JMod.Config.MedBayHealMult, "Mustard")
-				removeDelayedExposure(self.Patient, 140 * self.HealEfficiency * JMod.Config.MedBayHealMult, "MustardSkin")
-				removeDelayedExposure(self.Patient, 8.58 * self.HealEfficiency * JMod.Config.MedBayHealMult, "Cyanide")
-				removeDelayedExposure(self.Patient, 390 * self.HealEfficiency * JMod.Config.MedBayHealMult, "TearGas")
-				removeDelayedExposure(self.Patient, 57 * self.HealEfficiency * JMod.Config.MedBayHealMult, "Chlorine")
-				removeDelayedExposure(self.Patient, 57 * self.HealEfficiency * JMod.Config.MedBayHealMult, "PhosgeneImmediate")
-				removeDelayedExposure(self.Patient, 4.5 * self.HealEfficiency * JMod.Config.MedBayHealMult, "Phosgene")
-				removeDelayedExposure(self.Patient, .105 * self.HealEfficiency * JMod.Config.MedBayHealMult, "Sarin")
-				removeDelayedExposure(self.Patient, .045 * self.HealEfficiency * JMod.Config.MedBayHealMult, "VX")
-				self:HealEffect("hl1/ambience/steamburst1.wav", true)
+				removeDelayedExposure(self.Patient, 3 * self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult, "Mustard")
+				removeDelayedExposure(self.Patient, 140 * self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult, "MustardSkin")
+				removeDelayedExposure(self.Patient, 8.58 * self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult, "Cyanide")
+				removeDelayedExposure(self.Patient, 390 * self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult, "TearGas")
+				removeDelayedExposure(self.Patient, 57 * self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult, "Chlorine")
+				removeDelayedExposure(self.Patient, 57 * self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult, "PhosgeneImmediate")
+				removeDelayedExposure(self.Patient, 4.5 * self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult, "Phosgene")
+				removeDelayedExposure(self.Patient, .105 * self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult, "Sarin")
+				removeDelayedExposure(self.Patient, .045 * self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult, "VX")
+				self:HealEffect("hl1/ambience/steamburst1.ogg", true)
 				self.Patient:PrintMessage(HUD_PRINTCENTER, "curing poisoning")
 			else
 				if Infection > 1 then
-					self.Patient.EZvirus.Severity = math.Clamp(Infection - self.HealEfficiency * JMod.Config.MedBayHealMult * 3, 1, 9e9)
+					self.Patient.EZvirus.Severity = math.Clamp(Infection - self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult * 3, 1, 9e9)
 					self.Patient:PrintMessage(HUD_PRINTCENTER, "boosting immune system")
 				else
 					self.Patient:PrintMessage(HUD_PRINTCENTER, "repairing damage")
 				end
 
-				local HealAmt = isnumber(override) and math.min(Injury, override) or math.min(Injury, math.ceil(3 * self.HealEfficiency * JMod.Config.MedBayHealMult))
+				local HealAmt = isnumber(override) and math.min(Injury, override) or math.min(Injury, math.ceil(3 * self.HealEfficiency * JMod.Config.Machines.MedBay.HealMult))
 				self.Patient:SetHealth(Helf + HealAmt)
 				self:HealEffect()
 			end
@@ -341,32 +375,50 @@ if(SERVER)then
 			end)
 		end
 	end
-	function ENT:PostEntityPaste(ply, ent, createdEntities)
+	function ENT:OnPostEntityPaste(ply, ent, createdEntities)
 		local Time = CurTime()
-		JMod.SetOwner(self, ply)
-		ent.NextRefillTime = Time + math.random(0.1, 0.5)
-		self.NextWhine = Time + math.random(0.1, 0.5)
-		self.NextRealThink = Time + math.random(0.1, 0.5)
-		self.NextUseTime = Time + math.random(0.1, 0.5)
-		self.IdleShutOffTime = Time + math.random(0.1, 0.5)
-		self.NextHumTime = Time + math.random(0.1, 0.5)
-		self.NextHeal = Time + math.random(0.1, 0.5)
-		self.NextEnter = Time + math.random(0.1, 0.5)
-		self.NextOpStart = Time + math.random(0.1, 0.5)
+		self.NextWhine = Time + math.Rand(0, 3)
+		self.NextRealThink = Time + math.Rand(0, 3)
+		self.NextUseTime = Time + math.Rand(0, 3)
+		self.IdleShutOffTime = Time + math.Rand(0, 3)
+		self.NextHumTime = Time + math.Rand(0, 3)
+		self.NextHeal = Time + math.Rand(0, 3)
+		self.NextEnter = Time + math.Rand(0, 3)
+		self.NextOpStart = Time + math.Rand(0, 3)
 	end
 elseif(CLIENT)then
 	function ENT:CustomInit()
-		self.Camera=JMod.MakeModel(self,"models/props_combine/combinecamera001.mdl")
-		self.TopCanopy=JMod.MakeModel(self,"models/props_phx/construct/windows/window_dome360.mdl")
-		self.BottomCanopy=JMod.MakeModel(self,"models/props_phx/construct/windows/window_dome360.mdl")
+		self.Camera = JMod.MakeModel(self,"models/props_combine/combinecamera001.mdl")
+		self.TopCanopy = JMod.MakeModel(self,"models/props_phx/construct/windows/window_dome360.mdl")
+		self.BottomCanopy = JMod.MakeModel(self,"models/props_phx/construct/windows/window_dome360.mdl")
 		self.TopCanopy:SetSubMaterial(0,"mri-scanner/mri-dome_side")
 		self.BottomCanopy:SetSubMaterial(0,"mri-scanner/mri-dome_side")
 		self.TopCanopy:SetSubMaterial(2,"mri-scanner/mri-dome")
 		self.BottomCanopy:SetSubMaterial(2,"mri-scanner/mri-dome")
-		self.Rotator=JMod.MakeModel(self,"models/hunter/tubes/tube4x4x1.mdl")
+		self.Rotator = JMod.MakeModel(self,"models/hunter/tubes/tube4x4x1.mdl")
 		-- models/props_phx/construct/glass/glass_dome360.mdl
-		self.OpenAmt=1
-		self.DriveCycle=0
+		self.OpenAmt = 1
+		self.DriveCycle = 0
+	end
+
+	function ENT:PostEntityPaste(ply, ent, createdEntities)
+		self.OpenAmt = 1
+		self.DriveCycle = 0
+	end
+
+	function ENT:Think()
+		local State, Grade, Time = self:GetState(), self:GetGrade(), CurTime()
+		local FT = FrameTime()
+		if State > 1 then
+			self.OpenAmt = math.Clamp(self.OpenAmt - FT * 1.3, 0, 1) --Lerp(FT*2,self.OpenAmt,0)
+		else
+			self.OpenAmt = math.Clamp(self.OpenAmt + FT * 1.3, 0, 1) --Lerp(FT*2,self.OpenAmt,1)
+		end
+
+		if (State == STATE_WORKING) then
+			self.DriveCycle=self.DriveCycle+FT*100
+			if(self.DriveCycle>360)then self.DriveCycle=0 end
+		end
 	end
 
 	local function ColorToVector(col)
@@ -402,19 +454,6 @@ elseif(CLIENT)then
 
 		---
 		self:DrawModel()
-
-		---
-		if State > 1 then
-			self.OpenAmt = math.Clamp(self.OpenAmt - FT * 1.3, 0, 1) --Lerp(FT*2,self.OpenAmt,0)
-		else
-			self.OpenAmt = math.Clamp(self.OpenAmt + FT * 1.3, 0, 1) --Lerp(FT*2,self.OpenAmt,1)
-		end
-
-		if (State == STATE_WORKING) then
-			self.DriveCycle=self.DriveCycle+FT*100
-			if(self.DriveCycle>360)then self.DriveCycle=0 end
-		end
-
 		---
 		local DisplayAng=SelfAng:GetCopy()
 		DisplayAng:RotateAroundAxis(Forward,90)

@@ -21,6 +21,11 @@ ENT.ImpactNoise2 = "Weapon.ImpactSoft"
 ENT.DamageThreshold = 120
 ENT.BreakNoise = "Plastic_Box.Break"
 ENT.Hint = nil
+ENT.Flammable = 2
+ENT.PhysBox = {
+	Mins = Vector(-11, -16, -9.3),
+	Maxs = Vector(11, 16, 9.2)
+}
 
 ---
 if SERVER then
@@ -62,7 +67,7 @@ elseif CLIENT then
 		self.Jug7 = JMod.MakeModel(self, "models/props_junk/garbage_glassbottle001a.mdl", "models/props_combine/health_charger_glass")
 		self.Jug8 = JMod.MakeModel(self, "models/props_junk/glassjug01.mdl", "models/props_combine/health_charger_glass", 1.5)
 	end
-
+    local drawvec, drawang = Vector(-1, 11, 0), Angle(-90, 0, 90)
 	function ENT:Draw()
 		local Ang, Pos = self:GetAngles(), self:GetPos()
 		local Up, Right, Forward = Ang:Up(), Ang:Right(), Ang:Forward()
@@ -78,10 +83,10 @@ elseif CLIENT then
 		JMod.RenderModel(self.Jug7, BasePos + Forward * 3 - Right * 4 - Up * 2, Ang)
 		JMod.RenderModel(self.Jug8, BasePos + Forward * 6 - Right * 10 - Up * 10, Ang)
 
-		JMod.HoloGraphicDisplay(self, Vector(-1, 11, 0), Angle(-90, 0, 90), .04, 300, function()
+		JMod.HoloGraphicDisplay(self, drawvec, drawang, .04, 300, function()
 			JMod.StandardResourceDisplay(JMod.EZ_RESOURCE_TYPES.CHEMICALS, self:GetResource(), nil, 0, 0, 200, false, nil, 220)
 		end)
 	end
 
-	language.Add(ENT.ClassName, ENT.PrintName)
+	--language.Add(ENT.ClassName, ENT.PrintName)
 end

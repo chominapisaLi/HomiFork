@@ -9,7 +9,7 @@ ENT.AdminSpawnable = true
 ---
 ENT.EZsupplies = JMod.EZ_RESOURCE_TYPES.TITANIUM
 ENT.JModPreferredCarryAngles = Angle(180, 90, -90)
-ENT.Model = "models/props_mining/ingot001.mdl"
+ENT.Model = "models/jmod/resources/ingot001.mdl"
 ENT.Material = "models/props_mining/ingot_jack_titanium"
 ENT.Color = Color(160, 160, 160)
 ENT.ModelScale = 1
@@ -24,13 +24,14 @@ if SERVER then
 	end
 	-- it's metal
 elseif CLIENT then
+    local drawvec, drawang = Vector(0, -3, 4.9), Angle(0, 0, 0)
 	function ENT:Draw()
 		self:DrawModel()
 
-		JMod.HoloGraphicDisplay(self, Vector(0, -3, 4.9), Angle(0, 0, 0), .025, 300, function()
+		JMod.HoloGraphicDisplay(self, drawvec, drawang, .025, 300, function()
 			JMod.StandardResourceDisplay(JMod.EZ_RESOURCE_TYPES.TITANIUM, self:GetResource(), nil, 0, 0, 200, false, nil, nil, nil, 0)
 		end)
 	end
 
-	language.Add(ENT.ClassName, ENT.PrintName)
+	--language.Add(ENT.ClassName, ENT.PrintName)
 end

@@ -9,48 +9,21 @@ ENT.JModPreferredCarryAngles = Angle(0, 140, 0)
 ENT.Model = "models/jmod/explosives/grenades/flashbang/flashbang.mdl"
 --ENT.ModelScale=1.5
 ENT.SpoonScale = 2
+ENT.PinBodygroup = {1, 1}
+ENT.SpoonBodygroup = {2, 1}
+ENT.DetDelay = 2
 
 if SERVER then
-	function ENT:Arm()
-		self:SetBodygroup(2, 1)
-		self:SetState(JMod.EZ_STATE_ARMED)
-		self:SpoonEffect()
-
-		local time = 2
-		timer.Simple(time - 1,function()
-			player.EventPoint(self:GetPos(),"flashbang pre detonate",1024,self)
-		end)
-
-		timer.Simple(time, function()
-			if IsValid(self) then
-				self:Detonate()
-			end
-		end)
-	end
-
-	function ENT:CanSee(ent)
-		if not IsValid(ent) then return false end
-		local TargPos, SelfPos = ent:LocalToWorld(ent:OBBCenter()), self:LocalToWorld(self:OBBCenter()) + vector_up * 10
-
-		local Tr = util.TraceLine({
-			start = SelfPos,
-			endpos = TargPos,
-			filter = {self, ent},
-			mask = MASK_SHOT + MASK_WATER
-		})
-
-		return not Tr.Hit
-	end
-
 	function ENT:Detonate()
 		if self.Exploded then return end
 		self.Exploded = true
 		local SelfPos, Time = self:GetPos() + Vector(0, 0, 10), CurTime()
-		JMod.Sploom(self:GetOwner(), self:GetPos(), 20)
-		self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 140)
-		self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 140)
+		JMod.Sploom(self.EZowner, self:GetPos(), 20)
+		self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 140)
+		self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 140)
 		local plooie = EffectData()
 		plooie:SetOrigin(SelfPos)
+		plooie:SetScale(1)
 		util.Effect("eff_jack_gmod_flashbang", plooie, true, true)
 		util.ScreenShake(SelfPos, 20, 20, .2, 1000)
 
@@ -64,25 +37,8 @@ if SERVER then
 
 		timer.Simple(.1, function()
 			if not IsValid(self) then return end
-			util.BlastDamage(self, self:GetOwner() or self, SelfPos, 1000, 2)
+			util.BlastDamage(self, JMod.GetEZowner(self), SelfPos, 1000, 2)
 		end)
-
-		local Pos = self:GetPos()
-
-		for i,ply in pairs(player.GetAll()) do
-			local plyPos = ply:GetPos()
-			local dis = Pos:Distance(plyPos)
-
-			if dis < 1000 then
-				if not util.TraceLine({
-					start = Pos,
-					endpos = plyPos,
-					filter = {self,ply}
-				}).Hit then
-					player.Event(ply,"flashbang",1 - dis / 1000)
-				end
-			end
-		end
 
 		SafeRemoveEntityDelayed(self, 10)
 	end

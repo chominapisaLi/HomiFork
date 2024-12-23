@@ -22,11 +22,11 @@ function EFFECT:Init(data)
 
 	if not IsValid(ent) then return end
 
-	if ent.Owner ~= LocalPlayer() then
+	if ent.EZowner ~= LocalPlayer() then
 		mdl = ent
 	end
 
-	if ent.Owner ~= LocalPlayer() and not GetConVar("arccw_shelleffects"):GetBool() then
+	if ent.EZowner ~= LocalPlayer() and not GetConVar("arccw_shelleffects"):GetBool() then
 		self:Remove()
 
 		return
@@ -75,14 +75,14 @@ function EFFECT:Init(data)
 	local phys = self:GetPhysicsObject()
 	local plyvel = Vector(0, 0, 0)
 
-	if IsValid(ent.Owner) then
-		plyvel = ent.Owner:GetAbsVelocity()
+	if IsValid(ent.EZowner) then
+		plyvel = ent.EZowner:GetAbsVelocity()
 	end
 
 	phys:Wake()
 	phys:SetDamping(0, 0)
 	phys:SetMass(1)
-	phys:SetMaterial("gmod_silent")
+	phys:SetMaterial("Default_silent")
 	phys:SetVelocity((dir * mag * math.Rand(1, 2)) + plyvel)
 	phys:AddAngleVelocity(VectorRand() * 400)
 	self.HitPitch = self.Pitch + math.Rand(-5, 5)

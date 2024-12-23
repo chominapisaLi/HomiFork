@@ -111,6 +111,24 @@ COMMANDS.russian_roulette = {function(ply,args)
 	end
 end}
 
+function tiht.SpawnsItems()
+    local aviable = {}
+
+
+
+    for i,point in pairs(ReadDataMap("spawnpointst")) do
+        table.insert(aviable,point)
+    end
+
+    for i,point in pairs(ReadDataMap("spawnpointsct")) do
+        table.insert(aviable,point)
+    end
+    for i,point in pairs(ReadDataMap("spawnpointspepoples")) do
+        table.insert(aviable,point)
+    end
+    return aviable
+end
+
 function tiht.Spawns()
     local aviable = {}
 
@@ -143,6 +161,86 @@ sound.Add({
 	pitch = 100,
 	sound = "snd_jack_hmcd_policesiren.wav"
 })
+-- Configuration
+local config = {
+    maxWeapons = 20, -- Maximum number of weapons to spawn
+    spawnChance = 0.7, -- Chance for a spawn point to receive a weapon (0-1)
+}
+
+
+
+local function GetSpawnPoints()
+    local spawnPoints = {}
+    -- Get all spawn entities
+    local spawns = ents.FindByClass("info_player_deathmatch")
+    table.Add(spawns, ents.FindByClass("info_player_start"))
+    table.Add(spawns, ents.FindByClass("ttt_random_weapon"))
+    
+    -- Convert to positions
+    for _, spawn in ipairs(spawns) do
+        if IsValid(spawn) then
+            table.insert(spawnPoints, spawn:GetPos())
+        end
+    end
+    
+    return spawnPoints
+end
+
+-- Function to spawn weapons
+function SpawnTTTWeapons()
+    local spawnPoints = GetSpawnPoints()
+    if #spawnPoints == 0 then
+        print("[TTT] No valid spawn points found!")
+        return
+    end
+    
+    -- Shuffle spawn points
+    table.Shuffle(spawnPoints)
+    
+    local weaponsSpawned = 0
+    
+    for _, pos in ipairs(spawnPoints) do
+        -- Check if we've reached the maximum weapons
+        if weaponsSpawned >= config.maxWeapons then
+            break
+        end
+        
+        -- Random chance to skip this spawn point
+        if math.random() > config.spawnChance then
+            continue
+        end
+        
+        -- Choose weapon table (80% normal, 20% special)
+        local weaponTable = math.random() < 0.8 
+        local weaponClass = firstG[math.random(#firstG)]
+        
+        -- Create weapon
+        local weapon = ents.Create(weaponClass)
+        if IsValid(weapon) then
+            -- Add some random offset to prevent stacking
+            local offset = Vector(
+                math.random(-20, 20),
+                math.random(-20, 20),
+                10
+            )
+            
+            weapon:SetPos(pos + offset)
+            weapon:Spawn()
+            --PreventAutoPickup(weapon)
+            -- Add physics
+            local phys = weapon:GetPhysicsObject()
+            if IsValid(phys) then
+                phys:Wake()
+            end
+            
+            weaponsSpawned = weaponsSpawned + 1
+        else
+            print("[TTT] Failed to create weapon:", weaponClass)
+        end
+    end
+    
+    print("[TTT] Spawned " .. weaponsSpawned .. " weapons")
+end
 
 function tiht.StartRoundSV()
     tdm.RemoveItems()
@@ -160,7 +258,7 @@ function tiht.StartRoundSV()
 
     for i,ply in pairs(team.GetPlayers(2)) do ply:SetTeam(1) end
     --for i,ply in pairs(team.GetPlayers(2)) do ply:SetTeam(1) end
-
+    SpawnTTTWeapons()
     tiht.ct = {}
     tiht.t = {}
 

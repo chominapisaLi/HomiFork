@@ -19,12 +19,12 @@ end
 ---
 if SERVER then
 	function ENT:Initialize()
-		self.Entity:SetModel("models/props_junk/gnome.mdl")
-		self.Entity:PhysicsInit(SOLID_VPHYSICS)
-		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-		self.Entity:SetSolid(SOLID_VPHYSICS)
-		self.Entity:DrawShadow(true)
-		self.Entity:SetUseType(SIMPLE_USE)
+		self:SetModel("models/props_junk/gnome.mdl")
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
+		self:SetUseType(SIMPLE_USE)
 		local Phys = self:GetPhysicsObject()
 
 		if IsValid(Phys) then
@@ -33,7 +33,7 @@ if SERVER then
 		end
 
 		timer.Simple(0, function()
-			self.Entity:PhysicsInit(SOLID_VPHYSICS)
+			self:PhysicsInit(SOLID_VPHYSICS)
 			local Phys = self:GetPhysicsObject()
 
 			if IsValid(Phys) then
@@ -45,30 +45,81 @@ if SERVER then
 
 		self.FreezeTime = 0
 		self.Restlessness = 1
+		self.NextBiteTime = 0
 		--self:SetVisualState(STATE_GNORMAL)
 	end
 
 	function ENT:PhysicsCollide(data, physobj)
 		if data.DeltaTime > 0.2 then
 			if data.Speed > 200 then
-				self.Entity:EmitSound("Drywall.ImpactHard")
+				self:EmitSound("Drywall.ImpactHard")
 				self.FreezeTime = CurTime() + 10
 			end
 		end
 	end
 
 	function ENT:OnTakeDamage(dmginfo)
-		self.Entity:TakePhysicsDamage(dmginfo)
+		self:TakePhysicsDamage(dmginfo)
 		self.FreezeTime = CurTime() + 10
 	end
 
 	function ENT:Use(activator)
+		if activator:IsPlayer() then
+			local Time = CurTime()
+			if self.NextBiteTime < Time then
+				self.NextBiteTime = Time + math.Rand(1, 2)
+				timer.Simple(0.1, function()
+					if not(IsValid(self)) or not(IsValid(activator)) then return end
+					sound.Play("npc/headcrab/headbite.wav", self:GetPos(), 120, math.random(90, 110))
+					sound.Play("snds_jack_gmod/nom" .. math.random(1, 5) .. ".ogg", self:GetPos(), 60, math.random(90, 110))
+					local Dmg = DamageInfo()
+					Dmg:SetDamage(math.random(1, 2))
+					Dmg:SetDamageType(DMG_SLASH)
+					Dmg:SetAttacker(activator)
+					Dmg:SetInflictor(game.GetWorld())
+					Dmg:SetDamageForce(Vector(0, 0, 0))
+					Dmg:SetDamagePosition(activator:GetBonePosition(activator:LookupBone("ValveBiped.Bip01_L_Hand")) or activator:GetPos())
+					activator:TakeDamageInfo(Dmg)
+					self.Restlessness = self.Restlessness + 1
+				end)
+			end
+		end
 	end
 
+	local function FindMachine(pos, returnWhenFound)
+		local Closest, ClosestDist = nil, 9e9
+
+		for _, v in ents.Iterator() do
+			local Dist = v:GetPos():Distance(pos)
+
+			if Dist < ClosestDist then
+				if v.Base and (v.Base == "ent_jack_gmod_ezmachine_base") and (v.GetState and (v:GetState() == JMod.EZ_STATE_ON)) and v.TurnOff then
+					Closest = v
+					ClosestDist = Dist
+					if returnWhenFound then return v end
+				end
+			end
+		end
+
+		return Closest
+	end
 	---
+	local Objectives = {"eat", "kill", "shutdown"}
 	function ENT:GetObjective()
-		-- todo: more things than just killing
-		return "kill"
+		if self.CurObjective then
+			local Target = self:GetTarget(self.CurObjective)
+			if self:CanCompleteObjective(self.CurObjective, Target) then
+				return self.CurObjective
+			end 
+		end
+
+		if not(table.IsEmpty(ents.FindByClass("ent_jack_gmod_ezapple"))) then
+			return "eat"
+		elseif IsValid(FindMachine(self:GetPos(), true)) then
+			return "shutdown"
+		else
+			return "kill"
+		end
 	end
 
 	function ENT:GetTarget(objective)
@@ -77,7 +128,7 @@ if SERVER then
 		if objective == "kill" then
 			local Closest, SelfPos = 9e9, self:GetPos()
 
-			for k, v in pairs(player.GetAll()) do
+			for _, v in player.Iterator() do
 				if v:Alive() then
 					local Dist = SelfPos:Distance(v:GetPos())
 
@@ -85,6 +136,19 @@ if SERVER then
 						Target = v
 						Closest = Dist
 					end
+				end
+			end
+		elseif objective == "shutdown" then
+			Target = FindMachine(self:GetPos())
+		elseif objective == "eat" then
+			local Closest, SelfPos = 9e9, self:GetPos()
+
+			for _, v in ipairs(ents.FindByClass("ent_jack_gmod_ezapple")) do
+				local Dist = SelfPos:Distance(v:GetPos())
+
+				if Dist < Closest then
+					Target = v
+					Closest = Dist
 				end
 			end
 		end
@@ -126,7 +190,7 @@ if SERVER then
 	function ENT:TryMoveRandomly()
 		local SelfPos = self:GetPos()
 		local Dir = VectorRand()
-		local NewPos = SelfPos + Dir * 50 * self.Restlessness
+		local NewPos = SelfPos + Dir * 50 * math.Clamp(self.Restlessness, 1, 5)
 		local NewGroundPos = self:FindGroundAt(NewPos)
 
 		if NewGroundPos then
@@ -188,16 +252,18 @@ if SERVER then
 	function ENT:GetDesiredPosition(objective, target)
 		if objective == "kill" then
 			if target then return self:FindGroundAt(target:GetShootPos() - target:GetAimVector() * 100) end
+		elseif objective == "shutdown" then
+			if target then return self:FindGroundAt(target:GetPos() + Vector(math.random(-50, 50), math.random(-50, 50), 0)) end
+		elseif objective == "eat" then
+			if target then return self:FindGroundAt(target:GetPos() + Vector(math.random(-20, 20), math.random(-20, 20), 0)) end
 		end
 
 		return nil
 	end
 
 	function ENT:FindPatsy(victim)
-		local Playas = player.GetAll()
-
-		if #Playas > 1 then
-			for k, v in pairs(Playas) do
+		if player.GetCount() > 1 then
+			for k, v in player.Iterator() do
 				if v ~= victim then return v end
 			end
 		end
@@ -214,6 +280,30 @@ if SERVER then
 			local Dist = TargPos:Distance(SelfPos)
 
 			if (Dist <= 220) and (Dist >= 80) then
+				return not util.TraceLine({
+					start = SelfPos,
+					endpos = TargPos,
+					filter = {self, target},
+					mask = MASK_SHOT
+				}).Hit
+			end
+		elseif objective == "shutdown" then
+			local TargPos = target:GetPos() + Vector(0, 0, 1)
+			local Dist = TargPos:Distance(SelfPos)
+
+			if (Dist <= 55) and (Dist >= 10) then
+				return not util.TraceLine({
+					start = SelfPos,
+					endpos = TargPos,
+					filter = {self, target},
+					mask = MASK_SHOT
+				}).Hit
+			end
+		elseif objective == "eat" then
+			local TargPos = target:GetPos() + Vector(0, 0, 1)
+			local Dist = TargPos:Distance(SelfPos)
+
+			if (Dist <= 20) and (Dist >= 2) then
 				return not util.TraceLine({
 					start = SelfPos,
 					endpos = TargPos,
@@ -263,20 +353,86 @@ if SERVER then
 
 						local Vec = ((Target:GetShootPos() - Vector(0, 0, 10)) - SelfPos):GetNormalized()
 						self:GetPhysicsObject():ApplyForceCenter(Vec * 100000)
+						timer.Simple(0.5, function()
+							if IsValid(Target) and Target:Alive() then
+								self.Restlessness = self.Restlessness + 5 -- We want him DEAD!!!
+							else
+								self.Restlessness = 1 -- He died
+							end
+						end)
+					end
+				elseif Objective == "shutdown" then
+					if Target then
+						Target:TurnOff()
+						Target.EZstayOn = false
+						self.Restlessness = self.Restlessness - 10
+					end
+				elseif Objective == "eat" then
+					if Target then
+						Target:Remove()
+						sound.Play("snds_jack_gmod/nom" .. math.random(1, 5) .. ".ogg", self:GetPos(), 60, math.random(90, 110))
+						self.Restlessness = self.Restlessness - 10
 					end
 				end
 			else
 				self:TryMoveRandomly()
 			end
 
-			self.Restlessness = math.Clamp(self.Restlessness + .1, 1, 5)
+			self.Restlessness = math.Clamp(self.Restlessness + .1, 1, 100)
+			--jprint(self.Restlessness)
+
+			if self.Restlessness >= 100 then
+				self:Detonate()
+			end
 		else
-			self.Restlessness = 1
+			self.Restlessness = self.Restlessness - 1
 		end
 
-		self:NextThink(Time + math.Rand(2, 4) / self.Restlessness)
+		self:NextThink(Time + math.Rand(2, 4) / math.Clamp(self.Restlessness, 1, 5))
 
 		return true
+	end
+
+	local function SendClientNukeEffect(pos, range)
+		net.Start("JMod_NuclearBlast")
+		net.WriteVector(pos)
+		net.WriteFloat(range)
+		net.WriteFloat(1)
+		net.Broadcast()
+	end
+
+	function ENT:Detonate()
+		if self.Exploded then return end
+		self.Exploded = true
+
+		local SelfPos = self:GetPos()
+		local Blam = EffectData()
+		Blam:SetOrigin(SelfPos)
+		Blam:SetScale(10)
+		util.Effect("eff_jack_plastisplosion", Blam, true, true)
+		util.ScreenShake(SelfPos, 99999, 99999, 1, 1000)
+
+		for i = 1, 2 do
+			sound.Play("BaseExplosionEffect.Sound", SelfPos, 120, math.random(90, 110))
+		end
+
+		for i = 1, 2 do
+			sound.Play("ambient/explosions/explode_" .. math.random(1, 9) .. ".wav", SelfPos + VectorRand() * 1000, 140, math.random(90, 110))
+		end
+
+		timer.Simple(.1, function()
+			local MeltBlast = DamageInfo()
+			MeltBlast:SetInflictor(game.GetWorld())
+			MeltBlast:SetAttacker(game.GetWorld())
+			MeltBlast:SetDamage(250)
+			MeltBlast:SetDamageType(DMG_DISSOLVE)
+			util.BlastDamageInfo(MeltBlast, SelfPos, 400)
+			for k, v in pairs(ents.FindInSphere(SelfPos, 1000)) do 
+				if v:GetClass() == "npc_strider" then
+					v:Fire("break")
+				end
+			end
+		end)
 	end
 
 	function ENT:OnRemove()

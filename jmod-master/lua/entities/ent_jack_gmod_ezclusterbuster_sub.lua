@@ -60,8 +60,8 @@ if SERVER then
 		self:SetAngles(Angle(0, 0, 90))
 		Phys:AddAngleVelocity(Vector(0, 2500, 0))
 		local Pitch = math.random(95, 105)
-		self:EmitSound("snds_jack_gmod/rocket_launch.wav", 80, Pitch)
-		sound.Play("snds_jack_gmod/rocket_launch.wav", Pos, 70, Pitch)
+		self:EmitSound("snds_jack_gmod/rocket_launch.ogg", 80, Pitch)
+		sound.Play("snds_jack_gmod/rocket_launch.ogg", Pos, 70, Pitch)
 		local Eff = EffectData()
 		Eff:SetOrigin(Pos)
 		Eff:SetNormal(self:GetRight())
@@ -76,11 +76,8 @@ if SERVER then
 	end
 
 	function ENT:PhysicsCollide(data, physobj)
-		if not IsValid(self) then return end
-		if data.HitEntity.EZclusterBusterMunition then return end
-
-		if data.DeltaTime > 0.2 then
-			self:Detonate()
+		if (data.DeltaTime > 0.2) and not(data.HitEntity.EZclusterBusterMunition) then
+			timer.Simple(0, function() if IsValid(self) then self:Detonate() end end)
 		end
 	end
 
@@ -106,10 +103,10 @@ if SERVER then
 	function ENT:Detonate(delay, dmg)
 		if self.Exploded then return end
 		self.Exploded = true
-		local Att = self:GetOwner() or game.GetWorld()
+		local Att = JMod.GetEZowner(self)
 		local Vel, Pos, Ang = self:GetVelocity(), self:LocalToWorld(self:OBBCenter()), self:GetAngles()
 		local Up, Right, Forward = Ang:Up(), Ang:Right(), Ang:Forward()
-		self:Remove()
+		SafeRemoveEntityDelayed(self, 0.01)
 		JMod.Sploom(Att, Pos, 10)
 		local Dir = Angle(0, 0, 0)
 
@@ -117,7 +114,7 @@ if SERVER then
 			local DirVec = Dir:Forward()
 			local Pos = self:LocalToWorld(self:OBBCenter())
 			local Skeet = ents.Create("ent_jack_gmod_ezclusterbuster_skeet")
-			JMod.SetOwner(Skeet, Att)
+			JMod.SetEZowner(Skeet, Att)
 			Skeet:SetPos(Pos + DirVec * 30)
 			Skeet:SetAngles(Angle(0, 0, 0))
 			Skeet:Spawn()
@@ -128,7 +125,7 @@ if SERVER then
 	end
 
 	function ENT:Think()
-		local Time, State, Phys, Att = CurTime(), self:GetState(), self:GetPhysicsObject(), self:GetOwner() or game.GetWorld()
+		local Time, State, Phys, Att = CurTime(), self:GetState(), self:GetPhysicsObject(), JMod.GetEZowner(self)
 		local Vel, Pos, Ang = Phys:GetVelocity(), self:GetPos(), self:GetAngles()
 		local Up, Forward, Right = self:GetUp(), self:GetForward(), self:GetRight()
 

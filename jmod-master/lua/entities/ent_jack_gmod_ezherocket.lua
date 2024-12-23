@@ -8,9 +8,10 @@ ENT.PrintName = "EZ HE Rocket"
 ENT.Spawnable = true
 ENT.AdminSpawnable = true
 ---
-ENT.JModPreferredCarryAngles = Angle(0, 90, 0)
-ENT.EZRackOffset = Vector(0, 0, 8)
+ENT.JModPreferredCarryAngles = Angle(0, -90, 0)
+ENT.EZRackOffset = Vector(0, -1.5, -2.5)
 ENT.EZRackAngles = Angle(0, 0, 0)
+ENT.EZrocket = true
 ---
 local STATE_BROKEN, STATE_OFF, STATE_ARMED, STATE_LAUNCHED = -1, 0, 1, 2
 
@@ -25,7 +26,7 @@ if SERVER then
 		local ent = ents.Create(self.ClassName)
 		ent:SetAngles(Angle(180, 0, 0))
 		ent:SetPos(SpawnPos)
-		JMod.SetOwner(ent, ply)
+		JMod.SetEZowner(ent, ply)
 		ent:Spawn()
 		ent:Activate()
 		--local effectdata=EffectData()
@@ -36,12 +37,12 @@ if SERVER then
 	end
 
 	function ENT:Initialize()
-		self.Entity:SetModel("models/hunter/plates/plate150.mdl")
-		self.Entity:PhysicsInit(SOLID_VPHYSICS)
-		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-		self.Entity:SetSolid(SOLID_VPHYSICS)
-		self.Entity:DrawShadow(true)
-		self.Entity:SetUseType(SIMPLE_USE)
+		self:SetModel("models/hunter/plates/plate150.mdl")
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+		self:DrawShadow(true)
+		self:SetUseType(SIMPLE_USE)
 
 		---
 		timer.Simple(.01, function()
@@ -91,7 +92,7 @@ if SERVER then
 				return
 			end
 
-			if data.Speed > 2000 then
+			if (data.Speed > 2000) and not(self:IsPlayerHolding()) then
 				self:Break()
 			end
 		end
@@ -100,7 +101,7 @@ if SERVER then
 	function ENT:Break()
 		if self:GetState() == STATE_BROKEN then return end
 		self:SetState(STATE_BROKEN)
-		self:EmitSound("snd_jack_turretbreak.wav", 70, math.random(80, 120))
+		self:EmitSound("snd_jack_turretbreak.ogg", 70, math.random(80, 120))
 
 		for i = 1, 20 do
 			JMod.DamageSpark(self)
@@ -121,7 +122,7 @@ if SERVER then
 			if math.random(1, 3) == 1 then
 				self:Break()
 			else
-				JMod.SetOwner(self, dmginfo:GetAttacker())
+				JMod.SetEZowner(self, dmginfo:GetAttacker())
 				self:Detonate()
 			end
 		end
@@ -130,12 +131,12 @@ if SERVER then
 	function ENT:Use(activator)
 		local State = self:GetState()
 		if State < 0 then return end
-		local Alt = activator:KeyDown(JMod.Config.AltFunctionKey)
+		local Alt = activator:KeyDown(JMod.Config.General.AltFunctionKey)
 
 		if State == STATE_OFF then
 			if Alt then
-				JMod.SetOwner(self, activator)
-				self:EmitSound("snds_jack_gmod/bomb_arm.wav", 60, 120)
+				JMod.SetEZowner(self, activator)
+				self:EmitSound("snds_jack_gmod/bomb_arm.ogg", 60, 120)
 				self:SetState(STATE_ARMED)
 				self.EZlaunchableWeaponArmedTime = CurTime()
 				JMod.Hint(activator, "launch")
@@ -144,9 +145,9 @@ if SERVER then
 				JMod.Hint(activator, "arm")
 			end
 		elseif State == STATE_ARMED then
-			self:EmitSound("snds_jack_gmod/bomb_disarm.wav", 60, 120)
+			self:EmitSound("snds_jack_gmod/bomb_disarm.ogg", 60, 120)
 			self:SetState(STATE_OFF)
-			JMod.SetOwner(self, activator)
+			JMod.SetEZowner(self, activator)
 			self.EZlaunchableWeaponArmedTime = nil
 		end
 	end
@@ -155,13 +156,20 @@ if SERVER then
 		if self.NextDet > CurTime() then return end
 		if self.Exploded then return end
 		self.Exploded = true
-		local SelfPos, Att, Dir = self:GetPos() + Vector(0, 0, 30), self:GetOwner() or game.GetWorld(), -self:GetRight()
+		local SelfPos, Att, Dir = self:GetPos() + Vector(0, 0, 30), JMod.GetEZowner(self), -self:GetRight()
 		JMod.Sploom(Att, SelfPos, 150)
 		---
 		util.ScreenShake(SelfPos, 1000, 3, 2, 1500)
-		self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 100)
+		self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 100)
 		---
-		util.BlastDamage(game.GetWorld(), Att, SelfPos + Vector(0, 0, 50), 200, 200)
+		local BlastDmg = DamageInfo()
+		BlastDmg:SetDamage(300)
+		BlastDmg:SetDamageType(DMG_BLAST)
+		BlastDmg:SetDamageForce(self:GetRight() * 100)
+		BlastDmg:SetDamagePosition(self:GetPos())
+		BlastDmg:SetAttacker(self)
+		BlastDmg:SetInflictor(self)
+		util.BlastDamageInfo(BlastDmg, self:GetPos(), 300)
 
 		for k, ent in pairs(ents.FindInSphere(SelfPos, 200)) do
 			if ent:GetClass() == "npc_helicopter" then
@@ -201,13 +209,14 @@ if SERVER then
 	function ENT:Launch()
 		if self:GetState() ~= STATE_ARMED then return end
 		self:SetState(STATE_LAUNCHED)
+		self.UpLift = Vector(0, 0, GetConVar("sv_gravity"):GetFloat() * 2)
 		local Phys = self:GetPhysicsObject()
 		constraint.RemoveAll(self)
 		Phys:EnableMotion(true)
 		Phys:Wake()
-		Phys:ApplyForceCenter(-self:GetRight() * 20000)
+		Phys:ApplyForceCenter(-self:GetRight() * 20000 + self.UpLift)
 		---
-		self:EmitSound("snds_jack_gmod/rocket_launch.wav", 80, math.random(95, 105))
+		self:EmitSound("snds_jack_gmod/rocket_launch.ogg", 80, math.random(95, 105))
 		local Eff = EffectData()
 		Eff:SetOrigin(self:GetPos())
 		Eff:SetNormal(self:GetRight())
@@ -216,7 +225,7 @@ if SERVER then
 
 		---
 		for i = 1, 4 do
-			util.BlastDamage(self, self:GetOwner() or self, self:GetPos() + self:GetRight() * i * 40, 50, 50)
+			util.BlastDamage(self, JMod.GetEZowner(self), self:GetPos() + self:GetRight() * i * 40, 50, 50)
 		end
 
 		util.ScreenShake(self:GetPos(), 20, 255, .5, 300)
@@ -230,7 +239,7 @@ if SERVER then
 			end
 		end)
 
-		JMod.Hint(self:GetOwner(), "backblast", self:GetPos())
+		JMod.Hint(JMod.GetEZowner(self), "backblast", self:GetPos())
 	end
 
 	function ENT:EZdetonateOverride(detonator)
@@ -248,7 +257,7 @@ if SERVER then
 
 		if self:GetState() == STATE_LAUNCHED then
 			if self.FuelLeft > 0 then
-				Phys:ApplyForceCenter(-self:GetRight() * 20000)
+				Phys:ApplyForceCenter(-self:GetRight() * 20000 + self.UpLift + VectorRand() * 500)
 				self.FuelLeft = self.FuelLeft - 5
 				---
 				local Eff = EffectData()
@@ -274,30 +283,12 @@ elseif CLIENT then
 	end
 
 	function ENT:Think()
-	end
-
-	--
-	local GlowSprite = Material("mat_jack_gmod_glowsprite")
-
-	function ENT:Draw()
-		local Pos, Ang, Dir = self:GetPos(), self:GetAngles(), self:GetRight()
-		Ang:RotateAroundAxis(Ang:Up(), 90)
-		--self:DrawModel()
-		self.Mdl:SetRenderOrigin(Pos + Ang:Up() * 1.5 - Ang:Right() * 0 - Ang:Forward() * 1)
-		self.Mdl:SetRenderAngles(Ang)
-		self.Mdl:DrawModel()
-
+		local Pos, Dir = self:GetPos(), self:GetRight()
+		local Time = CurTime()
 		if self:GetState() == STATE_LAUNCHED then
-			self.BurnoutTime = self.BurnoutTime or CurTime() + 1
+			self.BurnoutTime = self.BurnoutTime or Time + 1
 
-			if self.BurnoutTime > CurTime() then
-				render.SetMaterial(GlowSprite)
-
-				for i = 1, 10 do
-					local Inv = 10 - i
-					render.DrawSprite(Pos + Dir * (i * 10 + math.random(30, 40)), 5 * Inv, 5 * Inv, Color(255, 255 - i * 10, 255 - i * 20, 255))
-				end
-
+			if self.BurnoutTime > Time then
 				local dlight = DynamicLight(self:EntIndex())
 
 				if dlight then
@@ -308,9 +299,41 @@ elseif CLIENT then
 					dlight.brightness = 2
 					dlight.Decay = 200
 					dlight.Size = 400
-					dlight.DieTime = CurTime() + .5
+					dlight.DieTime = Time + .5
 				end
 			end
+		end
+	end
+
+	--
+	local GlowSprite = Material("mat_jack_gmod_glowsprite")
+
+	function ENT:Draw()
+		local Pos, Ang, Dir = self:GetPos(), self:GetAngles(), self:GetRight()
+		local Time = CurTime()
+		Ang:RotateAroundAxis(Ang:Up(), 90)
+		--self:DrawModel()
+		self.Mdl:SetRenderOrigin(Pos + Ang:Up() * 1.5 - Ang:Right() * 0 - Ang:Forward() * 1)
+		self.Mdl:SetRenderAngles(Ang)
+		self.Mdl:DrawModel()
+
+		if self:GetState() == STATE_LAUNCHED then
+			self.BurnoutTime = self.BurnoutTime or Time + 1
+
+			if self.BurnoutTime > Time then
+				render.SetMaterial(GlowSprite)
+
+				for i = 1, 10 do
+					local Inv = 10 - i
+					render.DrawSprite(Pos + Dir * (i * 10 + math.random(30, 40)), 5 * Inv, 5 * Inv, Color(255, 255 - i * 10, 255 - i * 20, 255))
+				end
+			end
+		end
+	end
+
+	function ENT:OnRemove()
+		if self.Mdl then
+			self.Mdl:Remove()
 		end
 	end
 

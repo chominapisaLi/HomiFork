@@ -11,6 +11,7 @@ ENT.SpoonEnt = nil
 ENT.Mass = 20
 ENT.HardThrowStr = 250
 ENT.SoftThrowStr = 125
+ENT.EZinvPrime = false
 
 ENT.Hints = {"arm"}
 
@@ -24,7 +25,7 @@ if SERVER then
 		plunger:SetAngles(self:GetAngles())
 		plunger:Spawn()
 		plunger.Satchel = self
-		plunger.Owner = self:GetOwner()
+		plunger.EZowner = self.EZowner
 		self.Plunger = plunger
 
 		timer.Simple(0, function()
@@ -42,11 +43,12 @@ if SERVER then
 		if iname == "Detonate" and value > 0 then
 			self:Detonate()
 		elseif iname == "Prime" and value > 0 then
-			self:SetState(JMod.EZ_STATE_PRIMED)
+			self:Prime()
 		end
 	end
 
 	function ENT:Prime()
+		if (self:GetState() == JMod.EZ_STATE_ARMED) or (self:GetState() == JMod.EZ_STATE_PRIMED) then return end
 		self:EmitSound("weapons/c4/c4_plant.wav", 60, 80)
 		self:SetState(JMod.EZ_STATE_PRIMED)
 		self.Plunger:SetParent(nil)
@@ -59,19 +61,20 @@ if SERVER then
 	end
 
 	function ENT:Arm()
+		if (self:GetState() == JMod.EZ_STATE_ARMED) then return end
 		--self:EmitSound("buttons/button5.wav",60,150)
 		self:SetState(JMod.EZ_STATE_ARMED)
 	end
 
 	function ENT:Use(activator, activatorAgain, onOff)
 		local Dude = activator or activatorAgain
-		JMod.SetOwner(self, Dude)
+		JMod.SetEZowner(self, Dude)
 		local Time = CurTime()
 
 		if tobool(onOff) then
 			local State = self:GetState()
 			if State < 0 then return end
-			local Alt = Dude:KeyDown(JMod.Config.AltFunctionKey)
+			local Alt = Dude:KeyDown(JMod.Config.General.AltFunctionKey)
 
 			if State == JMod.EZ_STATE_OFF and Alt then
 				self:Prime()
@@ -89,7 +92,7 @@ if SERVER then
 		self.Exploded = true
 
 		if IsValid(self.Plunger) then
-			JMod.SetOwner(self, self.Plunger.Owner)
+			JMod.SetEZowner(self, self.Plunger.EZowner)
 		end
 
 		timer.Simple(0, function()
@@ -110,7 +113,7 @@ if SERVER then
 					sound.Play("BaseExplosionEffect.Sound", SelfPos, 120, math.random(90, 110))
 				end
 
-				self:EmitSound("snd_jack_fragsplodeclose.wav", 90, 100)
+				self:EmitSound("snd_jack_fragsplodeclose.ogg", 90, 100)
 
 				timer.Simple(.1, function()
 					for i = 1, 5 do
@@ -127,7 +130,7 @@ if SERVER then
 
 				timer.Simple(0, function()
 					local ZaWarudo = game.GetWorld()
-					local Infl, Att = (IsValid(self) and self) or ZaWarudo, (IsValid(self) and IsValid(self:GetOwner()) and self:GetOwner()) or (IsValid(self) and self) or ZaWarudo
+					local Infl, Att = (IsValid(self) and self) or ZaWarudo, (IsValid(self) and IsValid(self.EZowner) and self.EZowner) or (IsValid(self) and self) or ZaWarudo
 					util.BlastDamage(Infl, Att, SelfPos, 100 * PowerMult, 160 * PowerMult)
 					self:Remove()
 				end)

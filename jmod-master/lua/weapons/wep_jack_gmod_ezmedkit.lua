@@ -30,8 +30,8 @@ SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = true
 SWEP.Secondary.Ammo = "none"
-SWEP.EZaccepts = {JMod.EZ_RESOURCE_TYPES.MEDICALSUPPLIES}
-SWEP.EZmaxSupplies = 100
+SWEP.EZconsumes = {JMod.EZ_RESOURCE_TYPES.MEDICALSUPPLIES}
+SWEP.MaxSupplies = 100
 SWEP.ShowWorldModel = false
 
 SWEP.VElements = {
@@ -271,7 +271,7 @@ function SWEP:Initialize()
 	self:SCKInitialize()
 	self.NextIdle = 0
 	self:Deploy()
-	self:SetSupplies(self.EZmaxSupplies)
+	self:SetSupplies(self.MaxSupplies)
 end
 
 function SWEP:PreDrawViewModel(vm, wep, ply)
@@ -291,7 +291,7 @@ local Downness = 0
 function SWEP:GetViewModelPosition(pos, ang)
 	local FT = FrameTime()
 
-	if self:GetOwner():KeyDown(IN_SPEED) or self:GetOwner():KeyDown(IN_ATTACK2) then
+	if self.Owner:KeyDown(IN_SPEED) or self.Owner:KeyDown(IN_ATTACK2) then
 		Downness = Lerp(FT * 2, Downness, 10)
 	else
 		Downness = Lerp(FT * 2, Downness, 0)
@@ -307,12 +307,35 @@ function SWEP:SetupDataTables()
 end
 
 function SWEP:UpdateNextIdle()
-	local vm = self:GetOwner():GetViewModel()
+	local vm = self.Owner:GetViewModel()
 	self.NextIdle = CurTime() + vm:SequenceDuration()
 end
 
+function SWEP:GetEZsupplies(resourceType)
+	local AvailableResources = {
+		[JMod.EZ_RESOURCE_TYPES.MEDICALSUPPLIES] = math.floor(self:GetSupplies()),
+	}
+	if resourceType then
+		if AvailableResources[resourceType] and AvailableResources[resourceType] > 0 then
+			return AvailableResources[resourceType]
+		else
+			return nil
+		end
+	else
+		return AvailableResources
+	end
+end
+
+function SWEP:SetEZsupplies(typ, amt, setter)
+	if not SERVER then  return end
+	local ResourceSetMethod = self["Set"..JMod.EZ_RESOURCE_TYPE_METHODS[typ]]
+	if ResourceSetMethod then
+		ResourceSetMethod(self, amt)
+	end
+end
+
 function SWEP:PrimaryAttack()
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self.Owner:KeyDown(IN_SPEED) then return end
 	if self:GetSupplies() <= 0 then return end
 	self:Pawnch()
 	self:SetNextPrimaryFire(CurTime() + .65)
@@ -320,13 +343,13 @@ function SWEP:PrimaryAttack()
 
 	if SERVER then
 		local Ent, Pos, Norm = self:WhomIlookinAt()
-		local AimVec = self:GetOwner():GetAimVector()
+		local AimVec = self.Owner:GetAimVector()
 
 		if IsValid(Ent) then
 			local Hit = false
 
 			if Ent:IsPlayer() then
-				local override = hook.Run("JMod_MedkitHeal", self:GetOwner(), self:GetOwner(), selfg)
+				local override = hook.Run("JMod_MedkitHeal", self.Owner, self.Owner, self)
 				if override == false then return end
 				local healAmt = isnumber(override) and override or 3
 				local Helf, Max = Ent:Health(), Ent:GetMaxHealth()
@@ -340,7 +363,7 @@ function SWEP:PrimaryAttack()
 
 				if Ent.EZbleeding > 0 then
 					Ent:PrintMessage(HUD_PRINTCENTER, "stopping bleeding")
-					Ent.EZbleeding = math.Clamp(Ent.EZbleeding - JMod.Config.MedKitHealMult * 5, 0, 9e9)
+					Ent.EZbleeding = math.Clamp(Ent.EZbleeding - JMod.Config.Tools.Medkit.HealMult * 5, 0, 9e9)
 					self:SetSupplies(math.Clamp(self:GetSupplies() - 1, 0, 100))
 					Ent:ViewPunch(Angle(math.Rand(-2, 2), math.Rand(-2, 2), math.Rand(-2, 2)))
 					self:HealEffect(Ent)
@@ -349,20 +372,20 @@ function SWEP:PrimaryAttack()
 					return
 				end
 
-				local AddAmt = math.min(Missing, healAmt * JMod.Config.MedKitHealMult)
+				local AddAmt = math.min(Missing, healAmt * JMod.Config.Tools.Medkit.HealMult)
 				self:SetSupplies(math.Clamp(self:GetSupplies() - 1, 0, 100))
 				Ent.EZhealth = Ent.EZhealth + AddAmt
-				self:GetOwner():PrintMessage(HUD_PRINTCENTER, "treatment " .. Ent.EZhealth + Helf .. "/" .. Max)
+				self.Owner:PrintMessage(HUD_PRINTCENTER, "treatment " .. Ent.EZhealth + Helf .. "/" .. Max)
 				Ent:ViewPunch(Angle(math.Rand(-2, 2), math.Rand(-2, 2), math.Rand(-2, 2)))
 				Hit = true
 
 				if Ent.EZvirus and Ent.EZvirus.Severity > 1 then
 					Ent:PrintMessage(HUD_PRINTCENTER, "boosting immune system")
-					Ent.EZvirus.Severity = math.Clamp(Ent.EZvirus.Severity - JMod.Config.MedKitHealMult * 2, 1, 9e9)
+					Ent.EZvirus.Severity = math.Clamp(Ent.EZvirus.Severity - JMod.Config.Tools.Medkit.HealMult * 2, 1, 9e9)
 					self:SetSupplies(math.Clamp(self:GetSupplies() - 1, 0, 100))
 				end
 			elseif Ent:IsNPC() and Ent.Health and Ent:Health() and tonumber(Ent:Health()) then
-				local override = hook.Run("JMod_MedkitHeal", self:GetOwner(), self:GetOwner(), selfg)
+				local override = hook.Run("JMod_MedkitHeal", self.Owner, self.Owner, self)
 				if override == false then return end
 				local healAmt = isnumber(override) and override or 3
 				local Helf, Max = Ent:Health(), Ent:GetMaxHealth()
@@ -375,14 +398,14 @@ function SWEP:PrimaryAttack()
 				end
 
 				if Ent.EZvirus and Ent.EZvirus.Severity > 1 then
-					Ent.EZvirus.Severity = math.Clamp(Ent.EZvirus.Severity - JMod.Config.MedKitHealMult * 2, 1, 9e9)
+					Ent.EZvirus.Severity = math.Clamp(Ent.EZvirus.Severity - JMod.Config.Tools.Medkit.HealMult * 2, 1, 9e9)
 					self:SetSupplies(math.Clamp(self:GetSupplies() - 1, 0, 100))
 				end
 
-				local AddAmt = math.min(Missing, healAmt * JMod.Config.MedKitHealMult)
+				local AddAmt = math.min(Missing, healAmt * JMod.Config.Tools.Medkit.HealMult)
 				self:SetSupplies(math.Clamp(self:GetSupplies() - 1, 0, 100))
 				Ent:SetHealth(Helf + AddAmt)
-				self:GetOwner():PrintMessage(HUD_PRINTCENTER, "health " .. Ent:Health() .. "/" .. Max)
+				self.Owner:PrintMessage(HUD_PRINTCENTER, "health " .. Ent:Health() .. "/" .. Max)
 				Hit = true
 			end
 
@@ -397,8 +420,8 @@ end
 local Anims = {"fists_right", "fists_right", "fists_left", "fists_left"}
 
 function SWEP:Pawnch()
-	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
-	local vm = self:GetOwner():GetViewModel()
+	self.Owner:SetAnimation(PLAYER_ATTACK1)
+	local vm = self.Owner:GetViewModel()
 	vm:SendViewModelMatchingSequence(vm:LookupSequence(table.Random(Anims)))
 	self:UpdateNextIdle()
 end
@@ -414,7 +437,7 @@ function SWEP:FlingProp(mdl, pos, force)
 	Prop:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
 	constraint.NoCollide(Prop, self, 0, 0)
 	local Phys = Prop:GetPhysicsObject()
-	Phys:SetMaterial("gmod_silent")
+	Phys:SetMaterial("Default_silent")
 	Phys:SetVelocity(VectorRand() * math.Rand(1, 300) + self:GetUp() * 100)
 	Phys:AddAngleVelocity(VectorRand() * math.Rand(1, 10000))
 
@@ -426,26 +449,47 @@ function SWEP:FlingProp(mdl, pos, force)
 end
 
 function SWEP:Reload()
+	--
+end
+
+function SWEP:TryLoadResource(typ, amt)
+	if amt < 1 then return 0 end
+	local Accepted = 0
+
+	for _, v in pairs(self.EZconsumes) do
+		if typ == v then
+			local CurAmt = self:GetEZsupplies(typ) or 0
+			local Take = math.min(amt, self.MaxSupplies - CurAmt)
+			
+			if Take > 0 then
+				self:SetEZsupplies(typ, CurAmt + Take)
+				sound.Play("snds_jack_gmod/gas_load.ogg", self:GetPos(), 65, math.random(90, 110))
+				Accepted = Take
+			end
+		end
+	end
+
+	return Accepted
 end
 
 --
 function SWEP:WhomIlookinAt()
-	local Tr = util.QuickTrace(self:GetOwner():GetShootPos(), self:GetOwner():GetAimVector() * 55, {self:GetOwner()})
+	local Tr = util.QuickTrace(self.Owner:GetShootPos(), self.Owner:GetAimVector() * 55, {self.Owner})
 
 	return Tr.Entity, Tr.HitPos, Tr.HitNormal
 end
 
 function SWEP:SecondaryAttack()
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self.Owner:KeyDown(IN_SPEED) then return end
 	if self:GetSupplies() <= 0 then return end
 
 	if SERVER then
 		self:SetNextPrimaryFire(CurTime() + .65)
 		self:SetNextSecondaryFire(CurTime() + .85)
-		local Ent = self:GetOwner()
+		local Ent = self.Owner
 		local AimVec = Ent:GetAimVector()
 		local Pos = Ent:GetShootPos() - Vector(0, 0, 10) + AimVec * 5
-		local override = hook.Run("JMod_MedkitHeal", self:GetOwner(), self:GetOwner(), selfg)
+		local override = hook.Run("JMod_MedkitHeal", self.Owner, self.Owner, self)
 		if override == false then return end
 		local healAmt = isnumber(override) and override or 2
 		local Helf, Max = Ent:Health(), Ent:GetMaxHealth()
@@ -459,7 +503,7 @@ function SWEP:SecondaryAttack()
 
 		if Ent.EZbleeding > 0 then
 			Ent:PrintMessage(HUD_PRINTCENTER, "stopping bleeding")
-			Ent.EZbleeding = math.Clamp(Ent.EZbleeding - JMod.Config.MedKitHealMult * 5, 0, 9e9)
+			Ent.EZbleeding = math.Clamp(Ent.EZbleeding - JMod.Config.Tools.Medkit.HealMult * 5, 0, 9e9)
 			self:SetSupplies(math.Clamp(self:GetSupplies() - 1, 0, 100))
 			Ent:ViewPunch(Angle(math.Rand(-2, 2), math.Rand(-2, 2), math.Rand(-2, 2)))
 			self:HealEffect(Ent)
@@ -471,12 +515,12 @@ function SWEP:SecondaryAttack()
 		local AddAmt = math.min(Missing, healAmt)
 		self:SetSupplies(math.Clamp(self:GetSupplies() - 1, 0, 100))
 		Ent.EZhealth = Ent.EZhealth + AddAmt
-		self:GetOwner():PrintMessage(HUD_PRINTCENTER, "treatment " .. Ent.EZhealth + Helf .. "/" .. Max)
+		self.Owner:PrintMessage(HUD_PRINTCENTER, "treatment " .. Ent.EZhealth + Helf .. "/" .. Max)
 		self:HealEffect(Ent)
 
 		if Ent.EZvirus and Ent.EZvirus.Severity > 1 then
 			Ent:PrintMessage(HUD_PRINTCENTER, "boosting immune system")
-			Ent.EZvirus.Severity = math.Clamp(Ent.EZvirus.Severity - JMod.Config.MedKitHealMult * 2, 1, 9e9)
+			Ent.EZvirus.Severity = math.Clamp(Ent.EZvirus.Severity - JMod.Config.Tools.Medkit.HealMult * 2, 1, 9e9)
 			self:SetSupplies(math.Clamp(self:GetSupplies() - 1, 0, 100))
 		end
 	end
@@ -488,7 +532,7 @@ function SWEP:OnDrop()
 	Kit:SetAngles(self:GetAngles())
 	Kit:Spawn()
 	Kit:Activate()
-	Kit.Supplies = self:GetSupplies()
+	Kit:SetSupplies(self:GetSupplies())
 	local Phys = Kit:GetPhysicsObject()
 
 	if Phys then
@@ -506,8 +550,8 @@ function SWEP:HealEffect(Ent)
 		Ent:ViewPunch(Angle(math.Rand(-2, 2), math.Rand(-2, 2), math.Rand(-2, 2)))
 	end
 
-	sound.Play("snds_jack_gmod/ez_medical/hit.wav", Pos + Vector(0, 0, 1), 60, math.random(90, 110))
-	sound.Play("snds_jack_gmod/ez_medical/" .. math.random(1, 27) .. ".wav", Pos, 60, math.random(90, 110))
+	sound.Play("snds_jack_gmod/ez_medical/hit.ogg", Pos + Vector(0, 0, 1), 60, math.random(90, 110))
+	sound.Play("snds_jack_gmod/ez_medical/" .. math.random(1, 27) .. ".ogg", Pos, 60, math.random(90, 110))
 
 	if math.random(1, 2) == 1 then
 		local EffPos = Pos + VectorRand() * 3 - AimVec * 3
@@ -542,8 +586,8 @@ end
 function SWEP:OnRemove()
 	self:SCKHolster()
 
-	if IsValid(self:GetOwner()) and CLIENT and self:GetOwner():IsPlayer() then
-		local vm = self:GetOwner():GetViewModel()
+	if IsValid(self.Owner) and CLIENT and self.Owner:IsPlayer() then
+		local vm = self.Owner:GetViewModel()
 
 		if IsValid(vm) then
 			vm:SetMaterial("")
@@ -576,8 +620,8 @@ function SWEP:Holster(wep)
 	-- Not calling OnRemove to keep the models
 	self:SCKHolster()
 
-	if IsValid(self:GetOwner()) and CLIENT and self:GetOwner():IsPlayer() then
-		local vm = self:GetOwner():GetViewModel()
+	if IsValid(self.Owner) and CLIENT and self.Owner:IsPlayer() then
+		local vm = self.Owner:GetViewModel()
 
 		if IsValid(vm) then
 			vm:SetMaterial("")
@@ -588,13 +632,13 @@ function SWEP:Holster(wep)
 end
 
 function SWEP:Deploy()
-	if not IsValid(self:GetOwner()) then return end
-	local vm = self:GetOwner():GetViewModel()
+	if not IsValid(self.Owner) then return end
+	local vm = self.Owner:GetViewModel()
 
 	if IsValid(vm) then
 		vm:SendViewModelMatchingSequence(vm:LookupSequence("fists_draw"))
 		self:UpdateNextIdle()
-		self:EmitSound("snds_jack_gmod/toolbox" .. math.random(1, 7) .. ".wav", 65, math.random(90, 110))
+		self:EmitSound("snds_jack_gmod/toolbox" .. math.random(1, 7) .. ".ogg", 65, math.random(90, 110))
 	end
 
 	self:SetNextPrimaryFire(CurTime() + 1)
@@ -605,7 +649,7 @@ end
 
 function SWEP:Think()
 	local Time = CurTime()
-	local vm = self:GetOwner():GetViewModel()
+	local vm = self.Owner:GetViewModel()
 	local idletime = self.NextIdle
 
 	if idletime > 0 and Time > idletime then
@@ -613,13 +657,13 @@ function SWEP:Think()
 		self:UpdateNextIdle()
 	end
 
-	local RightClickin = self:GetOwner():KeyDown(IN_ATTACK2)
+	local RightClickin = self.Owner:KeyDown(IN_ATTACK2)
 
 	if not RightClickin then
 		self:SetNextSecondaryFire(CurTime() + .5)
 	end
 
-	if self:GetOwner():KeyDown(IN_SPEED) then
+	if self.Owner:KeyDown(IN_SPEED) then
 		self:SetHoldType("normal")
 	elseif RightClickin then
 		self:SetHoldType("passive")
@@ -630,7 +674,7 @@ end
 
 function SWEP:DrawHUD()
 	if GetConVar("cl_drawhud"):GetBool() == false then return end
-	if self:GetOwner():ShouldDrawLocalPlayer() then return end
+	if self.Owner:ShouldDrawLocalPlayer() then return end
 	local W, H, Supplies = ScrW(), ScrH(), self:GetSupplies()
 	draw.SimpleTextOutlined("Supplies: " .. Supplies, "Trebuchet24", W * .4, H * .7, Color(255, 255, 255, 200), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, 50))
 	draw.SimpleTextOutlined("LMB: heal target", "Trebuchet24", W * .4, H * .7 + 30, Color(255, 255, 255, 50), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP, 3, Color(0, 0, 0, 50))
@@ -641,8 +685,8 @@ end
 
 ----------------- shit -------------------
 function SWEP:SCKHolster()
-	if CLIENT and IsValid(self:GetOwner()) then
-		local vm = self:GetOwner():GetViewModel()
+	if CLIENT and IsValid(self.Owner) then
+		local vm = self.Owner:GetViewModel()
 
 		if IsValid(vm) then
 			self:ResetBonePositions(vm)
@@ -660,8 +704,8 @@ function SWEP:SCKInitialize()
 		self:CreateModels(self.WElements) -- create worldmodels
 
 		-- init view model bone build function
-		if IsValid(self:GetOwner()) then
-			local vm = self:GetOwner():GetViewModel()
+		if IsValid(self.Owner) then
+			local vm = self.Owner:GetViewModel()
 
 			if IsValid(vm) then
 				self:ResetBonePositions(vm)
@@ -687,7 +731,7 @@ if CLIENT then
 	SWEP.vRenderOrder = nil
 
 	function SWEP:SCKViewModelDrawn()
-		local vm = self:GetOwner():GetViewModel()
+		local vm = self.Owner:GetViewModel()
 		if not IsValid(vm) then return end
 		if not self.VElements then return end
 		self:UpdateBonePositions(vm)
@@ -799,8 +843,10 @@ if CLIENT then
 			end
 		end
 
-		if IsValid(self:GetOwner()) then
-			bone_ent = self:GetOwner()
+		local bone_ent
+
+		if IsValid(self.Owner) then
+			bone_ent = self.Owner
 		else
 			-- when the weapon is dropped
 			bone_ent = self
@@ -909,7 +955,7 @@ if CLIENT then
 				pos, ang = m:GetTranslation(), m:GetAngles()
 			end
 
-			if IsValid(self:GetOwner()) and self:GetOwner():IsPlayer() and ent == self:GetOwner():GetViewModel() and self.ViewModelFlip then
+			if IsValid(self.Owner) and self.Owner:IsPlayer() and ent == self.Owner:GetViewModel() and self.ViewModelFlip then
 				ang.r = -ang.r -- Fixes mirrored models
 			end
 		end

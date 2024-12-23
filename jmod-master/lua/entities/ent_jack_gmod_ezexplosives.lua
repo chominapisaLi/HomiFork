@@ -17,12 +17,14 @@ ENT.ImpactNoise1 = "Wood_Box.ImpactHard"
 ENT.ImpactNoise2 = "Weapon.ImpactSoft"
 ENT.DamageThreshold = 120
 ENT.BreakNoise = "Wood_Box.Break"
+ENT.Explosive = 1
+ENT.Cookoff = true
 
 ---
 if SERVER then
 	function ENT:UseEffect(pos, ent, bad)
 		if bad and (math.random(1, 3) == 2) then
-			JMod.Sploom(self:GetOwner(), self:GetPos() + VectorRand() * math.random(0, 300), math.random(50, 130))
+			JMod.Sploom(self.EZowner, self:GetPos() + VectorRand() * math.random(0, 300), math.random(50, 130))
 		end
 	end
 elseif CLIENT then
@@ -34,5 +36,5 @@ elseif CLIENT then
 		end)
 	end
 
-	language.Add(ENT.ClassName, ENT.PrintName)
+	--language.Add(ENT.ClassName, ENT.PrintName)
 end

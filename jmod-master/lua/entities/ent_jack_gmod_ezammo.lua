@@ -8,23 +8,25 @@ ENT.Spawnable = true
 ENT.AdminSpawnable = true
 ---
 ENT.EZsupplies = JMod.EZ_RESOURCE_TYPES.AMMO
-ENT.JModPreferredCarryAngles = Angle(0, -90, 90)
-ENT.Model = "models/hunter/blocks/cube05x075x025.mdl"
+ENT.JModPreferredCarryAngles = Angle(0, 180, 0)
+ENT.Model = "models/jmod/items/BoxJRounds.mdl"
 ENT.Material = "models/mat_jack_gmod_ezammobox"
-ENT.ModelScale = 0.6
+ENT.ModelScale = 1
 ENT.Mass = 50
 ENT.ImpactNoise1 = "Metal_Box.ImpactHard"
 ENT.ImpactNoise2 = "Weapon.ImpactSoft"
 ENT.DamageThreshold = 120
 ENT.BreakNoise = "Metal_Box.Break"
 ENT.Hint = "ammobox"
+ENT.Cookoff = true
+ENT.IsBoolet = 1
 
 ---
 local ShellEffects = {"RifleShellEject", "PistolShellEject", "ShotgunShellEject"}
 
 if SERVER then
-	function ENT:UseEffect(pos, ent)
-		for i = 1, 30 * JMod.Config.SupplyEffectMult do
+	function ENT:UseEffect(pos, ent, destructive)
+		for i = 1, 30 * JMod.Config.Machines.SupplyEffectMult do
 			timer.Simple(i / 200, function()
 				local Eff = EffectData()
 				Eff:SetOrigin(pos)
@@ -39,11 +41,12 @@ if SERVER then
 		JMod.GiveAmmo(ply, self)
 	end
 elseif CLIENT then
+    local drawvec, drawang = Vector(1, 5, 9), Angle(-90, 0, 90)
 	function ENT:Draw()
 		self:DrawModel()
 
-		JMod.HoloGraphicDisplay(self, Vector(0, 0, 4.2), Angle(0, 0, 0), .03, 300, function()
-			JMod.StandardResourceDisplay(JMod.EZ_RESOURCE_TYPES.AMMO, self:GetResource(), nil, 0, 0, 250, true)
+		JMod.HoloGraphicDisplay(self, drawvec, drawang, .04, 300, function()
+			JMod.StandardResourceDisplay(JMod.EZ_RESOURCE_TYPES.AMMO, self:GetResource(), nil, 0, 0, 200, false)
 		end)
 	end
 
