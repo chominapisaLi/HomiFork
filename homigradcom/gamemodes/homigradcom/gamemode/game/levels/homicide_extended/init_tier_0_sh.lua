@@ -27,6 +27,7 @@ homicide_extended.HUDPaint_RoundFelt = false
 homicide_extended.HUDPaint_RoundText = 'Полиция в пути' 
 homicide_extended.BloodShed_Text = '' 
 local playsound = false
+<<<<<<< Updated upstream
 local turnTable = {
     [1] = "Standart",
     [2] = "Murder in your zone",
@@ -41,10 +42,29 @@ else
         local roundType = turnTable[homicide_extended.roundType] -- Convert numeric type to string description
 
         homicide_extended.BloodShed_Text = roundType -- Set the blood shed text
+=======
+if SERVER then
+    util.AddNetworkString("roundType_extended")
+else
+    net.Receive("roundType_extended",function(len)
+        homicide_extended.roundType = net.ReadInt(4)
+>>>>>>> Stashed changes
         playsound = true
     end)
 end
 
+<<<<<<< Updated upstream
+=======
+local turnTable = {
+    [1] = "Стандартный",
+    [2] = "Убийца в вашей зоне",
+    [3] = "Активный стрелок"
+}
+
+if SERVER then
+    util.AddNetworkString("roundType_extended")
+end
+>>>>>>> Stashed changes
 
 local homicide_extended_setmode = CreateConVar("homicide_extended_setmode","",FCVAR_LUA_SERVER,"")
 
@@ -66,6 +86,7 @@ end
 function homicide_extended.StartRound(data)
     team.SetColor(1,homicide_extended.red[2])
 
+<<<<<<< Updated upstream
     game.CleanUpMap(false)
 
     if SERVER then
@@ -87,6 +108,19 @@ function homicide_extended.StartRound(data)
         end
         
     end
+=======
+    if SERVER then
+
+        homicide_extended.roundType = math.random(1,3)
+        --soe, standard, gun-free-zone, wild west
+        --print(homicide_setmode:GetString(),homicide.roundType)
+        net.Start("roundType_extended")
+        net.WriteInt(homicide_extended.roundType,4)
+        net.Broadcast()
+    end
+    game.CleanUpMap(false)
+    --roundType_extended
+>>>>>>> Stashed changes
 
     if CLIENT then
         for i,ply in pairs(player.GetAll()) do
@@ -148,6 +182,7 @@ local roundTypes = {"Standard", "A Serial Killer in your zone", "Active Shooter"
 local roundSound = {"snd_jack_hmcd_disaster.mp3","snd_jack_hmcd_shining.mp3","snd_jack_hmcd_panic.mp3","snd_jack_hmcd_wildwest.mp3"}
 homicide_extended.HUDPaint_BloodShed = true
 function homicide_extended.HUDPaint_RoundLeft(white2)
+<<<<<<< Updated upstream
     if SERVER then
         util.AddNetworkString("roundType")
     else
@@ -158,6 +193,9 @@ function homicide_extended.HUDPaint_RoundLeft(white2)
             playsound = true
         end)
     end
+=======
+
+>>>>>>> Stashed changes
     local lply = LocalPlayer()
     local name,color = homicide_extended.GetTeamName(lply)
 
@@ -169,16 +207,23 @@ function homicide_extended.HUDPaint_RoundLeft(white2)
         end
         lply:ScreenFade(SCREENFADE.IN,Color(0,0,0,175),0.5,0.5)
 
+<<<<<<< Updated upstream
 
         --[[surface.SetFont("HomigradFontBig")
         surface.SetTextColor(color.r,color.g,color.b,math.Clamp(startRound - 0.5,0,1) * 255)
         surface.SetTextPos(ScrW() / 2 - 40,ScrH() / 2)
 
         surface.DrawText("Вы " .. name)]]--
+=======
+        -- yay!! я пофиксил!!
+        draw.DrawText( turnTable[homicide_extended.roundType], "HomigradFontBig", ScrW() / 2, ScrH() / 5, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+
+>>>>>>> Stashed changes
         if lply.roleCT then
             name = name.."(Агент ФБР)"
         end
         draw.DrawText( "Вы " .. name, "HomigradFontBig", ScrW() / 2, ScrH() / 2, Color( color.r,color.g,color.b,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+<<<<<<< Updated upstream
         draw.DrawText( "Хомисайд Экстендед ", "HomigradFontBig", ScrW() / 2, ScrH() / 8, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         --draw.DrawText( LocalPlayer().roundType, "HomigradFontBig", ScrW() / 2, ScrH() / 5, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
         print(roundType)
@@ -190,13 +235,33 @@ function homicide_extended.HUDPaint_RoundLeft(white2)
                 draw.DrawText( "Вы скрытый агент ФБР у вас есть скрытое огнестрельное оружие\nНейтрализуйте стрелка до приезда полиции.", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
             elseif homicide_extended.roundType == 3 then
                 draw.DrawText( "Вы скрытый агент ФБР у вас есть скрытое огнестрельное оружие\nНейтрализуйте стрелка до приезда полиции.", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER ) 
+=======
+        draw.DrawText( "Хомисайд Экстендед ", "HomigradFontBiggest", ScrW() / 2, ScrH() / 8, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+        --draw.DrawText( LocalPlayer().roundType, "HomigradFontBig", ScrW() / 2, ScrH() / 5, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+        local roundType_extended = homicide_extended.roundType
+
+        --lply:ChatPrint(homicide_extended.roundType)
+        if lply.roleT then
+            draw.DrawText( "Ваша задача убить всех до прибытия полиции", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 155,55,55,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+        elseif lply.roleCT then
+            if roundType_extended == 3 then 
+                draw.DrawText( "Вы скрытый агент ФБР у вас есть скрытое огнестрельное оружие\nНейтрализуйте стрелка до приезда полиции.", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
+            elseif roundType_extended == 2 then
+                draw.DrawText( "Вы скрытый агент ФБР у вас есть скрытое огнестрельное оружие\nНейтрализуйте серийного убийцу до приезда полиции.", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER ) 
+>>>>>>> Stashed changes
             else
                 draw.DrawText( "Вы скрытый агент ФБР у вас есть скрытое огнестрельное оружие\nпостарайтесь нейтрализовать предателя.", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,155,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )
             end
         else
+<<<<<<< Updated upstream
             if homicide_extended.roundType == 2 then
                 draw.DrawText( "В вашей зоне замечен стрелок. Спрячьтесь где либо.\nЛибо попытайтесь отбиваться если вас заметили.", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,55,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )    
             elseif homicide_extended.roundType == 3 then
+=======
+            if roundType_extended == 3 then
+                draw.DrawText( "В вашей зоне замечен стрелок. Спрячьтесь где либо.\nЛибо попытайтесь отбиваться если вас заметили.", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,55,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )    
+            elseif roundType_extended == 2 then
+>>>>>>> Stashed changes
                 draw.DrawText( "В вашей зоне замечен серийный маньяк. Спрячьтесь где либо.\nЛибо попытайтесь отбиваться если вас заметили.", "HomigradFontBig", ScrW() / 2, ScrH() / 1.2, Color( 55,55,55,math.Clamp(startRound - 0.5,0,1) * 255 ), TEXT_ALIGN_CENTER )    
 
             else

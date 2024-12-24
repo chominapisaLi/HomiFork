@@ -13,6 +13,16 @@ surface.CreateFont("HomigradScoreBoardFont",{
 	outline = true,
 	shadow = false
 })
+<<<<<<< Updated upstream
+=======
+surface.CreateFont("HomigradFontBiggest",{
+	font = "Roboto",
+	size = 45,
+	weight = 1100,
+	outline = false,
+	shadow = true
+})
+>>>>>>> Stashed changes
 surface.CreateFont("HomigradFontBig",{
 	font = "Roboto",
 	size = 25,
@@ -230,8 +240,7 @@ local laserweps = {
 	["weapon_mp7"] = true,
 	["weapon_p220"] = true,
 	["weapon_galil"] = true,
-	["weapon_deagle"] = true,
-	["weapon_deagle_csgo"] = true,
+
 	["weapon_beanbag"] = true,
 	["weapon_glock"] = true
 }

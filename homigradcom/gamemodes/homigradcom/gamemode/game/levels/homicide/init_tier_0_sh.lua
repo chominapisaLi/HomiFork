@@ -27,20 +27,20 @@ homicide.HUDPaint_RoundFelt = true
 homicide.HUDPaint_RoundText = 'До приезда полиции: ' 
 local playsound = false
 if SERVER then
-    util.AddNetworkString("roundType")
+    util.AddNetworkString("roundType_hmcd")
 else
-    net.Receive("roundType",function(len)
+    net.Receive("roundType_hmcd",function(len)
         homicide.roundType = net.ReadInt(4)
         playsound = true
     end)
 end
 
---[[local turnTable = {
+local turnTable = {
     ["standard"] = 2,
     ["soe"] = 1,
     ["wild-west"] = 4,
     ["gun-free-zone"] = 3
-}--]]
+}
 
 local homicide_setmode = CreateConVar("homicide_setmode","",FCVAR_LUA_SERVER,"")
 
@@ -67,10 +67,10 @@ function homicide.StartRound(data)
     if SERVER then
         local roundType = homicide_setmode:GetInt() == 1 and 1 or (homicide.IsMapBig() and 1) or false
 
-        homicide.roundType = roundType or math.random(2,4)
+        homicide.roundType = math.random(2,4)
         --soe, standard, gun-free-zone, wild west
         --print(homicide_setmode:GetString(),homicide.roundType)
-        net.Start("roundType")
+        net.Start("roundType_hmcd")
         net.WriteInt(homicide.roundType,4)
         net.Broadcast()
     end
@@ -133,7 +133,8 @@ local roundTypes = {"State of Emergency", "Standard", "Gun-Free-Zone", "Wild Wes
 local roundSound = {"snd_jack_hmcd_disaster.mp3","snd_jack_hmcd_shining.mp3","snd_jack_hmcd_panic.mp3","snd_jack_hmcd_wildwest.mp3"}
 
 function homicide.HUDPaint_RoundLeft(white2)
-    local roundType = homicide.roundType or 2
+    local roundType = homicide.roundType 
+    print(roundtype)
     local lply = LocalPlayer()
     local name,color = homicide.GetTeamName(lply)
 

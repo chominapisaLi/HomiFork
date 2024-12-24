@@ -71,6 +71,7 @@ local prekol = {
 net.Receive("inventory",function(len,ply)
 	local lootEnt = net.ReadEntity()
 	if not IsValid(lootEnt) then return end
+    if lootEnt.fake == nil then return end 
 	if lootEnt:IsPlayer() then
 		lootEnt.UsersInventory[ply] = nil
 	end
@@ -81,7 +82,7 @@ end)
 net.Receive("ply_take_item", function(len, ply)
     local lootEnt = net.ReadEntity()
     if not IsValid(lootEnt) then return end
-
+    if lootEnt.fake == nil then return end 
     local wep = net.ReadString()
     local lootInfo = lootEnt.Info or {Weapons = {[wep] = true}, Ammo = {}}
 
@@ -100,7 +101,7 @@ net.Receive("ply_take_item", function(len, ply)
     end
 
     -- Подсчет патронов
-    for _, ammoType in pairs(lootInfo.Ammo) do
+    for _, ammoType in pairs(ply:GetAmmo()) do
         currentAmmoCount = currentAmmoCount + ammoType  -- Предполагается, что ammoType это количество патронов
     end
 
@@ -186,6 +187,7 @@ net.Receive("ply_take_ammo",function(len,ply)
 
 	local lootEnt = net.ReadEntity()
 	if not IsValid(lootEnt) then return end
+    if lootEnt.fake == nil then return end 
 	local ammo = net.ReadFloat()
 	local lootInfo = lootEnt.Info
 	if not lootInfo.Ammo[ammo] then return end

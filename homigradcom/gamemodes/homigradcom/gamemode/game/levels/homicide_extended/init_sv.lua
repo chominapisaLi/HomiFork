@@ -136,7 +136,11 @@ function homicide_extended.StartRoundSV()
     if SERVER then
         if math.random(1,10)>= 5 then
             homicide_extended.roundType = math.random(1,3)
+<<<<<<< Updated upstream
             net.Start("roundType")
+=======
+            net.Start("roundType_extended")
+>>>>>>> Stashed changes
             net.WriteInt(homicide_extended.roundType,4)
             net.Broadcast()
             PrintMessage(3,"Тип раунда: "..turnTable[homicide_extended.roundType])
@@ -144,7 +148,11 @@ function homicide_extended.StartRoundSV()
         else
 
             homicide_extended.roundType = 1
+<<<<<<< Updated upstream
             net.Start("roundType")
+=======
+            net.Start("roundType_extended")
+>>>>>>> Stashed changes
             net.WriteInt(homicide_extended.roundType,4)
             net.Broadcast()
         

@@ -163,20 +163,33 @@ sound.Add({
 })
 -- Configuration
 local config = {
+<<<<<<< Updated upstream
     maxWeapons = 20, -- Maximum number of weapons to spawn
     spawnChance = 0.7, -- Chance for a spawn point to receive a weapon (0-1)
+=======
+    maxWeapons = 16, 
+    spawnChance = 0.2, 
+>>>>>>> Stashed changes
 }
 
 
 
 local function GetSpawnPoints()
     local spawnPoints = {}
+<<<<<<< Updated upstream
     -- Get all spawn entities
     local spawns = ents.FindByClass("info_player_deathmatch")
     table.Add(spawns, ents.FindByClass("info_player_start"))
     table.Add(spawns, ents.FindByClass("ttt_random_weapon"))
     
     -- Convert to positions
+=======
+
+    local spawns = ents.FindByClass("info_player_deathmatch")
+    table.Add(spawns, ents.FindByClass("info_player_start"))
+    table.Add(spawns, ents.FindByClass("ttt_random_weapon"))
+
+>>>>>>> Stashed changes
     for _, spawn in ipairs(spawns) do
         if IsValid(spawn) then
             table.insert(spawnPoints, spawn:GetPos())
@@ -193,31 +206,51 @@ function SpawnTTTWeapons()
         print("[TTT] No valid spawn points found!")
         return
     end
+<<<<<<< Updated upstream
     
     -- Shuffle spawn points
+=======
+
+>>>>>>> Stashed changes
     table.Shuffle(spawnPoints)
     
     local weaponsSpawned = 0
     
     for _, pos in ipairs(spawnPoints) do
+<<<<<<< Updated upstream
         -- Check if we've reached the maximum weapons
         if weaponsSpawned >= config.maxWeapons then
             break
         end
         
         -- Random chance to skip this spawn point
+=======
+
+        if weaponsSpawned >= config.maxWeapons then
+            break
+        end
+
+>>>>>>> Stashed changes
         if math.random() > config.spawnChance then
             continue
         end
         
+<<<<<<< Updated upstream
         -- Choose weapon table (80% normal, 20% special)
+=======
+
+>>>>>>> Stashed changes
         local weaponTable = math.random() < 0.8 
         local weaponClass = firstG[math.random(#firstG)]
         
         -- Create weapon
         local weapon = ents.Create(weaponClass)
         if IsValid(weapon) then
+<<<<<<< Updated upstream
             -- Add some random offset to prevent stacking
+=======
+
+>>>>>>> Stashed changes
             local offset = Vector(
                 math.random(-20, 20),
                 math.random(-20, 20),
@@ -232,7 +265,11 @@ function SpawnTTTWeapons()
             if IsValid(phys) then
                 phys:Wake()
             end
+<<<<<<< Updated upstream
             
+=======
+            weapon.Spawned = true
+>>>>>>> Stashed changes
             weaponsSpawned = weaponsSpawned + 1
         else
             print("[TTT] Failed to create weapon:", weaponClass)
