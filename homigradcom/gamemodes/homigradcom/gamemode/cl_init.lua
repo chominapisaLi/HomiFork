@@ -13,8 +13,7 @@ surface.CreateFont("HomigradScoreBoardFont",{
 	outline = true,
 	shadow = false
 })
-<<<<<<< Updated upstream
-=======
+
 surface.CreateFont("HomigradFontBiggest",{
 	font = "Roboto",
 	size = 45,
@@ -22,7 +21,7 @@ surface.CreateFont("HomigradFontBiggest",{
 	outline = false,
 	shadow = true
 })
->>>>>>> Stashed changes
+
 surface.CreateFont("HomigradFontBig",{
 	font = "Roboto",
 	size = 25,
